@@ -11,13 +11,13 @@ export const createFilesMap = function (files: string | any[]) {
   return map;
 };
 
-export const getFilesFromItemList = function (items, onDone) {
+export const getFilesFromItemList = function (items: string | any[], onDone: (arg0: any[], arg1: {}) => void) {
   // TOFIX: setURLModifier() breaks when the file being loaded is not in root
 
   let itemsCount = 0;
   let itemsTotal = 0;
 
-  const files = [];
+  const files: any[] = [];
   const filesMap = {};
 
   function onEntryHandled() {
@@ -28,10 +28,10 @@ export const getFilesFromItemList = function (items, onDone) {
     }
   }
 
-  function handleEntry(entry) {
+  function handleEntry(entry: { isDirectory: any; createReader: () => any; isFile: any; file: (arg0: (file: any) => void) => void; fullPath: string; }) {
     if (entry.isDirectory) {
       const reader = entry.createReader();
-      reader.readEntries(function (entries) {
+      reader.readEntries(function (entries: string | any[]) {
         for (let i = 0; i < entries.length; i++) {
           handleEntry(entries[i]);
         }
@@ -58,7 +58,7 @@ export const getFilesFromItemList = function (items, onDone) {
     }
   }
 };
-export const fetchBlobUrl = async function (url) {
+export const fetchBlobUrl = async function (url: RequestInfo | URL) {
   const response = await fetch(url);
   const blobData = await response.blob();
   return {
