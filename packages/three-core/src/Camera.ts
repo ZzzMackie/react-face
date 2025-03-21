@@ -1,9 +1,29 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as THREE from 'three';
 import TWEEN from '@tweenjs/tween.js';
-import { proxyOptions } from './proxy.js';
+import { proxyOptions } from './Proxy.ts';
 
 export class Camera {
-  constructor(cameraConfig = {}, threeEngine) {
+  threeEngine: any;
+  camera: THREE.PerspectiveCamera;
+  orthographicCamera: THREE.OrthographicCamera;
+  cameras: Map<any, any>;
+  viewportCamera: THREE.PerspectiveCamera;
+  viewportShading: string;
+  cameraList: { perspectiveCamera: string; orthographicCamera: string; };
+  sceneHelpers__three: any;
+  control__three: any;
+  constructor(cameraConfig: { 
+    fov?: number, 
+    aspect?: number, 
+    near?: number, 
+    far?: number, 
+    position?: { 
+      x: number, 
+      y: number, 
+      z: number 
+    }
+  }, threeEngine: any) {
     this.threeEngine = threeEngine;
     const { fov, aspect, near, far } = cameraConfig;
     // 初始化相机 和 设置相机位置
@@ -43,41 +63,41 @@ export class Camera {
     this.sceneHelpers__three.addHelper(this.viewportCamera);
   }
   // 切换场景相机
-  changeCamera(cameraType) {
+  changeCamera(cameraType: string | number) {
     this.sceneHelpers__three.removeHelper(this.viewportCamera);
     this.setViewportCamera(this.cameraList[cameraType]);
     this.sceneHelpers__three.addHelper(this.viewportCamera);
     this.control__three.resetOrbitControls(); // 置位控制器目标位置
     this.threeEngine.updateRenderer(); // 重新渲染
   }
-  updateAspect(aspect) {
+  updateAspect(aspect: any) {
     //防止模型变形
     this.viewportCamera.aspect = aspect;
     this.viewportCamera.updateProjectionMatrix();
   }
   // 添加相机
-  addCamera(camera) {
+  addCamera(camera: { isCamera: any; uuid: any; }) {
     if (camera.isCamera) {
       !this.cameras.get(camera.uuid) && this.cameras.set(camera.uuid, camera);
     }
   }
   // 移除相机
-  removeCamera(camera) {
+  removeCamera(camera: { uuid: any; }) {
     this.cameras.get(camera.uuid) && this.cameras.delete(camera.uuid);
   }
-  getCamera(uuid) {
+  getCamera(uuid: any) {
     return this.cameras.get(uuid);
   }
-  setViewportCamera(uuid) {
+  setViewportCamera(uuid: any) {
     this.viewportCamera = this.getCamera(uuid);
   }
-  setViewportShading(value) {
+  setViewportShading(value: any) {
     this.viewportShading = value;
   }
   // 切换相机位置
-  toAnimateCamera(data) {
+  toAnimateCamera(data: { x: any; y: any; z: any; }) {
     //切换镜头
-    let tween = new TWEEN.Tween({
+    const tween = new TWEEN.Tween({
       x: this.viewportCamera.position.x, // 相机当前位置x
       y: this.viewportCamera.position.y, // 相机当前位置y
       z: this.viewportCamera.position.z // 相机当前位置z
@@ -97,7 +117,7 @@ export class Camera {
     tween.start();
   }
   // 相机位置重置
-  cameraAnimateReset(cameraData) {
+  cameraAnimateReset(cameraData: { x: any; y: any; z: any; }) {
     const { x: positionX, y: positionY, z: positionZ } = this.viewportCamera.position;
     const { x: initialX, y: initialY, z: initialZ } = cameraData;
     if (
@@ -112,7 +132,7 @@ export class Camera {
     }
   }
   // 相机数据变更
-  cameraObjectChange(cameraData) {
+  cameraObjectChange(cameraData: { [x: string]: any; }) {
     // 重置相机
     this.control__three.orbitControllers.saveState(); //储存控制器状态
     this.control__three.resetOrbitControls(); // 置位控制器目标位置
