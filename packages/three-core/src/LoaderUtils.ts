@@ -18,7 +18,7 @@ export const getFilesFromItemList = function (items: string | any[], onDone: (ar
   let itemsTotal = 0;
 
   const files: any[] = [];
-  const filesMap = {};
+  const filesMap: {[key: string]: File} = {};
 
   function onEntryHandled() {
     itemsCount++;

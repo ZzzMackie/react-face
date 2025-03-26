@@ -26,6 +26,8 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
+    "@types/localforage": "^0.0.34",
+    "@types/node": "^20",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "@types/three": "^0.174.0",

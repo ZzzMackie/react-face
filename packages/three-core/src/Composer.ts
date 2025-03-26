@@ -7,11 +7,12 @@
 // import { HueSaturationShader } from '@fusen/threejs/examples/jsm/shaders/HueSaturationShader.js';
 // import * as THREE from '@fusen/threejs';
 // const clock = new THREE.Clock();
+import type { ThreeEngine } from '../main.d.ts';
 import { proxyOptions } from './Proxy.ts';
 export class Composer {
-  threeEngine: any;
-  composer: null;
-  constructor(threeEngine: any) {
+  threeEngine: ThreeEngine;
+  composer: any;
+  constructor(threeEngine: ThreeEngine) {
     this.threeEngine = threeEngine;
     this.composer = null;
     proxyOptions(this, this.threeEngine);

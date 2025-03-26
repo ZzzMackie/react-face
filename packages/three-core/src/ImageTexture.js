@@ -157,8 +157,8 @@ export class ImageTexture {
     }
   }
   // canvas渲染图片 可传入uuid 或者 文件
-  // eslint-disable-next-line no-unused-vars
-  async renderMaterialToCanvas({ uuid, domElement, material }) {
+   
+  async renderMaterialToCanvas({ uuid, domElement }) {
     try {
       if (!uuid) {
         return;
