@@ -1,3 +1,3 @@
-interface Number {
+interface NumberFormat {
     format(): string;
 }

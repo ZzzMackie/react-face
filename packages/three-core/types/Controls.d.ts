@@ -3,22 +3,23 @@ import { TransformControls } from 'three/examples/jsm/controls/TransformControls
 import * as THREE from 'three';
 import EventEmitter from 'events';
 import { ThreeEngine } from '../main';
-
+// 使用 type 定义类型别名
+type ControlsConfig = OrbitControls | TransformControls;
 declare class Control extends EventEmitter {
   threeEngine: ThreeEngine;
   originVector: THREE.Vector3;
   orbitControllers: OrbitControls | null;
   transformControls__three: TransformControls | null;
-  config: any;
+  config: OrbitControls | TransformControls;
   transformControls__visible: boolean;
 
-  constructor(config: {}, threeEngine: ThreeEngine);
+  constructor(config: ControlsConfig, threeEngine: ThreeEngine);
 
   // 创建轨道控制器
-  initOrbitControls(config?: {}): Promise<void>;
+  initOrbitControls(config?: ControlsConfig): Promise<void>;
 
   // 更新轨道控制器设置,config和three官网一致
-  setOrbitControls(config?: {}): Promise<void>;
+  setOrbitControls(config?: ControlsConfig): Promise<void>;
 
   // 重置轨道控制器回原位（上一次调用saveState的状态）
   resetOrbitControls(): void;

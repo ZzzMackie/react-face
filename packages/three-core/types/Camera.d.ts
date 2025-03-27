@@ -66,7 +66,7 @@ export declare class Camera {
 
   cameraAnimateReset(cameraData: { x: number, y: number, z: number }): void;
 
-  cameraObjectChange(cameraData: { [key: string]: any }): void;
+  cameraObjectChange(cameraData: CameraData): void;
 
   screenshot(w?: number, h?: number, type?: string, transparentBackground?: boolean, encoderOptions?: number): string;
 }

@@ -4,7 +4,7 @@ import { ThreeEngine } from '../main';
 export interface MaterialParams {
   material: THREE.Material;
   key: string;
-  value: any;
+  value: object | number | string | boolean;
   uuid?: string;
   needsUpdateMap?: boolean;
   needDeleteImage?: boolean;
@@ -13,7 +13,7 @@ export interface MaterialParams {
 export interface TextureMapParams {
   material: THREE.Material;
   key: string;
-  value: any;
+  value: string | THREE.Texture | CanvasDrawImage;
   uuid?: string;
   needsUpdateMap?: boolean;
   needDeleteImage?: boolean;

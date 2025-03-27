@@ -1,4 +1,8 @@
-
+declare global {
+  interface Number {
+    format(): string;
+  }
+}
 Number.prototype.format = function () {
   return this.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
 };
@@ -8,29 +12,49 @@ Number.prototype.format = function () {
  * */
 import EventEmitter from 'events';
 import * as THREE from 'three';
-import { Camera } from './core/Camera.ts';
-import { Renderer } from './core/Renderer.js';
-import { Geometry } from './core/Geometry.js';
-import { Control } from './core/Controls.js';
-import { Material } from './core/Material.js';
-import { Light } from './core/Light.js';
-import { SceneHDR } from './core/SceneHDR.js';
-import { ImageTexture } from './core/ImageTexture.js';
-import { SceneHelpers } from './core/SceneHelpers.js';
-import { Object3D } from './core/Object3D.js';
-import { Loader } from './core/FileLoader.js';
-import { ViewHelper } from './core/ViewHelper.js';
-import { IndexDb } from './core/IndexDb.js';
-import { Composer } from './core/Composer.js';
-import { Exporter } from './core/Exporter.js';
+import { Camera as CustomCamera } from './src/Camera.ts';
+import { Renderer } from './src/Renderer.js';
+import { Geometry } from './src/Geometry.js';
+import { Control } from './src/Controls.js';
+import { Material } from './src/Material.js';
+import { Light } from './src/Light.js';
+import { SceneHDR } from './src/SceneHDR.js';
+import { ImageTexture } from './src/ImageTexture.js';
+import { SceneHelpers } from './src/SceneHelpers.js';
+import { Object3D } from './src/Object3D.js';
+import { Loader } from './src/FileLoader.js';
+import { ViewHelper } from './src/ViewHelper.js';
+import { IndexDb } from './src/IndexDb.js';
+import { Composer } from './src/Composer.ts';
+import { Exporter } from './src/Exporter.js';
+import type { ControlsConfig } from './types/Controls.d.ts'
 export class ThreeEngine extends EventEmitter {
-  static generateUUID() {
+  config: object;
+  geometry__three: Geometry | null;
+  control__three: Control | null;
+  material__three: Material | null;
+  light__three: Light | null;
+  sceneHDR__three: SceneHDR | null;
+  imageTexture__three: ImageTexture | null;
+  sceneHelpers__three: SceneHelpers | null;
+  loader__three: Loader | null;
+  object3D__three: Object3D | null;
+  camera__three: CustomCamera | null;
+  scene__three: THREE.Scene | null;
+  renderer__three: Renderer | null;
+  viewHelper__three: ViewHelper | null;
+  indexDB__three: IndexDb | null;
+  composer__three: Composer | null;
+  exporter__three: Exporter | null;
+  static generateUUID(): string {
     return THREE.MathUtils.generateUUID();
   }
-  static getTHREE() {
+
+  static getTHREE(): typeof THREE {
     return THREE;
   }
-  getTHREE() {
+
+  getTHREE(): typeof THREE {
     return ThreeEngine.getTHREE();
   }
   constructor(config = {}) {
@@ -111,12 +135,17 @@ export class ThreeEngine extends EventEmitter {
       this.initRenderer(config);
       // 场景
       this.scene__three = new THREE.Scene();
-      this.scene__three.add(this.camera__three.camera);
-      this.scene__three.add(this.camera__three.orthographicCamera);
-      this.renderer__three.renderer.compileAsync(this.scene__three, this.camera__three.viewportCamera);
-
-      // 渲染
-      this.renderer__three.render(this.scene__three, this.camera__three.viewportCamera);
+      if(this.camera__three) {
+        this.scene__three.add(this.camera__three.camera);
+        this.scene__three.add(this.camera__three.orthographicCamera);
+        this.renderer__three.renderer.compileAsync(this.scene__three, this.camera__three.viewportCamera);
+  
+        // 渲染
+        this.renderer__three.render(this.scene__three, this.camera__three.viewportCamera);
+      } else {
+        console.error('相机未正确初始化');
+      }
+      
       // 递归更新视图
       this.updateAnimateRenderer();
     } catch (error) {
@@ -125,21 +154,23 @@ export class ThreeEngine extends EventEmitter {
   }
 
   initComposer() {
-    this.composer__three.initComposer();
+    this?.composer__three?.initComposer?.();
   }
 
   // 初始化视口辅助线
   initViewHelper(containerDom, viewHelperDom) {
-    this.viewHelper__three = new ViewHelper(this.camera__three.viewportCamera, containerDom, viewHelperDom);
+    if (this.camera__three) {
+      this.viewHelper__three = new ViewHelper(this.camera__three.viewportCamera, containerDom, viewHelperDom);
+    }
   }
 
-  setViewHelperVisible(value) {
+  setViewHelperVisible(value: boolean) {
     this?.viewHelper__three?.setViewHelperVisible?.(value);
   }
 
   /*************************** 控制器相关 ************************/
   // 创建轨道控制器
-  async initOrbitControls(config) {
+  async initOrbitControls(config: ControlsConfig) {
     await this.control__three.initOrbitControls({
       ...config
     });
@@ -150,19 +181,19 @@ export class ThreeEngine extends EventEmitter {
     return await this.control__three.initTransformControls(mode);
   }
 
-  attachTransformControls(uuid) {
+  attachTransformControls(uuid: string) {
     this.control__three.attachTransformControls(uuid);
   }
 
   // 设置变换控制器模式
   // "translate"、"rotate" 和 "scale"
-  setTransformControlsMode(mode) {
+  setTransformControlsMode(mode: string) {
     if (!['translate', 'rotate', 'scale'].includes(mode)) return;
     this.control__three.setTransformControlsMode(mode);
   }
 
   // 设置轨道控制器
-  async setOrbitControls(config = {}) {
+  async setOrbitControls(config: ControlsConfig | null) {
     return await this.control__three.setOrbitControls({
       ...config
     });
@@ -213,17 +244,17 @@ export class ThreeEngine extends EventEmitter {
   }
 
   // 移除3d对象
-  removeObject3D(uuid) {
+  removeObject3D(uuid: string) {
     this.object3D__three.removeObject3D({ uuid });
   }
 
   // 修改模型数据
-  setModelMeshProps(uuid, data) {
+  setModelMeshProps(uuid: string, data) {
     this.object3D__three.setModelMeshProps(uuid, data);
   }
 
   // 显示隐藏模型
-  toggleModelVisible(uuid) {
+  toggleModelVisible(uuid: string) {
     this.object3D__three.toggleModelVisible(uuid);
   }
 
@@ -289,7 +320,7 @@ export class ThreeEngine extends EventEmitter {
   /*******************  相机相关  ******************/
   // 初始化相机
   initCamera(config) {
-    this.camera__three = new Camera({ ...this.config.cameraConfig, ...config.cameraConfig }, this);
+    this.camera__three = new CustomCamera({ ...this.config.cameraConfig, ...config.cameraConfig }, this);
   }
 
   // 切换相机类型
@@ -419,7 +450,7 @@ export class ThreeEngine extends EventEmitter {
   }
 
   // 删除材质
-  deleteMaterial({ uuid, deleteKeys = [] }) {
+  deleteMaterial({ uuid = '', deleteKeys = [] }) {
     this.material__three.deleteMaterial({ uuid, deleteKeys });
   }
 
@@ -430,15 +461,15 @@ export class ThreeEngine extends EventEmitter {
     return THREE.MathUtils.generateUUID();
   }
   // 添加贴图数据
-  async addImageData(uuid, url) {
+  async addImageData(uuid: string, url: string) {
     await this.imageTexture__three.addImageData(uuid, url);
   }
 
-  renderToCanvas(file, domElement) {
+  renderToCanvas(file: string | File, domElement: HTMLCanvasElement) {
     this.imageTexture__three.renderToCanvas(file, domElement);
   }
 
-  async exportModelFile(data) {
+  async exportModelFile(data: object) {
     if (this.exporter__three) {
       return await this.exporter__three.exportModelFile(data);
     } else {
