@@ -1,6 +1,28 @@
 import * as THREE from 'three';
 import { ThreeEngine } from '../main';
 
+type ThreeObjectParams = THREE.Object3D
+
+type Object3DMesh = THREE.Mesh | THREE.SkinnedMesh | THREE.Line | THREE.Points;
+
+type UUID = string;
+interface Object3DDataParams {
+  geometries?: []; 
+  materials?: []; 
+  images?: []; 
+  modelMesh?: []; 
+}
+
+interface Object3DMeshTransform {
+  uuid: UUID;
+  position: { x?: number; y?: number; z?: number; }; 
+  type?: 'translate' | 'scale' | 'rotation'
+}
+interface Object3DParams { 
+  data: Object3DDataParams; 
+  parent?: THREE.Object3D; 
+  index?: number 
+}
 export class Object3D {
   threeEngine: ThreeEngine;
   texturePath: string;
@@ -14,9 +36,9 @@ export class Object3D {
   isRotationRepeatMap(key: string): boolean;
   setObjectMaterialRotationRepeatMap(params: { material: THREE.Material; materialData: any }): Promise<void>;
   addObjectGroup(params: { object: THREE.Object3D; data?: any }): Promise<void>;
-  addModelObject(params: { data: any; parent?: THREE.Object3D; index?: number }): Promise<void>;
+  addModelObject(params: Object3DParams): Promise<void>;
   toggleModelVisible(uuid: string): void;
-  loadMeshObject(params: { data: any; parent?: THREE.Object3D; index?: number }): Promise<void>;
+  loadMeshObject(params: Object3DParams): Promise<void>;
   swapObjectMeshMaterial(params: { oldMesh: THREE.Mesh; newMesh: THREE.Mesh }): Promise<void>;
   swapObjectMesh(params: { object: THREE.Object3D; swapMeshUUid: string; swapIndex?: number }): Promise<void>;
   changeObjectMesh(params: { file: any; meshUUid: string; swapIndex?: number }): Promise<void>;

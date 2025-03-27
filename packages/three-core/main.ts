@@ -28,6 +28,8 @@ import { IndexDb } from './src/IndexDb.js';
 import { Composer } from './src/Composer.ts';
 import { Exporter } from './src/Exporter.js';
 import type { ControlsConfig } from './types/Controls.d.ts'
+import type { GeometryTransform } from './types/Geometry.d.ts'
+import type { Object3DParams, Object3DMesh, Object3DMeshTransform } from './types/Object3D.d.ts'
 export class ThreeEngine extends EventEmitter {
   config: object;
   geometry__three: Geometry | null;
@@ -158,7 +160,7 @@ export class ThreeEngine extends EventEmitter {
   }
 
   // 初始化视口辅助线
-  initViewHelper(containerDom, viewHelperDom) {
+  initViewHelper(containerDom: HTMLElement, viewHelperDom: HTMLElement) {
     if (this.camera__three) {
       this.viewHelper__three = new ViewHelper(this.camera__three.viewportCamera, containerDom, viewHelperDom);
     }
@@ -224,7 +226,7 @@ export class ThreeEngine extends EventEmitter {
   }
 
   // 添加模型场景对象 threeJs官方编辑器到出的场景json格式
-  async addModelObject({ data, parent, index }) {
+  async addModelObject({ data, parent, index }: Object3DParams) {
     return await this.object3D__three.addModelObject({ data, parent, index });
   }
 
@@ -234,12 +236,12 @@ export class ThreeEngine extends EventEmitter {
   }
 
   // 添加模型 threeJs官 object3D格式
-  async loadMeshObject({ data, parent, index }) {
+  async loadMeshObject({ data, parent, index }: Object3DParams) {
     return await this.object3D__three.loadMeshObject({ data, parent, index });
   }
 
   // 添加对象
-  addObject({ data, parent, index }) {
+  addObject({ data, parent, index }: Object3DParams) {
     this.object3D__three.addObject({ data, parent, index });
   }
 
@@ -249,7 +251,7 @@ export class ThreeEngine extends EventEmitter {
   }
 
   // 修改模型数据
-  setModelMeshProps(uuid: string, data) {
+  setModelMeshProps(uuid: string, data: Object3DMesh) {
     this.object3D__three.setModelMeshProps(uuid, data);
   }
 
@@ -259,12 +261,12 @@ export class ThreeEngine extends EventEmitter {
   }
 
   // 设置模型面片变换 本质都是模型变换
-  setModelGeometryTransform({ uuid, position, type }) {
+  setModelGeometryTransform({ uuid, position, type }: GeometryTransform) {
     this.geometry__three.setModelGeometryTransform({ uuid, position, type });
   }
 
   // 设置模型本身变换 本质都是模型变换
-  setModelMeshTransform({ uuid, position, type }) {
+  setModelMeshTransform({ uuid, position, type }: Object3DMeshTransform) {
     this.object3D__three.setModelMeshTransform({ uuid, position, type });
   }
 
