@@ -3,7 +3,7 @@
 import * as THREE from 'three';
 import TWEEN from '@tweenjs/tween.js';
 import { proxyOptions } from './Proxy.ts';
-import type { CameraConfig, CameraData, CameraWithCustomProps } from '../types/camera';
+import type { CameraConfig, CameraData, CameraWithCustomProps, CameraPosition } from '../types/camera';
 import type { ThreeEngine } from '../main.d.ts';
 import type { SceneHelpers } from '../types/SceneHelpers';
 import { Control } from '../types/Controls';
@@ -116,7 +116,7 @@ export class Camera {
     this.viewportShading = value;
   }
   // 切换相机位置
-  toAnimateCamera(data: { x: any; y: any; z: any; }) {
+  toAnimateCamera(data: CameraPosition) {
     //切换镜头
     const tween = new TWEEN.Tween({
       x: this.viewportCamera.position.x, // 相机当前位置x
@@ -138,9 +138,9 @@ export class Camera {
     tween.start();
   }
   // 相机位置重置
-  cameraAnimateReset(cameraData: { x: any; y: any; z: any; }) {
+  cameraAnimateReset(cameraData: CameraPosition) {
     const { x: positionX, y: positionY, z: positionZ } = this.viewportCamera.position;
-    const { x: initialX, y: initialY, z: initialZ } = cameraData;
+    const { x: initialX = 0, y: initialY = 0, z: initialZ = 0 } = cameraData;
     if (
       Math.abs(positionX - initialX) > 0.01 ||
       Math.abs(positionY - initialY) > 0.01 ||

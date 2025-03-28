@@ -3,18 +3,19 @@ import { ThreeEngine } from '../main';
 import { SceneHelpers } from './SceneHelpers';
 import { Control } from './Controls';
 
-export interface CameraConfig { 
+interface CameraPosition { 
+  x?: number | undefined, 
+  y?: number | undefined, 
+  z?: number | undefined 
+}
+interface CameraConfig { 
     fov?: number; 
     aspect?: number;
     near?: number;
     far?: number;
-    position?: { 
-      x: number, 
-      y: number, 
-      z: number 
-    };
+    position?: CameraPosition;
 }
-export interface CameraData {
+interface CameraData {
     fov?: number,
     zoom?: number,
     near?: number,
@@ -23,11 +24,7 @@ export interface CameraData {
     aspect?: number,
     filmGauge?: number,
     filmOffset?: number,
-    position?: {
-        x?: number,
-        y?: number,
-        z?: number
-    }
+    position?: CameraPosition
   }
 
 type CustomCamera = THREE.PerspectiveCamera | THREE.OrthographicCamera;
@@ -62,9 +59,9 @@ export declare class Camera {
 
   setViewportShading(value: string): void;
 
-  toAnimateCamera(data: { x: number, y: number, z: number }): void;
+  toAnimateCamera(data: CameraPosition): void;
 
-  cameraAnimateReset(cameraData: { x: number, y: number, z: number }): void;
+  cameraAnimateReset(cameraData: CameraPosition): void;
 
   cameraObjectChange(cameraData: CameraData): void;
 

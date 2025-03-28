@@ -29,9 +29,17 @@ import { Composer } from './src/Composer.ts';
 import { Exporter } from './src/Exporter.js';
 import type { ControlsConfig } from './types/Controls.d.ts'
 import type { GeometryTransform } from './types/Geometry.d.ts'
-import type { Object3DParams, Object3DMesh, Object3DMeshTransform } from './types/Object3D.d.ts'
+import type { CameraPosition, CameraData } from './types/Camera.d.ts'
+import type { RendererOptions, ToneMappingExposureParam, ShadowMapParam } from './types/Renderer.d.ts'
+import type { 
+  Object3DParams, 
+  Object3DMesh, 
+  Object3DMeshTransform, 
+  ObjectGroupParams, 
+  Object3DChangeMeshParams
+ } from './types/Object3D.d.ts'
 export class ThreeEngine extends EventEmitter {
-  config: object;
+  config: RendererOptions;
   geometry__three: Geometry | null;
   control__three: Control | null;
   material__three: Material | null;
@@ -131,7 +139,7 @@ export class ThreeEngine extends EventEmitter {
   }
 
   // 初始化场景
-  initApp(config = {}) {
+  initApp(config: RendererOptions) {
     try {
       this.initCamera(config);
       this.initRenderer(config);
@@ -221,7 +229,7 @@ export class ThreeEngine extends EventEmitter {
   }
 
   // 添加模型组
-  async addObjectGroup({ object, data }) {
+  async addObjectGroup({ object, data }: ObjectGroupParams) {
     return await this.object3D__three.addObjectGroup({ object, data });
   }
 
@@ -231,7 +239,7 @@ export class ThreeEngine extends EventEmitter {
   }
 
   // 替换模型对象
-  async changeObjectMesh(data) {
+  async changeObjectMesh(data: Object3DChangeMeshParams) {
     return await this.object3D__three.changeObjectMesh(data);
   }
 
@@ -274,10 +282,10 @@ export class ThreeEngine extends EventEmitter {
 
   /*******************  渲染器相关  ***************/
   // 初始化渲染实例
-  initRenderer(config) {
-    this.renderer__three = new Renderer({ ...this.config.renderOptions, ...config.renderOptions }, this);
+  initRenderer(config: RendererOptions) {
+    this.renderer__three = new Renderer({ ...this.config?.renderOptions, ...config?.renderOptions }, this);
   }
-  resetRenderer(options) {
+  resetRenderer(options: RendererOptions) {
     this.renderer__three.resetRenderer(options);
   }
 
@@ -293,26 +301,26 @@ export class ThreeEngine extends EventEmitter {
   }
 
   // 设置场景曝光度
-  setToneMappingExposure({ toneMapping, toneMappingExposure }) {
+  setToneMappingExposure({ toneMapping, toneMappingExposure }: ToneMappingExposureParam) {
     this.renderer__three.setToneMappingExposure({ toneMapping, toneMappingExposure });
   }
 
   // 设置阴影映射
-  setShadowMap({ shadows, shadowType }) {
+  setShadowMap({ shadows, shadowType }: ShadowMapParam) {
     this.renderer__three.setShadowMap({ shadows, shadowType });
   }
   // 设置渲染器是否在渲染每一帧之前自动清除其输出
-  setAutoClear(autoClear) {
+  setAutoClear(autoClear: boolean) {
     this.renderer__three.setAutoClear(autoClear);
   }
 
   // 渲染区域宽高和摄像机变化。
-  resizeRendererAndCamera(width, height) {
+  resizeRendererAndCamera(width: number, height: number) {
     this.emit('resizeRendererBeforeUpdated', { width, height });
     //刷新场景宽高
     this.renderer__three.setSize(width, height);
     //防止模型变形
-    this.camera__three.updateAspect(width / height);
+    this.camera__three?.updateAspect?.(width / height);
     this.updateRenderer();
     this.emit('resizeRendererUpdated', { width, height });
   }
@@ -321,33 +329,33 @@ export class ThreeEngine extends EventEmitter {
 
   /*******************  相机相关  ******************/
   // 初始化相机
-  initCamera(config) {
+  initCamera(config: RendererOptions) {
     this.camera__three = new CustomCamera({ ...this.config.cameraConfig, ...config.cameraConfig }, this);
   }
 
   // 切换相机类型
-  changeCamera(cameraType) {
-    this.camera__three.changeCamera(cameraType);
+  changeCamera(cameraType: string | number) {
+    this.camera__three?.changeCamera?.(cameraType);
   }
 
   // 切换镜头
-  toAnimateCamera(data) {
-    this.camera__three.toAnimateCamera(data);
+  toAnimateCamera(data: CameraPosition) {
+    this.camera__three?.toAnimateCamera?.(data);
   }
 
   // 相机数据变更
-  cameraObjectChange(data) {
-    this.camera__three.cameraObjectChange(data);
+  cameraObjectChange(data: CameraData) {
+    this.camera__three?.cameraObjectChange?.(data);
   }
 
   // 相机重置
-  cameraAnimateReset(cameraData) {
-    this.camera__three.cameraAnimateReset(cameraData);
+  cameraAnimateReset(cameraData: CameraPosition) {
+    this.camera__three?.cameraAnimateReset?.(cameraData);
   }
 
   //截图
   screenshot(w = 600, h = 600, type = 'image/png', transparentBackground = false, encoderOptions = 1) {
-    return this.camera__three.screenshot(w, h, type, transparentBackground, encoderOptions);
+    return this?.camera__three?.screenshot?.(w, h, type, transparentBackground, encoderOptions);
   }
 
   /******************* 相机相关 End *****************/

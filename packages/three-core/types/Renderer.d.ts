@@ -2,17 +2,28 @@ import * as THREE from 'three';
 import EventEmitter from 'events';
 import type { ThreeEngine } from '../main.d.ts';
 
+interface RendererOptions {
+  renderOptions: THREE.WebGLRenderer;
+  cameraConfig?: THREE.Camera
+}
+interface ToneMappingExposureParam { 
+  toneMapping?: THREE.ToneMapping, toneMappingExposure?: number
+}
+
+interface ShadowMapParam {
+  shadows?: boolean, shadowType?: THREE.ShadowMapType
+}
 export declare class Renderer extends EventEmitter {
   renderer: THREE.WebGLRenderer | null;
   clock: THREE.Clock;
   options: any;
   PMREMGenerator: THREE.PMREMGenerator | null;
 
-  constructor(options: any, threeEngine: ThreeEngine);
+  constructor(options: RendererOptions, threeEngine: ThreeEngine);
 
-  initRenderer(options: any): void;
+  initRenderer(options: RendererOptions): void;
 
-  resetRenderer(options: any): void;
+  resetRenderer(options: RendererOptions): void;
 
   initRendererOptions(): void;
 
@@ -22,9 +33,9 @@ export declare class Renderer extends EventEmitter {
 
   updateRenderer(): void;
 
-  setToneMappingExposure(options: { toneMapping?: THREE.ToneMapping, toneMappingExposure?: number }): void;
+  setToneMappingExposure(options: ToneMappingExposureParam): void;
 
-  setShadowMap(options: { shadows?: boolean, shadowType?: THREE.ShadowMapType }): void;
+  setShadowMap(options: ShadowMapParam): void;
 
   setXR(enabled: boolean): void;
 
