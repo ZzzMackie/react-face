@@ -16,7 +16,7 @@ interface ShadowMapParam {
 export declare class Renderer extends EventEmitter {
   renderer: THREE.WebGLRenderer | null;
   clock: THREE.Clock;
-  options: any;
+  options: RendererOptions;
   PMREMGenerator: THREE.PMREMGenerator | null;
 
   constructor(options: RendererOptions, threeEngine: ThreeEngine);
