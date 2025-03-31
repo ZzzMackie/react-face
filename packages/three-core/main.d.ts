@@ -9,7 +9,7 @@ import { ImageTexture } from './types/ImageTexture';
 import { SceneHelpers } from './types/SceneHelpers';
 import { Loader } from './types/FileLoader';
 import { Object3D } from './types/Object3D';
-import { Camera } from './types/Camera';
+import { Camera } from './types/Camera.d.ts';
 import { Renderer } from './types/Renderer';
 import { ViewHelper } from './types/ViewHelper';
 import { IndexDb } from './types/IndexDb';

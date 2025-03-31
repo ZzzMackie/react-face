@@ -1,11 +1,13 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as THREE from 'three';
 import { ThreeEngine } from '../main';
 
+type UUID = string;
 export interface MaterialParams {
   material: THREE.Material;
   key: string;
   value: object | number | string | boolean;
-  uuid?: string;
+  uuid?: UUID;
   needsUpdateMap?: boolean;
   needDeleteImage?: boolean;
 }
@@ -14,7 +16,7 @@ export interface TextureMapParams {
   material: THREE.Material;
   key: string;
   value: string | THREE.Texture | CanvasDrawImage;
-  uuid?: string;
+  uuid?: UUID;
   needsUpdateMap?: boolean;
   needDeleteImage?: boolean;
 }
@@ -32,15 +34,26 @@ export interface ResetMaterialDataParams {
 }
 
 export interface FindMeshMaterialByModelIdParams {
-  uuid: number;
+  uuid: UUID;
 }
 
 export interface DeleteMaterialParams {
-  uuid: number;
+  uuid: UUID;
   deleteKeys?: string[];
   needDeleteImage?: boolean;
 }
 
+interface UpdateMaterialParams {
+  uuid: UUID, 
+  key: string, 
+  value: any
+}
+
+interface ChangeMaterialParams {
+  uuid: UUID, 
+  originMaterial: THREE.Material, 
+  newMaterialType: string
+}
 declare class Material {
   threeEngine: ThreeEngine;
   materialsRefCounter: Map<THREE.Material, number>;
@@ -64,13 +77,13 @@ declare class Material {
 
   setMaterialValue(params: MaterialParams): Promise<void>;
 
-  updateMaterial(uuid: number, key: string, value: any): Promise<void>;
+  updateMaterial(params: UpdateMaterialParams): Promise<void>;
 
-  changeMaterial(uuid: number, originMaterial: any, newMaterialType: string): Promise<THREE.Material>;
+  changeMaterial(params: ChangeMaterialParams): Promise<THREE.Material>;
 
   colorMapsHandler(key: string, texture: THREE.Texture): void;
 
-  updateMeshMaterial(uuid: number): void;
+  updateMeshMaterial(uuid: UUID): void;
 
   addMaterials(materials: THREE.Material | THREE.Material[]): void;
 
@@ -82,7 +95,7 @@ declare class Material {
 
   removeMaterialFromRefCounter(material: THREE.Material, needDeleteImage?: boolean): void;
 
-  deleteMaterialProp(uuid: number, needDeleteImage?: boolean): void;
+  deleteMaterialProp(uuid: UUID, needDeleteImage?: boolean): void;
 
   getMaterialById(id: number): THREE.Material | undefined;
 

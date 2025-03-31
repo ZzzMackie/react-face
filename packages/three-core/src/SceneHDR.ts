@@ -1,6 +1,6 @@
-/* eslint-disable no-case-declarations */
+ 
 import * as THREE from 'three';
-import { proxyOptions } from './proxy.js';
+import { proxyOptions } from './Proxy.ts';
 export class SceneHDR {
   constructor(threeEngine) {
     this.threeEngine = threeEngine;

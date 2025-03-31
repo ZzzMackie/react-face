@@ -11,14 +11,9 @@ export interface EnvironmentOptions {
   envMapIntensity?: number;
 }
 
-export interface BackgroundOptions {
-  backgroundBlurriness?: number;
-  backgroundIntensity?: number;
-  backgroundRotation?: { x: number, y: number, z: number };
-}
-
 export interface SetEnvironmentOptions {
   texture: string;
+  path?: string;
   mapping?: THREE.Mapping;
 }
 
@@ -30,6 +25,10 @@ export interface UpdateBackgroundPropOptions {
 
 export interface UpdateEnvironmentTextureMappingOptions {
   mapping: THREE.Mapping;
+}
+
+interface UpdateMaterialsEnvMapIntensityOptions {
+  envMapIntensity: number
 }
 
 export interface Background {
@@ -64,7 +63,7 @@ export class SceneHDR {
 
   updateEnvironmentProp(options: EnvironmentOptions): void;
 
-  updateBackgroundProp(options: BackgroundOptions): void;
+  updateBackgroundProp(options: UpdateBackgroundPropOptions): void;
 
   setImage(data: { path?: string, texture?: string }): Promise<void>;
 

@@ -2,7 +2,11 @@
 import * as THREE from 'three';
 import { RectAreaLightHelper } from 'three/examples/jsm/helpers/RectAreaLightHelper.js';
 import { ThreeEngine } from '../main';
-
+type LightConfig = THREE.Light;
+interface LightParam {
+  lightClass: string; 
+  lightConfig: LightConfig; 
+}
 declare class Light {
   threeEngine: ThreeEngine;
   lightMap: Map<string, THREE.Light>;
@@ -11,14 +15,14 @@ declare class Light {
   constructor(threeEngine: ThreeEngine);
 
   // 创建灯光并添加进场景
-  addLight({ lightClass, lightConfig }: { lightClass: string, lightConfig: any }): THREE.Light;
+  addLight({ lightClass, lightConfig }: LightParam): THREE.Light;
 
   getLight(lightId: string): THREE.Light | undefined;
 
   setLight(lightId: string, light_three: THREE.Light): void;
 
   // 更新灯光
-  updateLight(config: any): void;
+  updateLight(config: LightConfig): void;
 
   // 删除灯光
   deleteLight(lightId: string): void;

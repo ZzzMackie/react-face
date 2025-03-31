@@ -1,11 +1,12 @@
 import * as THREE from 'three';
 import TWEEN from '@tweenjs/tween.js';
 import EventEmitter from 'events';
-import Config from './Config';
+import Config from './Config.ts';
 const config = new Config();
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 export class Renderer extends EventEmitter {
+  renderer: THREE.WebGLRenderer;
   constructor(options, threeEngine) {
     super();
     this.threeEngine = threeEngine;
@@ -42,8 +43,8 @@ export class Renderer extends EventEmitter {
   }
   // 重置渲染器
   resetRenderer(options) {
-    let renderer = this.renderer;
-    let canvas = options?.canvas || renderer.domElement;
+    const renderer = this.renderer;
+    const canvas = options?.canvas || renderer.domElement;
     options.canvas = canvas;
     renderer.setAnimationLoop(null);
     renderer.dispose();

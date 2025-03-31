@@ -3,7 +3,7 @@
 import * as THREE from 'three';
 import TWEEN from '@tweenjs/tween.js';
 import { proxyOptions } from './Proxy.ts';
-import type { CameraConfig, CameraData, CameraWithCustomProps, CameraPosition } from '../types/camera';
+import type { CameraConfig, CameraData, CameraWithCustomProps, CameraPosition } from '../types/Camera.d.ts';
 import type { ThreeEngine } from '../main.d.ts';
 import type { SceneHelpers } from '../types/SceneHelpers';
 import { Control } from '../types/Controls';
@@ -30,9 +30,9 @@ export class Camera {
     const { fov, aspect, near, far } = cameraConfig;
     // 初始化相机 和 设置相机位置
     const {
-      x: cameraX,
-      y: cameraY,
-      z: cameraZ
+      x: cameraX = 0,
+      y: cameraY = 0,
+      z: cameraZ = 0
     } = cameraConfig.position || {
       x: 0,
       y: 0,

@@ -13,23 +13,38 @@ Number.prototype.format = function () {
 import EventEmitter from 'events';
 import * as THREE from 'three';
 import { Camera as CustomCamera } from './src/Camera.ts';
-import { Renderer } from './src/Renderer.js';
-import { Geometry } from './src/Geometry.js';
-import { Control } from './src/Controls.js';
-import { Material } from './src/Material.js';
-import { Light } from './src/Light.js';
-import { SceneHDR } from './src/SceneHDR.js';
-import { ImageTexture } from './src/ImageTexture.js';
-import { SceneHelpers } from './src/SceneHelpers.js';
-import { Object3D } from './src/Object3D.js';
-import { Loader } from './src/FileLoader.js';
-import { ViewHelper } from './src/ViewHelper.js';
-import { IndexDb } from './src/IndexDb.js';
+import { Renderer } from './src/Renderer.ts';
+import { Geometry } from './src/Geometry.ts';
+import { Control } from './src/Controls.ts';
+import { Material } from './src/Material.ts';
+import { Light } from './src/Light.ts';
+import { SceneHDR } from './src/SceneHDR.ts';
+import { ImageTexture } from './src/ImageTexture.ts';
+import { SceneHelpers } from './src/SceneHelpers.ts';
+import { Object3D } from './src/Object3D.ts';
+import { Loader } from './src/FileLoader.ts';
+import { ViewHelper } from './src/ViewHelper.ts';
+import { IndexDb } from './src/IndexDb.ts';
 import { Composer } from './src/Composer.ts';
-import { Exporter } from './src/Exporter.js';
+import { Exporter } from './src/Exporter.ts';
 import type { ControlsConfig } from './types/Controls.d.ts'
 import type { GeometryTransform } from './types/Geometry.d.ts'
 import type { CameraPosition, CameraData } from './types/Camera.d.ts'
+import type { LightParam, LightConfig } from './types/Light.d.ts'
+import type { 
+  UpdateMaterialParams, 
+  ChangeMaterialParams,
+  DeleteMaterialParams,
+  UUID
+ } from './types/Material.d.ts';
+import type { 
+  EnvironmentOptions, 
+  SetEnvironmentOptions, 
+  Background, 
+  SetBackgroundOptions, 
+  UpdateEnvironmentTextureMappingOptions,
+  UpdateMaterialsEnvMapIntensityOptions } from './types/SceneHDR.d.ts'
+
 import type { RendererOptions, ToneMappingExposureParam, ShadowMapParam } from './types/Renderer.d.ts'
 import type { 
   Object3DParams, 
@@ -67,7 +82,7 @@ export class ThreeEngine extends EventEmitter {
   getTHREE(): typeof THREE {
     return ThreeEngine.getTHREE();
   }
-  constructor(config = {}) {
+  constructor(config: RendererOptions) {
     super();
     this.config = config;
     // 面片
@@ -100,6 +115,8 @@ export class ThreeEngine extends EventEmitter {
     this.indexDB__three = null;
     // 效果合成器
     this.composer__three = null;
+    // 导出
+    this.exporter__three = null;
     this.initInstance();
   }
 
@@ -148,10 +165,10 @@ export class ThreeEngine extends EventEmitter {
       if(this.camera__three) {
         this.scene__three.add(this.camera__three.camera);
         this.scene__three.add(this.camera__three.orthographicCamera);
-        this.renderer__three.renderer.compileAsync(this.scene__three, this.camera__three.viewportCamera);
+        this.renderer__three?.renderer?.compileAsync?.(this.scene__three, this.camera__three.viewportCamera);
   
         // 渲染
-        this.renderer__three.render(this.scene__three, this.camera__three.viewportCamera);
+        this.renderer__three?.render(this.scene__three, this.camera__three.viewportCamera);
       } else {
         console.error('相机未正确初始化');
       }
@@ -191,7 +208,7 @@ export class ThreeEngine extends EventEmitter {
     return await this.control__three.initTransformControls(mode);
   }
 
-  attachTransformControls(uuid: string) {
+  attachTransformControls(uuid: UUID) {
     this.control__three.attachTransformControls(uuid);
   }
 
@@ -254,17 +271,17 @@ export class ThreeEngine extends EventEmitter {
   }
 
   // 移除3d对象
-  removeObject3D(uuid: string) {
+  removeObject3D(uuid: UUID) {
     this.object3D__three.removeObject3D({ uuid });
   }
 
   // 修改模型数据
-  setModelMeshProps(uuid: string, data: Object3DMesh) {
+  setModelMeshProps(uuid: UUID, data: Object3DMesh) {
     this.object3D__three.setModelMeshProps(uuid, data);
   }
 
   // 显示隐藏模型
-  toggleModelVisible(uuid: string) {
+  toggleModelVisible(uuid: UUID) {
     this.object3D__three.toggleModelVisible(uuid);
   }
 
@@ -363,18 +380,18 @@ export class ThreeEngine extends EventEmitter {
   /*******************  灯光相关  *******************/
 
   // 创建灯光并添加进场景
-  addLight({ lightClass, lightConfig }) {
+  addLight({ lightClass, lightConfig }: LightParam) {
     return this.light__three.addLight({
       lightClass,
       lightConfig
     });
   }
   // 更新灯光
-  updateLight(config) {
+  updateLight(config: LightConfig) {
     this.light__three.updateLight(config);
   }
   // 删除灯光
-  deleteLight(lightId) {
+  deleteLight(lightId: string) {
     this.light__three.deleteLight(lightId);
   }
 
@@ -382,12 +399,12 @@ export class ThreeEngine extends EventEmitter {
 
   /*******************  辅助线相关  ******************/
   // 显示隐藏辅助线
-  showHelper(show, type) {
+  showHelper(show: boolean, type: string) {
     this.sceneHelpers__three.showHelper(show, type);
   }
 
   // 显示隐藏网格
-  showGrid(show) {
+  showGrid(show: boolean) {
     this.sceneHelpers__three.showGrid(show);
   }
 
@@ -395,12 +412,12 @@ export class ThreeEngine extends EventEmitter {
 
   /*******************  场景相关  ********************/
   // 初始化hdr环境
-  async initSceneHDR(data) {
-    await this.sceneHDR__three.initSceneHDR(data);
+  async initSceneHDR(environmentOptions: EnvironmentOptions) {
+    await this.sceneHDR__three.initSceneHDR(environmentOptions);
   }
 
   // 展示hdr环境贴图
-  toggleSceneHDRBackground({ show }) {
+  toggleSceneHDRBackground({ show }: { show: boolean }) {
     this.sceneHDR__three.toggleSceneHDRBackground({ show });
   }
 
@@ -410,24 +427,24 @@ export class ThreeEngine extends EventEmitter {
   }
 
   // 设置dr环境
-  async setEnvironment(environment) {
-    this.sceneHDR__three.setEnvironment(environment);
+  async setEnvironment(setEnvironmentOptions: SetEnvironmentOptions) {
+    this.sceneHDR__three.setEnvironment(setEnvironmentOptions);
   }
 
   // 更新环境数据
-  updateEnvironmentProp(environment = {}) {
+  updateEnvironmentProp(environment: EnvironmentOptions) {
     this.sceneHDR__three.updateEnvironmentProp(environment);
   }
 
   // 设置背景色
-  setBackground(background) {
+  setBackground(background: SetBackgroundOptions) {
     //设置背景色
     this.sceneHDR__three.setBackground({
       background
     });
   }
   // 设置背景色
-  initBackground(background) {
+  initBackground(background: Background) {
     //设置背景色
     this.sceneHDR__three.initBackground({
       background
@@ -439,12 +456,12 @@ export class ThreeEngine extends EventEmitter {
   }
 
   // 更新环境映射类型
-  updateEnvironmentTextureMapping({ mapping }) {
+  updateEnvironmentTextureMapping({ mapping }: UpdateEnvironmentTextureMappingOptions) {
     this.sceneHDR__three.updateEnvironmentTextureMapping({ mapping });
   }
 
   // 更新材质环境光强度
-  updateMaterialsEnvMapIntensity({ envMapIntensity }) {
+  updateMaterialsEnvMapIntensity({ envMapIntensity }: UpdateMaterialsEnvMapIntensityOptions) {
     this.sceneHDR__three.updateMaterialsEnvMapIntensity({ envMapIntensity });
   }
 
@@ -452,15 +469,15 @@ export class ThreeEngine extends EventEmitter {
 
   /*******************  材质相关  **********************/
   // 更新材质数据
-  async updateMaterial({ uuid, key, value }) {
+  async updateMaterial({ uuid, key, value }: UpdateMaterialParams) {
     await this.material__three.updateMaterial({ uuid, key, value });
   }
-  changeMaterial({ uuid, originMaterial, newMaterialType }) {
+  changeMaterial({ uuid, originMaterial, newMaterialType }: ChangeMaterialParams) {
     return this.material__three.changeMaterial({ uuid, originMaterial, newMaterialType });
   }
 
   // 删除材质
-  deleteMaterial({ uuid = '', deleteKeys = [] }) {
+  deleteMaterial({ uuid = '', deleteKeys = [] }: DeleteMaterialParams) {
     this.material__three.deleteMaterial({ uuid, deleteKeys });
   }
 
@@ -471,7 +488,7 @@ export class ThreeEngine extends EventEmitter {
     return THREE.MathUtils.generateUUID();
   }
   // 添加贴图数据
-  async addImageData(uuid: string, url: string) {
+  async addImageData(uuid: UUID, url: string) {
     await this.imageTexture__three.addImageData(uuid, url);
   }
 
