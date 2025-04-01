@@ -9,14 +9,18 @@ import { ImageTexture } from './types/ImageTexture';
 import { SceneHelpers } from './types/SceneHelpers';
 import { Loader } from './types/FileLoader';
 import { Object3D } from './types/Object3D';
-import { Camera } from './types/Camera.d.ts';
+import { Camera } from './types/Camera';
 import { Renderer } from './types/Renderer';
 import { ViewHelper } from './types/ViewHelper';
 import { IndexDb } from './types/IndexDb';
 import { Composer } from './types/Composer';
 import { Exporter } from './types/Exporter';
 
-declare class ThreeEngine extends EventEmitter {
+export interface ThreeEngineOptions {
+  renderOptions: THREE.WebGLRenderer;
+  cameraConfig?: THREE.Camera
+}
+export declare class ThreeEngine extends EventEmitter {
   static generateUUID(): string;
   static getTHREE(): typeof THREE;
   getTHREE(): typeof THREE;
@@ -37,13 +41,13 @@ declare class ThreeEngine extends EventEmitter {
   indexDB__three: IndexDb | null;
   composer__three: Composer | null;
   exporter__three: Exporter | null;
-  config: any;
+  config: ThreeEngineOptions;
 
-  constructor(config?: any);
+  constructor(config?: ThreeEngineOptions);
 
   initInstance(): void;
 
-  initApp(config?: any): void;
+  initApp(config?: ThreeEngineOptions): void;
 
   initComposer(): void;
 

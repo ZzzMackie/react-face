@@ -2,12 +2,17 @@ import * as THREE from 'three';
 import TWEEN from '@tweenjs/tween.js';
 import EventEmitter from 'events';
 import Config from './Config.ts';
+import type { ThreeEngine } from '../main';
+import type { RendererOptions } from '../types/Renderer';
 const config = new Config();
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 export class Renderer extends EventEmitter {
-  renderer: THREE.WebGLRenderer;
-  constructor(options, threeEngine) {
+  renderer: THREE.WebGLRenderer | null;
+  threeEngine: ThreeEngine;
+  options: RendererOptions;
+  clock: THREE.Clock;
+  constructor(options: RendererOptions, threeEngine: ThreeEngine) {
     super();
     this.threeEngine = threeEngine;
     this.renderer = null;
@@ -18,13 +23,13 @@ export class Renderer extends EventEmitter {
     this.initRendererOptions();
     this.onClickSelectModel();
   }
-  initRenderer(options) {
+  initRenderer(options: RendererOptions) {
     let canvas = options?.canvas;
     this.renderer = new THREE.WebGLRenderer({
       antialias: options?.antialias || true, //抗锯齿
-      autoClear: options?.autoClear || true,
       canvas: options?.canvas || undefined
     }); // 渲染器实例
+    this.renderer.autoClear = options?.autoClear || true;
     if (!canvas) {
       canvas = this.renderer.domElement;
     }

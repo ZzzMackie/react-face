@@ -53,8 +53,10 @@ import type {
   ObjectGroupParams, 
   Object3DChangeMeshParams
  } from './types/Object3D.d.ts'
+
+import type { ThreeEngineOptions } from './main.d.ts'
 export class ThreeEngine extends EventEmitter {
-  config: RendererOptions;
+  config: ThreeEngineOptions;
   geometry__three: Geometry | null;
   control__three: Control | null;
   material__three: Material | null;
@@ -82,7 +84,7 @@ export class ThreeEngine extends EventEmitter {
   getTHREE(): typeof THREE {
     return ThreeEngine.getTHREE();
   }
-  constructor(config: RendererOptions) {
+  constructor(config: ThreeEngineOptions) {
     super();
     this.config = config;
     // 面片

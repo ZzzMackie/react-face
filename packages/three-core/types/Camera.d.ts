@@ -30,6 +30,7 @@ interface CameraData {
 type CustomCamera = THREE.PerspectiveCamera | THREE.OrthographicCamera;
 
 export interface CameraWithCustomProps extends CustomCamera {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }
 export declare class Camera {

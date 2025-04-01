@@ -6,6 +6,6 @@
   ],
   "compilerOptions": {
     "types": ["node"],
-    "typeRoots": ["./node_modules/@types", "./types"], 
+    "typeRoots": ["./node_modules/@types", "./types", "./main.d.ts"], 
   }
 }

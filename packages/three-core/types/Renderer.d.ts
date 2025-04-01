@@ -2,15 +2,16 @@ import * as THREE from 'three';
 import EventEmitter from 'events';
 import type { ThreeEngine } from '../main.d.ts';
 
-interface RendererOptions {
+export interface RendererOptions {
   renderOptions: THREE.WebGLRenderer;
   cameraConfig?: THREE.Camera
 }
-interface ToneMappingExposureParam { 
+
+export interface ToneMappingExposureParam { 
   toneMapping?: THREE.ToneMapping, toneMappingExposure?: number
 }
 
-interface ShadowMapParam {
+export interface ShadowMapParam {
   shadows?: boolean, shadowType?: THREE.ShadowMapType
 }
 export declare class Renderer extends EventEmitter {
