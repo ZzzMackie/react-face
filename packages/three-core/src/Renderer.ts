@@ -3,16 +3,15 @@ import TWEEN from '@tweenjs/tween.js';
 import EventEmitter from 'events';
 import Config from './Config.ts';
 import type { ThreeEngine } from '../main';
-import type { RendererOptions } from '../types/Renderer';
 const config = new Config();
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 export class Renderer extends EventEmitter {
   renderer: THREE.WebGLRenderer | null;
   threeEngine: ThreeEngine;
-  options: RendererOptions;
+  options: THREE.WebGLRendererParameters;
   clock: THREE.Clock;
-  constructor(options: RendererOptions, threeEngine: ThreeEngine) {
+  constructor(options: THREE.WebGLRendererParameters, threeEngine: ThreeEngine) {
     super();
     this.threeEngine = threeEngine;
     this.renderer = null;
@@ -23,7 +22,7 @@ export class Renderer extends EventEmitter {
     this.initRendererOptions();
     this.onClickSelectModel();
   }
-  initRenderer(options: RendererOptions) {
+  initRenderer(options: THREE.WebGLRendererParameters) {
     let canvas = options?.canvas;
     this.renderer = new THREE.WebGLRenderer({
       antialias: options?.antialias || true, //抗锯齿
@@ -47,7 +46,9 @@ export class Renderer extends EventEmitter {
     this.PMREMGenerator.compileEquirectangularShader();
   }
   // 重置渲染器
-  resetRenderer(options) {
+
+
+  resetRenderer(options: THREE.WebGLRendererParameters) {
     const renderer = this.renderer;
     const canvas = options?.canvas || renderer.domElement;
     options.canvas = canvas;
@@ -74,7 +75,7 @@ export class Renderer extends EventEmitter {
     this.renderer.setSize(width, height);
   }
   // 渲染器渲染
-  render() {
+  render(scene__three: THREE.Scene, viewportCamera: THREE.PerspectiveCamera | THREE.OrthographicCamera) {
     if (!this.renderer) return;
     this.renderer.autoClear = false;
     if (this.threeEngine.composer__three.composer) {

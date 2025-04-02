@@ -3,7 +3,7 @@ import EventEmitter from 'events';
 import type { ThreeEngine } from '../main.d.ts';
 
 export interface RendererOptions {
-  renderOptions: THREE.WebGLRenderer;
+  renderOptions?: THREE.WebGLRendererParameters;
   cameraConfig?: THREE.Camera
 }
 
@@ -17,14 +17,14 @@ export interface ShadowMapParam {
 export declare class Renderer extends EventEmitter {
   renderer: THREE.WebGLRenderer | null;
   clock: THREE.Clock;
-  options: RendererOptions;
+  options: THREE.WebGLRendererParameters;
   PMREMGenerator: THREE.PMREMGenerator | null;
 
-  constructor(options: RendererOptions, threeEngine: ThreeEngine);
+  constructor(options: THREE.WebGLRendererParameters, threeEngine: ThreeEngine);
 
-  initRenderer(options: RendererOptions): void;
+  initRenderer(options: THREE.WebGLRendererParameters): void;
 
-  resetRenderer(options: RendererOptions): void;
+  resetRenderer(options: THREE.WebGLRendererParameters): void;
 
   initRendererOptions(): void;
 

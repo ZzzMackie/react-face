@@ -16,11 +16,11 @@ import { IndexDb } from './types/IndexDb';
 import { Composer } from './types/Composer';
 import { Exporter } from './types/Exporter';
 
-export interface ThreeEngineOptions {
+interface ThreeEngineParams {
   renderOptions: THREE.WebGLRenderer;
   cameraConfig?: THREE.Camera
 }
-export declare class ThreeEngine extends EventEmitter {
+export class ThreeEngine extends EventEmitter {
   static generateUUID(): string;
   static getTHREE(): typeof THREE;
   getTHREE(): typeof THREE;
@@ -41,13 +41,13 @@ export declare class ThreeEngine extends EventEmitter {
   indexDB__three: IndexDb | null;
   composer__three: Composer | null;
   exporter__three: Exporter | null;
-  config: ThreeEngineOptions;
+  config: ThreeEngineParams;
 
-  constructor(config?: ThreeEngineOptions);
+  constructor(config?: ThreeEngineParams);
 
   initInstance(): void;
 
-  initApp(config?: ThreeEngineOptions): void;
+  initApp(config?: ThreeEngineParams): void;
 
   initComposer(): void;
 

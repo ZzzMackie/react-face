@@ -54,9 +54,9 @@ import type {
   Object3DChangeMeshParams
  } from './types/Object3D.d.ts'
 
-import type { ThreeEngineOptions } from './main.d.ts'
+import type { ThreeEngineParams } from './types/main.d.ts'
 export class ThreeEngine extends EventEmitter {
-  config: ThreeEngineOptions;
+  config: ThreeEngineParams;
   geometry__three: Geometry | null;
   control__three: Control | null;
   material__three: Material | null;
@@ -84,7 +84,7 @@ export class ThreeEngine extends EventEmitter {
   getTHREE(): typeof THREE {
     return ThreeEngine.getTHREE();
   }
-  constructor(config: ThreeEngineOptions) {
+  constructor(config: ThreeEngineParams) {
     super();
     this.config = config;
     // 面片
@@ -164,13 +164,13 @@ export class ThreeEngine extends EventEmitter {
       this.initRenderer(config);
       // 场景
       this.scene__three = new THREE.Scene();
-      if(this.camera__three) {
+      if(this.renderer__three && this.scene__three && this.camera__three) {
         this.scene__three.add(this.camera__three.camera);
         this.scene__three.add(this.camera__three.orthographicCamera);
         this.renderer__three?.renderer?.compileAsync?.(this.scene__three, this.camera__three.viewportCamera);
   
         // 渲染
-        this.renderer__three?.render(this.scene__three, this.camera__three.viewportCamera);
+        this.renderer__three?.render?.(this.scene__three, this.camera__three?.viewportCamera);
       } else {
         console.error('相机未正确初始化');
       }
@@ -200,42 +200,42 @@ export class ThreeEngine extends EventEmitter {
   /*************************** 控制器相关 ************************/
   // 创建轨道控制器
   async initOrbitControls(config: ControlsConfig) {
-    await this.control__three.initOrbitControls({
+    await this.control__three?.initOrbitControls?.({
       ...config
     });
   }
 
   // 变换控制器
   async initTransformControls(mode = 'translate') {
-    return await this.control__three.initTransformControls(mode);
+    return await this.control__three?.initTransformControls?.(mode);
   }
 
   attachTransformControls(uuid: UUID) {
-    this.control__three.attachTransformControls(uuid);
+    this.control__three?.attachTransformControls?.(uuid);
   }
 
   // 设置变换控制器模式
   // "translate"、"rotate" 和 "scale"
   setTransformControlsMode(mode: string) {
     if (!['translate', 'rotate', 'scale'].includes(mode)) return;
-    this.control__three.setTransformControlsMode(mode);
+    this.control__three?.setTransformControlsMode?.(mode);
   }
 
   // 设置轨道控制器
   async setOrbitControls(config: ControlsConfig | null) {
-    return await this.control__three.setOrbitControls({
+    return await this.control__three?.setOrbitControls?.({
       ...config
     });
   }
 
   // 重置轨道控制器状态
   resetOrbitControls() {
-    this.control__three.resetOrbitControls();
+    this.control__three?.resetOrbitControls?.();
   }
 
   //切换模型自动旋转
   setAutoRotate() {
-    this.control__three.setAutoRotate();
+    this.control__three?.setAutoRotate?.();
   }
 
   /*************************** 控制器 End ************************/
@@ -244,57 +244,57 @@ export class ThreeEngine extends EventEmitter {
 
   // 加载文件
   async loadFiles(data = {}) {
-    return await this.loader__three.loadFiles(data);
+    return await this.loader__three?.loadFiles(data);
   }
 
   // 添加模型组
   async addObjectGroup({ object, data }: ObjectGroupParams) {
-    return await this.object3D__three.addObjectGroup({ object, data });
+    return await this.object3D__three?.addObjectGroup?.({ object, data });
   }
 
   // 添加模型场景对象 threeJs官方编辑器到出的场景json格式
   async addModelObject({ data, parent, index }: Object3DParams) {
-    return await this.object3D__three.addModelObject({ data, parent, index });
+    return await this.object3D__three?.addModelObject?.({ data, parent, index });
   }
 
   // 替换模型对象
   async changeObjectMesh(data: Object3DChangeMeshParams) {
-    return await this.object3D__three.changeObjectMesh(data);
+    return await this.object3D__three?.changeObjectMesh(data);
   }
 
   // 添加模型 threeJs官 object3D格式
   async loadMeshObject({ data, parent, index }: Object3DParams) {
-    return await this.object3D__three.loadMeshObject({ data, parent, index });
+    return await this.object3D__three?.loadMeshObject({ data, parent, index });
   }
 
   // 添加对象
   addObject({ data, parent, index }: Object3DParams) {
-    this.object3D__three.addObject({ data, parent, index });
+    this.object3D__three?.addObject({ data, parent, index });
   }
 
   // 移除3d对象
   removeObject3D(uuid: UUID) {
-    this.object3D__three.removeObject3D({ uuid });
+    this.object3D__three?.removeObject3D({ uuid });
   }
 
   // 修改模型数据
   setModelMeshProps(uuid: UUID, data: Object3DMesh) {
-    this.object3D__three.setModelMeshProps(uuid, data);
+    this.object3D__three?.setModelMeshProps(uuid, data);
   }
 
   // 显示隐藏模型
   toggleModelVisible(uuid: UUID) {
-    this.object3D__three.toggleModelVisible(uuid);
+    this.object3D__three?.toggleModelVisible(uuid);
   }
 
   // 设置模型面片变换 本质都是模型变换
   setModelGeometryTransform({ uuid, position, type }: GeometryTransform) {
-    this.geometry__three.setModelGeometryTransform({ uuid, position, type });
+    this.geometry__three?.setModelGeometryTransform({ uuid, position, type });
   }
 
   // 设置模型本身变换 本质都是模型变换
   setModelMeshTransform({ uuid, position, type }: Object3DMeshTransform) {
-    this.object3D__three.setModelMeshTransform({ uuid, position, type });
+    this.object3D__three?.setModelMeshTransform({ uuid, position, type });
   }
 
   /******************* 模型相关 End ***************/
@@ -302,42 +302,49 @@ export class ThreeEngine extends EventEmitter {
   /*******************  渲染器相关  ***************/
   // 初始化渲染实例
   initRenderer(config: RendererOptions) {
-    this.renderer__three = new Renderer({ ...this.config?.renderOptions, ...config?.renderOptions }, this);
+    const mergedRenderOptions = {
+      ...this.config?.renderOptions,
+      ...config?.renderOptions
+  };
+    this.renderer__three = new Renderer({ ...mergedRenderOptions }, this);
   }
-  resetRenderer(options: RendererOptions) {
-    this.renderer__three.resetRenderer(options);
+  resetRenderer(options: THREE.WebGLRendererParameters) {
+    this.renderer__three?.resetRenderer(options);
   }
 
   // 递归更新渲染视图
   updateAnimateRenderer() {
-    this.renderer__three.updateRenderer();
+    this.renderer__three?.updateRenderer();
   }
 
   // 更新渲染视图
   updateRenderer() {
-    this.renderer__three.needsUpdate = true;
-    this.renderer__three.render();
+    // if (this.renderer__three) {
+
+    //   this.renderer__three.renderer.needsUpdate = true;
+    //   this.renderer__three.render?.();
+    // }
   }
 
   // 设置场景曝光度
   setToneMappingExposure({ toneMapping, toneMappingExposure }: ToneMappingExposureParam) {
-    this.renderer__three.setToneMappingExposure({ toneMapping, toneMappingExposure });
+    this.renderer__three?.setToneMappingExposure({ toneMapping, toneMappingExposure });
   }
 
   // 设置阴影映射
   setShadowMap({ shadows, shadowType }: ShadowMapParam) {
-    this.renderer__three.setShadowMap({ shadows, shadowType });
+    this.renderer__three?.setShadowMap({ shadows, shadowType });
   }
   // 设置渲染器是否在渲染每一帧之前自动清除其输出
   setAutoClear(autoClear: boolean) {
-    this.renderer__three.setAutoClear(autoClear);
+    this.renderer__three?.setAutoClear(autoClear);
   }
 
   // 渲染区域宽高和摄像机变化。
   resizeRendererAndCamera(width: number, height: number) {
     this.emit('resizeRendererBeforeUpdated', { width, height });
     //刷新场景宽高
-    this.renderer__three.setSize(width, height);
+    this.renderer__three?.setSize(width, height);
     //防止模型变形
     this.camera__three?.updateAspect?.(width / height);
     this.updateRenderer();
