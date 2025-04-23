@@ -55,6 +55,11 @@ interface Object3DChangeMeshParams {
   meshUUid: UUID; 
   swapIndex?: number
 }
+
+interface AddObject3DParams { 
+  object: ThreeObjectParams; parent?: ThreeObjectParams; index?: number 
+}
+
 export class Object3D {
   threeEngine: ThreeEngine;
   texturePath: string;
@@ -74,7 +79,7 @@ export class Object3D {
   swapObjectMeshMaterial(params: { oldMesh: THREE.Mesh; newMesh: THREE.Mesh }): Promise<void>;
   swapObjectMesh(params: { object: ThreeObjectParams; swapMeshUUid: UUID; swapIndex?: number }): Promise<void>;
   changeObjectMesh(params: Object3DChangeMeshParams): Promise<void>;
-  addObject(params: { object: ThreeObjectParams; parent?: ThreeObjectParams; index?: number }): void;
+  addObject(params: AddObject3DParams): void;
   moveObject(object: ThreeObjectParams, parent?: ThreeObjectParams, before?: ThreeObjectParams): void;
   nameObject(uuid: UUID, name: string): void;
   removeObject3D(params: { uuid: UUID; needDeleteImage?: boolean }): void;

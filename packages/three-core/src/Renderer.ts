@@ -28,6 +28,7 @@ export class Renderer extends EventEmitter {
       antialias: options?.antialias || true, //抗锯齿
       canvas: options?.canvas || undefined
     }); // 渲染器实例
+    
     this.renderer.autoClear = options?.autoClear || true;
     if (!canvas) {
       canvas = this.renderer.domElement;
@@ -75,7 +76,7 @@ export class Renderer extends EventEmitter {
     this.renderer.setSize(width, height);
   }
   // 渲染器渲染
-  render(scene__three: THREE.Scene, viewportCamera: THREE.PerspectiveCamera | THREE.OrthographicCamera) {
+  render(scene__three?: THREE.Scene, viewportCamera?: THREE.PerspectiveCamera | THREE.OrthographicCamera) {
     if (!this.renderer) return;
     this.renderer.autoClear = false;
     if (this.threeEngine.composer__three.composer) {

@@ -1,5 +1,5 @@
 import { BufferGeometry } from 'three';
-import { ThreeEngine } from '../main';
+import type { ThreeEngine } from './main';
 
 type UUID = string;
 interface GeometryTransform {

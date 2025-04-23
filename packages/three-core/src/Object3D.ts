@@ -1,8 +1,23 @@
 import * as THREE from 'three';
 import EventEmitter from 'events';
-import { proxyOptions } from './proxy.js';
+import { proxyOptions } from './Proxy.ts';
+import type { ThreeEngine } from '../main';
+import type { Geometry } from '../types/Geometry';
+import type { Material } from '../types/Material';
+import type { Camera } from '../types/Camera';
+import type { SceneHelpers } from '../types/SceneHelpers';
+import type { Loader } from '../types/FileLoader';
+import type { ImageTexture } from '../types/ImageTexture';
+import type { IndexDb } from '../types/IndexDb';
+import type { AddObject3DParams, ChangeObjectMeshParams, SwapObjectMeshParams, Object3DMeshMaterialsParams } from '../types/Object3D.js';
+
 export class Object3D extends EventEmitter {
-  constructor(threeEngine) {
+  threeEngine: ThreeEngine;
+  texturePath: string;
+  geometries: Map<string, THREE.BufferGeometry>;
+  modelObjects: Map<string, THREE.Object3D>;
+
+  constructor(threeEngine: ThreeEngine) {
     super();
     this.threeEngine = threeEngine;
     this.texturePath = '';
@@ -10,15 +25,16 @@ export class Object3D extends EventEmitter {
     this.modelObjects = new Map();
     proxyOptions(this, this.threeEngine);
   }
+
   // 加载模型材质列表
-  loadMeshMaterials({ object, mesh, modelOriginData, materialPromise }) {
+  loadMeshMaterials({ object, mesh, modelOriginData, materialPromise }: Object3DMeshMaterialsParams) {
     const modelMesh = object.children[mesh.originIndex];
     if (!modelMesh) {
       return;
     }
-    modelMesh.geometry.attributes.uv2 = modelMesh.geometry.attributes.uv; //设置第二组uv
+    modelMesh.geometry.attributes.uv2 = modelMesh.geometry.attributes.uv; // 设置第二组uv
     if (Array.isArray(mesh.material)) {
-      for (var index = 0, l = mesh.material.length; index < l; index++) {
+      for (let index = 0, l = mesh.material.length; index < l; index++) {
         const material = this.loadMeshMaterial({
           modelOriginData,
           materialUUid: mesh.material[index],
@@ -38,8 +54,9 @@ export class Object3D extends EventEmitter {
       visible: mesh.visible
     });
   }
+
   // 加载模型材质
-  loadMeshMaterial({ modelOriginData, materialUUid, materialPromise }) {
+  loadMeshMaterial({ modelOriginData, materialUUid, materialPromise }: { modelOriginData: any; materialUUid: string; materialPromise: Promise<any>[]; }) {
     const currentMaterial = modelOriginData.materials.find(material => material.uuid === materialUUid);
     const material = new THREE[currentMaterial.type]();
     for (const key of Object.keys(currentMaterial)) {
@@ -57,9 +74,10 @@ export class Object3D extends EventEmitter {
     }
     return material;
   }
+
   // 加载模型组
-  async loadObjectGroup(object, modelOriginData) {
-    let materialPromise = [];
+  async loadObjectGroup(object: THREE.Group, modelOriginData: any) {
+    const materialPromise: Promise<any>[] = [];
     for (const mesh of modelOriginData.group.children) {
       this.loadMeshMaterials({
         object,
@@ -74,13 +92,6 @@ export class Object3D extends EventEmitter {
       return idx !== -1;
     });
     object.children = objectNewMeshChildren;
-    // await Promise.allSettled(meshMaterialPromise);
-    this.setObjectProps(object, {
-      uuid: modelOriginData.group.uuid,
-      transform: modelOriginData.group.transform,
-      name: modelOriginData.group.name,
-      userData: modelOriginData.group.userData
-    });
     // 先把模型添加进场景
     this.addObject({ object });
     // 材质贴图 异步执行
@@ -88,9 +99,10 @@ export class Object3D extends EventEmitter {
     // 所有贴图加载完毕
     await Promise.allSettled(materialPromise);
   }
+
   // 渲染材质纹理贴图
-  async renderObjectMaterialMap({ object, modelOriginData }) {
-    object.traverse(async child => {
+  async renderObjectMaterialMap({ object, modelOriginData }: { object: THREE.Group; modelOriginData: any; }) {
+    object.traverse(async (child: THREE.Object3D) => {
       if (child.isMesh) {
         if (child.material !== undefined) {
           if (Array.isArray(child.material)) {
@@ -108,14 +120,16 @@ export class Object3D extends EventEmitter {
       }
     });
   }
-  isRotationRepeatMap(key) {
+
+  isRotationRepeatMap(key: string): boolean {
     return (
       this.material__three.rotationRepeatMap.includes(key) || this.material__three.rotationRepeatSingleMap.includes(key)
     );
   }
+
   // 设置材质纹理贴图
-  async setObjectMaterialRotationRepeatMap({ material, materialData }) {
-    const rotationRepeatPromise = [];
+  async setObjectMaterialRotationRepeatMap({ material, materialData }: { material: THREE.Material; materialData: any; }) {
+    const rotationRepeatPromise: Promise<any>[] = [];
     for (const key of Object.keys(materialData)) {
       if (this.isRotationRepeatMap(key) && materialData[key]) {
         rotationRepeatPromise.push(
@@ -140,9 +154,10 @@ export class Object3D extends EventEmitter {
     }
     material.needsUpdate = true;
   }
+
   // 添加模型对象组
-  async addObjectGroup({ object, data }) {
-    let model = null;
+  async addObjectGroup({ object, data }: AddObject3DParams) {
+    let model: THREE.Group | THREE.Mesh | null = null;
     if (object.isGroup) {
       model = object;
       model.name = !object.name ? 'Group' : object.name;
@@ -154,13 +169,13 @@ export class Object3D extends EventEmitter {
     }
     if (data) {
       // 存在模型数据则加载模型数据，不走默认数据
-      await this.loadObjectGroup(model, data);
+      await this.loadObjectGroup(model as THREE.Group, data);
       return;
     }
-    model.traverse(child => {
+    model.traverse((child: THREE.Object3D) => {
       if (child.isMesh) {
-        child.geometry.attributes.uv2 = child.geometry.attributes.uv; //设置第二组uv
-        this.generateNewMeshMaterial(child);
+        child.geometry.attributes.uv2 = child.geometry.attributes.uv; // 设置第二组uv
+        this.generateNewMeshMaterial(child as THREE.Mesh);
       }
     });
     this.addObject({ object: model });
@@ -193,7 +208,7 @@ export class Object3D extends EventEmitter {
         z: model.rotation.z
       }
     };
-    modelData.object.children.forEach((mesh, index) => {
+    modelData.object.children.forEach((mesh: any, index: number) => {
       if (mesh.type === 'Mesh' || mesh.type.endsWith('Mesh')) {
         mesh.visible = true;
         mesh.transform = {
@@ -218,78 +233,156 @@ export class Object3D extends EventEmitter {
     });
     this.emit('addObjectGroupUpdated', modelData);
   }
-  // 添加模型对象 json对象
-  async addModelObject({ data, parent, index }) {
-    const scope = this;
-    const loader = new THREE.ObjectLoader();
-    loader.setResourcePath(scope.texturePath);
-    let cloneData = {
-      ...data
-    };
-    if (cloneData.images) {
-      this.imageTexture__three.initImagesList({ images: cloneData.images });
-    }
-    await loader.parse(cloneData, result => {
-      if (result.isScene) {
-        while (result.children.length > 0) {
-          const child = result.children.pop();
-          this.addObject({ object: child, parent: result.parent, index });
-        }
-      } else {
-        this.addObject({ object: result, parent, index });
+
+  // 模型替换
+  async changeObjectMesh({ file, meshUUid, swapIndex = 0 }: ChangeObjectMeshParams) {
+    await this.loader__three.loadFiles({
+      files: [file.file],
+      filesMap: undefined,
+      onSuccess: async ({ object }) => {
+        await this.swapObjectMesh({ object, swapMeshUUid: meshUUid, swapIndex });
       }
-      this.emit('addModelObjectUpdated', cloneData);
     });
   }
-  // 切换模型显示隐藏
-  toggleModelVisible(uuid) {
-    const model = this.modelObjects.get(uuid);
-    if (model) {
-      model.visible = !model.visible;
+
+  // 添加3d对象
+  addObject({ object, parent, index }: AddObject3DParams) {
+    const scopeGeometry = this.geometry__three;
+    const scopeMaterial = this.material__three;
+    const scopeCamera = this.camera__three;
+    const scopeHelper = this.sceneHelpers__three;
+    const scopeScene = this.scene__three;
+    object.traverse((child: THREE.Object3D) => {
+      if (child.geometry !== undefined) scopeGeometry.addGeometry(child.geometry);
+      if (child.material !== undefined) scopeMaterial.addMaterial(child.material);
+
+      scopeCamera.addCamera(child);
+      scopeHelper.addHelper(child);
+      if (!this.modelObjects.get(child.uuid)) {
+        this.modelObjects.set(child.uuid, child);
+      }
+    });
+
+    if (!parent) {
+      scopeScene.add(object);
+    } else {
+      parent.children.splice(index, 0, object);
+      object.parent = parent;
     }
   }
-  // 加载模型
-  async loadMeshObject({ data, parent, index }) {
-    const { geometries, materials, images, modelMesh } = data;
-    let cloneData = {
-      geometries,
-      materials,
-      images
-    };
-    for (const image of images) {
-      await this.imageTexture__three.addImageData(image.uuid, image.url);
+
+  // 替换模型
+  async swapObjectMesh({ object, swapMeshUUid, swapIndex }: SwapObjectMeshParams) {
+    const oldMesh = this.getObject3D(swapMeshUUid);
+    if (!oldMesh) {
+      if (object) {
+        this.addObjectGroup({ object });
+      }
+      return;
     }
-    if (modelMesh.length) {
-      for (const group of modelMesh) {
-        const modelObject = {
-          ...cloneData,
-          object: group
-        };
-        if (group.modelResource_id) {
-          // 加载fbx文件
-          let { originUrl, blobData } = await this.indexDB__three.getModelStoreItem(group.uuid, group.modelPath);
-          if (blobData) {
-            blobData.name = 'model.fbx';
-          }
-          await this.loader__three.loadFiles({
-            files: [blobData || originUrl],
-            filesMap: undefined,
-            modelData: {
-              ...cloneData,
-              group
-            },
-            onSuccess: async ({ object, data }) => {
-              await this.addObjectGroup({ object, data });
-            }
-          });
-        } else {
-          await this.addModelObject({ data: modelObject, parent, index });
-        }
+    let newMesh: THREE.Mesh | null = null;
+    if (object.isGroup) {
+      // 替换模型只能第一个mesh
+      newMesh = object.children[swapIndex] as THREE.Mesh;
+    } else if (object.isMesh) {
+      newMesh = object;
+    }
+    this.setObjectProps(newMesh, {
+      name: oldMesh.name,
+      renderOrder: oldMesh.renderOrder,
+      parent: oldMesh.parent,
+      uuid: oldMesh.uuid
+    });
+    await this.swapObjectMeshMaterial({ oldMesh, newMesh: newMesh as THREE.Mesh });
+    this.removeObject({ object: oldMesh, needDeleteImage: false });
+    this.addObject({ object: newMesh as THREE.Mesh, parent: newMesh.parent, index: swapIndex });
+    const newMeshData = newMesh.toJSON();
+    newMeshData.object.transform = {
+      translate: {
+        x: newMesh?.position?.x,
+        y: newMesh?.position?.y,
+        z: newMesh?.position?.z
+      },
+      scale: {
+        x: newMesh?.scale?.x,
+        y: newMesh?.scale?.y,
+        z: newMesh?.scale?.z
+      },
+      rotation: {
+        x: newMesh?.rotation?.x,
+        y: newMesh?.rotation?.y,
+        z: newMesh?.rotation?.z
+      }
+    };
+    newMeshData.object.originIndex = swapIndex;
+    this.emit('swapObjectMeshUpdated', newMeshData);
+  }
+
+  // 获取模型对象材质
+  getObjectMaterial(object: THREE.Mesh, slot?: number): THREE.Material | undefined {
+    let material = object.material;
+
+    if (Array.isArray(material) && slot !== undefined) {
+      material = material[slot];
+    }
+
+    return material;
+  }
+
+  // 替换掉模型对象的材质
+  setObjectMaterial(object: THREE.Mesh, slot: number | undefined, newMaterial: THREE.Material) {
+    if (Array.isArray(object.material) && slot !== undefined) {
+      object.material[slot] = newMaterial;
+    } else {
+      object.material = newMaterial;
+    }
+  }
+
+  // 设置模型的旋转、位移、缩放
+  setModelMeshTransform({ uuid, position, type = 'translate' }: { uuid: string; position: { x?: number; y?: number; z?: number; }; type?: string; }) {
+    const modelObject = this.getObject3D(uuid) as THREE.Mesh;
+    modelObject && this.setObject3DTransform(modelObject, position, type);
+  }
+
+  // 设置对象变换数据
+  setObject3DTransform(object: THREE.Mesh, position: { x?: number; y?: number; z?: number; }, type: string) {
+    const { x, y, z } = position;
+    if (x !== undefined && y !== undefined && z !== undefined) {
+      switch (type) {
+        case 'translate':
+          object?.position?.set(x, y, z);
+          break;
+        default:
+          object?.[type]?.set(x, y, z);
+          break;
       }
     }
   }
+
+  // 获取3d对象
+  getObject3D(uuid: string): THREE.Object3D | undefined {
+    return this.modelObjects.get(uuid);
+  }
+
+  // 添加模型材质
+  async generateNewMeshMaterial(modelMesh: THREE.Mesh) {
+    if (Array.isArray(modelMesh.material)) {
+      for (let index = 0, l = modelMesh.material.length; index < l; index++) {
+        const material = new THREE.MeshPhysicalMaterial();
+        this.material__three.resetMaterialData(material, true);
+        material.needsUpdate = true;
+        this.setObjectMaterial(modelMesh, index, material);
+      }
+    } else {
+      const material = new THREE.MeshPhysicalMaterial();
+      this.material__three.resetMaterialData(material, true);
+      material.needsUpdate = true;
+      this.setObjectMaterial(modelMesh, 0, material);
+    }
+  }
+
   // 替换模型材质
-  async swapObjectMeshMaterial({ oldMesh, newMesh }) {
+  async swapObjectMeshMaterial({ oldMesh, newMesh }: { oldMesh: THREE.Mesh; newMesh: THREE.Mesh; }) {
     const oldCloneMaterial = oldMesh.material.clone();
     const newMeshMaterial = new THREE[oldCloneMaterial.type]();
 
@@ -323,120 +416,17 @@ export class Object3D extends EventEmitter {
     await this.setObjectMaterial(newMesh, undefined, newMeshMaterial);
     newMeshMaterial.needsUpdate = true;
   }
-  // 替换模型
-  async swapObjectMesh({ object, swapMeshUUid, swapIndex }) {
-    const oldMesh = this.getObject3D(swapMeshUUid);
-    if (!oldMesh) {
-      if (object) {
-        this.addObjectGroup({ object });
-      }
-      return;
-    }
-    let newMesh = null;
-    if (object.isGroup) {
-      // 替换模型只能第一个mesh
-      newMesh = object.children[swapIndex];
-    } else if (object.isMesh) {
-      newMesh = object;
-    }
-    this.setObjectProps(newMesh, {
-      name: oldMesh.name,
-      renderOrder: oldMesh.renderOrder,
-      parent: oldMesh.parent,
-      uuid: oldMesh.uuid
-    });
-    await this.swapObjectMeshMaterial({ oldMesh, newMesh });
-    this.removeObject({ object: oldMesh, needDeleteImage: false });
-    this.addObject({ object: newMesh, parent: newMesh.parent, index: swapIndex });
-    const newMeshData = newMesh.toJSON();
-    newMeshData.object.transform = {
-      translate: {
-        x: newMesh?.position?.x,
-        y: newMesh?.position?.y,
-        z: newMesh?.position?.z
-      },
-      scale: {
-        x: newMesh?.scale?.x,
-        y: newMesh?.scale?.y,
-        z: newMesh?.scale?.z
-      },
-      rotation: {
-        x: newMesh?.rotation?.x,
-        y: newMesh?.rotation?.y,
-        z: newMesh?.rotation?.z
-      }
-    };
-    newMeshData.object.originIndex = swapIndex;
-    this.emit('swapObjectMeshUpdated', newMeshData);
-  }
-  // 模型替换
-  async changeObjectMesh({ file, meshUUid, swapIndex = 0 }) {
-    await this.loader__three.loadFiles({
-      files: [file.file],
-      filesMap: undefined,
-      onSuccess: async ({ object }) => {
-        await this.swapObjectMesh({ object, swapMeshUUid: meshUUid, swapIndex });
-      }
-    });
-  }
-  // 添加3d对象
-  addObject({ object, parent, index }) {
-    const scopeGeometry = this.geometry__three;
-    const scopeMaterial = this.material__three;
-    const scopeCamera = this.camera__three;
-    const scopeHelper = this.sceneHelpers__three;
-    const scopeScene = this.scene__three;
-    object.traverse(child => {
-      if (child.geometry !== undefined) scopeGeometry.addGeometry(child.geometry);
-      if (child.material !== undefined) scopeMaterial.addMaterial(child.material);
-
-      scopeCamera.addCamera(child);
-      scopeHelper.addHelper(child);
-      if (!this.modelObjects.get(child.uuid)) {
-        this.modelObjects.set(child.uuid, child);
-      }
-    });
-
-    if (!parent) {
-      scopeScene.add(object);
-    } else {
-      parent.children.splice(index, 0, object);
-      object.parent = parent;
-    }
-  }
-  // 移除3d对象
-  moveObject(object, parent, before) {
-    if (parent === undefined) {
-      parent = this.scene__three;
-    }
-
-    parent.add(object);
-
-    // sort children array
-
-    if (before !== undefined) {
-      var index = parent.children.indexOf(before);
-      parent.children.splice(index, 0, object);
-      parent.children.pop();
-    }
-  }
-
-  // 命名3d对象
-  nameObject(uuid, name) {
-    const object = this.getObject3D(uuid);
-    object.name = name;
-  }
 
   // 移除3d对象
-  removeObject3D({ uuid, needDeleteImage }) {
-    this.getObject3D(uuid) && this.removeObject({ object: this.getObject3D(uuid), needDeleteImage });
+  removeObject3D({ uuid, needDeleteImage = false }: { uuid: string; needDeleteImage?: boolean; }) {
+    this.getObject3D(uuid) && this.removeObject({ object: this.getObject3D(uuid) as THREE.Object3D, needDeleteImage });
   }
 
   // 移除对象
-  removeObject({ object, needDeleteImage }) {
-    if (object.parent === null) return; // avoid deleting the camera or scene
+  removeObject({ object, needDeleteImage }: { object: THREE.Object3D; needDeleteImage?: boolean; }) {
+    if (object.parent === null) return; // 避免删除相机或场景
 
-    object.traverse(child => {
+    object.traverse((child: THREE.Object3D) => {
       this.camera__three.removeCamera(child);
       this.sceneHelpers__three.removeHelper(child);
 
@@ -452,79 +442,48 @@ export class Object3D extends EventEmitter {
 
     object.parent.remove(object);
   }
+
+  // 命名3d对象
+  nameObject(uuid: string, name: string) {
+    const object = this.getObject3D(uuid) as THREE.Object3D;
+    object.name = name;
+  }
+
+  // 移动3d对象
+  moveObject(object: THREE.Object3D, parent?: THREE.Object3D, before?: THREE.Object3D) {
+    if (parent === undefined) {
+      parent = this.scene__three;
+    }
+
+    parent.add(object);
+
+    // sort children array
+
+    if (before !== undefined) {
+      const index = parent.children.indexOf(before);
+      parent.children.splice(index, 0, object);
+      parent.children.pop();
+    }
+  }
+
   // 设置模型属性
-  setModelMeshProps(uuid, data) {
-    const object = this.getObject3D(uuid);
+  setModelMeshProps(uuid: string, data: { [key: string]: any }) {
+    const object = this.getObject3D(uuid) as THREE.Mesh;
     if (!object || !data) return;
     this.setObjectProps(object, data);
   }
-  // 设置模型对象属性
-  setObjectProps(object, data) {
+
+  // 设置对象属性
+  setObjectProps(object: THREE.Object3D, data: { [key: string]: any }) {
     if (!object || !data) return;
     for (const key of Object.keys(data)) {
       if (key === 'transform') {
         for (const prop of Object.keys(data[key])) {
-          this.setObject3DTransform(object, data[key][prop], prop);
+          this.setObject3DTransform(object as THREE.Mesh, data[key][prop], prop);
         }
       } else {
         object[key] = data[key];
       }
     }
-  }
-  // 获取模型对象材质
-  getObjectMaterial(object, slot) {
-    var material = object.material;
-
-    if (Array.isArray(material) && slot !== undefined) {
-      material = material[slot];
-    }
-
-    return material;
-  }
-  async generateNewMeshMaterial(modelMesh) {
-    if (Array.isArray(modelMesh.material)) {
-      for (var index = 0, l = modelMesh.material.length; index < l; index++) {
-        const material = new THREE.MeshPhysicalMaterial();
-        this.material__three.resetMaterialData(material, true);
-        material.needsUpdate = true;
-        this.setObjectMaterial(modelMesh, index, material);
-      }
-    } else {
-      const material = new THREE.MeshPhysicalMaterial();
-      this.material__three.resetMaterialData(material, true);
-      material.needsUpdate = true;
-      this.setObjectMaterial(modelMesh, 0, material);
-    }
-  }
-  // 替换掉模型对象的材质
-  setObjectMaterial(object, slot, newMaterial) {
-    if (Array.isArray(object.material) && slot !== undefined) {
-      object.material[slot] = newMaterial;
-    } else {
-      object.material = newMaterial;
-    }
-  }
-  // 设置模型的旋转、位移、缩放
-  setModelMeshTransform({ uuid, position, type = 'translate' }) {
-    let modelObject = this.getObject3D(uuid);
-    modelObject && this.setObject3DTransform(modelObject, position, type);
-  }
-  // 设置对象变换数据
-  setObject3DTransform(object, position, type) {
-    const { x, y, z } = position;
-    if (x !== undefined && y !== undefined && z !== undefined) {
-      switch (type) {
-        case 'translate':
-          object?.position?.set(x, y, z);
-          break;
-        default:
-          object?.[type]?.set(x, y, z);
-          break;
-      }
-    }
-  }
-
-  getObject3D(uuid) {
-    return this.modelObjects.get(uuid);
   }
 }

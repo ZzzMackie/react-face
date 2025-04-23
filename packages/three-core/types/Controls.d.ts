@@ -2,18 +2,19 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
 import * as THREE from 'three';
 import EventEmitter from 'events';
-import { ThreeEngine } from '../main';
-// 使用 type 定义类型别名
+import type { ThreeEngine } from './main';
+type TransformControlsMode = 'translate' | 'rotate' |'scale';
+
 type ControlsConfig = OrbitControls | TransformControls;
 declare class Control extends EventEmitter {
   threeEngine: ThreeEngine;
   originVector: THREE.Vector3;
   orbitControllers: OrbitControls | null;
   transformControls__three: TransformControls | null;
-  config: OrbitControls | TransformControls;
+  config: object;
   transformControls__visible: boolean;
 
-  constructor(config: ControlsConfig, threeEngine: ThreeEngine);
+  constructor(config: object, threeEngine: ThreeEngine);
 
   // 创建轨道控制器
   initOrbitControls(config?: ControlsConfig): Promise<void>;
@@ -28,10 +29,10 @@ declare class Control extends EventEmitter {
   setAutoRotate(): void;
 
   // 变换控制器
-  initTransformControls(mode?: 'translate' | 'rotate' | 'scale'): Promise<void>;
+  initTransformControls(mode?: TransformControlsMode): Promise<Control>;
 
   // 设置变换控制器的模式（位移还是旋转）
-  setTransformControlsMode(mode: 'translate' | 'rotate' | 'scale'): void;
+  setTransformControlsMode(mode: TransformControlsMode): void;
 
   // 3d对象注入到变换控制器中
   attachTransformControls(uuid: string): void;

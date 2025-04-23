@@ -4,12 +4,12 @@ import * as THREE from 'three';
 import TWEEN from '@tweenjs/tween.js';
 import { proxyOptions } from './Proxy.ts';
 import type { CameraConfig, CameraData, CameraWithCustomProps, CameraPosition } from '../types/Camera.d.ts';
-import type { ThreeEngine } from '../main.d.ts';
+import type { ThreeEngine } from '../types/main.d.ts';
 import type { SceneHelpers } from '../types/SceneHelpers';
-import { Control } from '../types/Controls';
-import { Renderer } from '../types/Renderer';
-import { SceneHDR } from '../types/SceneHDR';
-import { ViewHelper } from '../types/ViewHelper';
+import type { Control } from '../types/Controls';
+import type { Renderer } from '../types/Renderer';
+import type { SceneHDR } from '../types/SceneHDR';
+import type { ViewHelper } from '../types/ViewHelper';
 export class Camera {
   threeEngine: ThreeEngine;
   camera: THREE.PerspectiveCamera;

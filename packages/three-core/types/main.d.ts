@@ -1,30 +1,45 @@
 import EventEmitter from 'events';
 import * as THREE from 'three';
-import { Geometry } from './types/Geometry';
-import { Material } from './types/Material';
-import { Control } from './types/Controls';
-import { Light } from './types/Light';
-import { SceneHDR } from './types/SceneHDR';
-import { ImageTexture } from './types/ImageTexture';
-import { SceneHelpers } from './types/SceneHelpers';
-import { Loader } from './types/FileLoader';
-import { Object3D } from './types/Object3D';
-import { Camera } from './types/Camera';
-import { Renderer } from './types/Renderer';
-import { ViewHelper } from './types/ViewHelper';
-import { IndexDb } from './types/IndexDb';
-import { Composer } from './types/Composer';
-import { Exporter } from './types/Exporter';
+import type { ControlsConfig, TransformControlsMode, Controls } from './types/Controls.d.ts';
+import type { GeometryTransform } from './types/Geometry.d.ts';
+import type { CameraPosition, CameraData } from './types/Camera.d.ts';
+import type { LightParam, LightConfig } from './types/Light.d.ts';
+import type {
+  UpdateMaterialParams,
+  ChangeMaterialParams,
+  DeleteMaterialParams,
+  UUID
+} from './types/Material.d.ts';
+import type {
+  EnvironmentOptions,
+  SetEnvironmentOptions,
+  Background,
+  SetBackgroundOptions,
+  UpdateEnvironmentTextureMappingOptions,
+  UpdateMaterialsEnvMapIntensityOptions,
+  UpdateBackgroundPropOptions
+} from './types/SceneHDR.d.ts';
+import type {
+  RendererOptions,
+  ToneMappingExposureParam,
+  ShadowMapParam
+} from './types/Renderer.d.ts';
+import type {
+  Object3DParams,
+  Object3DMesh,
+  Object3DMeshTransform,
+  ObjectGroupParams,
+  Object3DChangeMeshParams,
+  AddObject3DParams
+} from './types/Object3D.d.ts';
+import type { LoadFilesOptions } from './types/FileLoader.d.ts';
 
 interface ThreeEngineParams {
   renderOptions: THREE.WebGLRenderer;
   cameraConfig?: THREE.Camera
 }
-export class ThreeEngine extends EventEmitter {
-  static generateUUID(): string;
-  static getTHREE(): typeof THREE;
-  getTHREE(): typeof THREE;
-
+export declare class ThreeEngine extends EventEmitter {
+  config: ThreeEngineParams;
   geometry__three: Geometry | null;
   control__three: Control | null;
   material__three: Material | null;
@@ -34,20 +49,22 @@ export class ThreeEngine extends EventEmitter {
   sceneHelpers__three: SceneHelpers | null;
   loader__three: Loader | null;
   object3D__three: Object3D | null;
-  camera__three: Camera | null;
+  camera__three: CustomCamera | null;
   scene__three: THREE.Scene | null;
   renderer__three: Renderer | null;
   viewHelper__three: ViewHelper | null;
   indexDB__three: IndexDb | null;
   composer__three: Composer | null;
   exporter__three: Exporter | null;
-  config: ThreeEngineParams;
 
-  constructor(config?: ThreeEngineParams);
+  static generateUUID(): string;
+  static getTHREE(): typeof THREE;
+
+  constructor(config: ThreeEngineParams);
 
   initInstance(): void;
 
-  initApp(config?: ThreeEngineParams): void;
+  initApp(config: ThreeEngineParams): void;
 
   initComposer(): void;
 
@@ -55,74 +72,151 @@ export class ThreeEngine extends EventEmitter {
 
   setViewHelperVisible(value: boolean): void;
 
-  initOrbitControls(config?: any): Promise<void>;
+  /*************************** 控制器相关 ************************/
 
-  initTransformControls(mode?: string): Promise<void>;
+  initOrbitControls(config: ControlsConfig): Promise<void>;
 
-  attachTransformControls(uuid: string): void;
+  initTransformControls(mode?: TransformControlsMode): Promise<Controls>;
+
+  attachTransformControls(uuid: UUID): void;
 
   setTransformControlsMode(mode: string): void;
 
-  setOrbitControls(config?: any): Promise<void>;
+  setOrbitControls(config: ControlsConfig | null): Promise<void>;
 
   resetOrbitControls(): void;
 
   setAutoRotate(): void;
 
-  loadFiles(data?: any): Promise<any>;
+  /*************************** 控制器 End ************************/
 
-  addObjectGroup({ object, data }: { object: any, data: any }): Promise<any>;
+  /*************************** 模型相关 ************************/
 
-  addModelObject({ data, parent, index }: { data: any, parent?: any, index?: number }): Promise<any>;
+  loadFiles(data?: LoadFilesOptions): Promise<void>;
 
-  changeObjectMesh(data: any): Promise<any>;
+  addObjectGroup({ object, data }: ObjectGroupParams): Promise<void>;
 
-  loadMeshObject({ data, parent, index }: { data: any, parent?: any, index?: number }): Promise<any>;
+  addModelObject({ data, parent, index }: Object3DParams): Promise<void>;
 
-  addObject({ data, parent, index }: { data: any, parent?: any, index?: number }): void;
+  changeObjectMesh(data: Object3DChangeMeshParams): Promise<void>;
 
-  removeObject3D(uuid: string): void;
+  loadMeshObject({ data, parent, index }: Object3DParams): Promise<void>;
 
-  setModelMeshProps(uuid: string, data: any): void;
+  addObject(param: AddObject3DParams): void;
 
-  toggleModelVisible(uuid: string): void;
+  removeObject3D(uuid: UUID): void;
 
-  setModelGeometryTransform({ uuid, position, type }: { uuid: string, position: { x: number, y: number, z: number }, type: string }): void;
+  setModelMeshProps(uuid: UUID, data: Object3DMesh): void;
 
-  setModelMeshTransform({ uuid, position, type }: { uuid: string, position: { x: number, y: number, z: number }, type: string }): void;
+  toggleModelVisible(uuid: UUID): void;
 
-  initRenderer(config: any): void;
+  setModelGeometryTransform({ uuid, position, type }: GeometryTransform): void;
 
-  resetRenderer(options: any): void;
+  setModelMeshTransform({ uuid, position, type }: Object3DMeshTransform): void;
+
+  /******************* 模型相关 End ***************/
+
+  /******************* 渲染器相关 ***************/
+
+  initRenderer(config: RendererOptions): void;
+
+  resetRenderer(options: THREE.WebGLRendererParameters): void;
 
   updateAnimateRenderer(): void;
 
   updateRenderer(): void;
 
-  setToneMappingExposure({ toneMapping, toneMappingExposure }: { toneMapping: any, toneMappingExposure: number }): void;
+  setToneMappingExposure({ toneMapping, toneMappingExposure }: ToneMappingExposureParam): void;
 
-  setShadowMap({ shadows, shadowType }: { shadows: boolean, shadowType: string }): void;
+  setShadowMap({ shadows, shadowType }: ShadowMapParam): void;
 
   setAutoClear(autoClear: boolean): void;
 
   resizeRendererAndCamera(width: number, height: number): void;
 
-  initCamera(config: any): void;
+  /******************* 渲染器相关 End ***************/
+
+  /******************* 相机相关 ***************/
+
+  initCamera(config: RendererOptions): void;
 
   changeCamera(cameraType: string | number): void;
 
-  toAnimateCamera(data: { x: number, y: number, z: number }): void;
+  toAnimateCamera(data: CameraPosition): void;
 
-  cameraObjectChange(cameraData: { [key: string]: any }): void;
+  cameraObjectChange(data: CameraData): void;
 
-  cameraAnimateReset(cameraData: { x: number, y: number, z: number }): void;
+  cameraAnimateReset(cameraData: CameraPosition): void;
 
-  addImageData(uuid: string, url: string): Promise<void>;
+  screenshot(
+    w?: number,
+    h?: number,
+    type?: string,
+    transparentBackground?: boolean,
+    encoderOptions?: number
+  ): Promise<any>;
 
-  renderToCanvas(file: any, domElement: HTMLElement): void;
+  /******************* 相机相关 End ***************/
 
-  exportModelFile(data: any): Promise<any>;
+  /******************* 灯光相关 ***************/
+
+  addLight({ lightClass, lightConfig }: LightParam): Promise<any>;
+
+  updateLight(config: LightConfig): void;
+
+  deleteLight(lightId: string): void;
+
+  /******************* 灯光相关 End ***************/
+
+  /******************* 辅助线相关 ***************/
+
+  showHelper(show: boolean, type: string): void;
+
+  showGrid(show: boolean): void;
+
+  /******************* 辅助线相关 End ***************/
+
+  /******************* 场景相关 ***************/
+
+  initSceneHDR(environmentOptions: EnvironmentOptions): Promise<void>;
+
+  toggleSceneHDRBackground({ show }: { show: boolean }): void;
+
+  clearHDR(): void;
+
+  setEnvironment(setEnvironmentOptions: SetEnvironmentOptions): Promise<void>;
+
+  updateEnvironmentProp(environment: EnvironmentOptions): void;
+
+  setBackground(background: SetBackgroundOptions): void;
+
+  initBackground(background: Background): void;
+
+  updateBackgroundProp(background?: UpdateBackgroundPropOptions): void;
+
+  updateEnvironmentTextureMapping({ mapping }: UpdateEnvironmentTextureMappingOptions): void;
+
+  updateMaterialsEnvMapIntensity({ envMapIntensity }: UpdateMaterialsEnvMapIntensityOptions): void;
+
+  /******************* 场景相关 End ***************/
+
+  /******************* 材质相关 ***************/
+
+  updateMaterial({ uuid, key, value }: UpdateMaterialParams): Promise<void>;
+
+  changeMaterial({ uuid, originMaterial, newMaterialType }: ChangeMaterialParams): void;
+
+  deleteMaterial(params: DeleteMaterialParams): void;
+
+  /******************* 材质相关 End ***************/
+
+  generateUUID(): string;
+
+  addImageData(uuid: UUID, url: string): Promise<void>;
+
+  renderToCanvas(file: string | File, domElement: HTMLCanvasElement): void;
+
+  exportModelFile(data: object): Promise<void>;
 }
 
-declare const ThreeColor: typeof THREE.Color;
-declare const ThreeVector3: typeof THREE.Vector3;
+export declare const ThreeColor: typeof THREE.Color;

@@ -27,7 +27,7 @@ import { ViewHelper } from './src/ViewHelper.ts';
 import { IndexDb } from './src/IndexDb.ts';
 import { Composer } from './src/Composer.ts';
 import { Exporter } from './src/Exporter.ts';
-import type { ControlsConfig } from './types/Controls.d.ts'
+import type { ControlsConfig, TransformControlsMode } from './types/Controls.d.ts'
 import type { GeometryTransform } from './types/Geometry.d.ts'
 import type { CameraPosition, CameraData } from './types/Camera.d.ts'
 import type { LightParam, LightConfig } from './types/Light.d.ts'
@@ -43,7 +43,8 @@ import type {
   Background, 
   SetBackgroundOptions, 
   UpdateEnvironmentTextureMappingOptions,
-  UpdateMaterialsEnvMapIntensityOptions } from './types/SceneHDR.d.ts'
+  UpdateMaterialsEnvMapIntensityOptions,
+  UpdateBackgroundPropOptions } from './types/SceneHDR.d.ts'
 
 import type { RendererOptions, ToneMappingExposureParam, ShadowMapParam } from './types/Renderer.d.ts'
 import type { 
@@ -51,10 +52,12 @@ import type {
   Object3DMesh, 
   Object3DMeshTransform, 
   ObjectGroupParams, 
-  Object3DChangeMeshParams
+  Object3DChangeMeshParams,
+  AddObject3DParams
  } from './types/Object3D.d.ts'
 
 import type { ThreeEngineParams } from './types/main.d.ts'
+import type { LoadFilesOptions } from './types/FileLoader.d.ts';
 export class ThreeEngine extends EventEmitter {
   config: ThreeEngineParams;
   geometry__three: Geometry | null;
@@ -158,7 +161,7 @@ export class ThreeEngine extends EventEmitter {
   }
 
   // 初始化场景
-  initApp(config: RendererOptions) {
+  initApp(config: ThreeEngineParams) {
     try {
       this.initCamera(config);
       this.initRenderer(config);
@@ -206,8 +209,8 @@ export class ThreeEngine extends EventEmitter {
   }
 
   // 变换控制器
-  async initTransformControls(mode = 'translate') {
-    return await this.control__three?.initTransformControls?.(mode);
+  async initTransformControls(mode?: TransformControlsMode) {
+    return await this.control__three?.initTransformControls?.(mode ?? 'translate');
   }
 
   attachTransformControls(uuid: UUID) {
@@ -243,7 +246,7 @@ export class ThreeEngine extends EventEmitter {
   /*************************** 模型相关 ************************/
 
   // 加载文件
-  async loadFiles(data = {}) {
+  async loadFiles(data: LoadFilesOptions) {
     return await this.loader__three?.loadFiles(data);
   }
 
@@ -268,8 +271,8 @@ export class ThreeEngine extends EventEmitter {
   }
 
   // 添加对象
-  addObject({ data, parent, index }: Object3DParams) {
-    this.object3D__three?.addObject({ data, parent, index });
+  addObject(param: AddObject3DParams) {
+    this.object3D__three?.addObject(param);
   }
 
   // 移除3d对象
@@ -397,11 +400,11 @@ export class ThreeEngine extends EventEmitter {
   }
   // 更新灯光
   updateLight(config: LightConfig) {
-    this.light__three.updateLight(config);
+    this.light__three?.updateLight(config);
   }
   // 删除灯光
   deleteLight(lightId: string) {
-    this.light__three.deleteLight(lightId);
+    this.light__three?.deleteLight(lightId);
   }
 
   /******************* 相机相关 End ******************/
@@ -409,12 +412,12 @@ export class ThreeEngine extends EventEmitter {
   /*******************  辅助线相关  ******************/
   // 显示隐藏辅助线
   showHelper(show: boolean, type: string) {
-    this.sceneHelpers__three.showHelper(show, type);
+    this.sceneHelpers__three?.showHelper(show, type);
   }
 
   // 显示隐藏网格
   showGrid(show: boolean) {
-    this.sceneHelpers__three.showGrid(show);
+    this.sceneHelpers__three?.showGrid(show);
   }
 
   /******************* 辅助线相关 End ****************/
@@ -422,56 +425,56 @@ export class ThreeEngine extends EventEmitter {
   /*******************  场景相关  ********************/
   // 初始化hdr环境
   async initSceneHDR(environmentOptions: EnvironmentOptions) {
-    await this.sceneHDR__three.initSceneHDR(environmentOptions);
+    await this.sceneHDR__three?.initSceneHDR(environmentOptions);
   }
 
   // 展示hdr环境贴图
   toggleSceneHDRBackground({ show }: { show: boolean }) {
-    this.sceneHDR__three.toggleSceneHDRBackground({ show });
+    this.sceneHDR__three?.toggleSceneHDRBackground({ show });
   }
 
   // 清空hdr
   clearHDR() {
-    this.sceneHDR__three.clearHDR();
+    this.sceneHDR__three?.clearHDR();
   }
 
   // 设置dr环境
   async setEnvironment(setEnvironmentOptions: SetEnvironmentOptions) {
-    this.sceneHDR__three.setEnvironment(setEnvironmentOptions);
+    this.sceneHDR__three?.setEnvironment(setEnvironmentOptions);
   }
 
   // 更新环境数据
   updateEnvironmentProp(environment: EnvironmentOptions) {
-    this.sceneHDR__three.updateEnvironmentProp(environment);
+    this.sceneHDR__three?.updateEnvironmentProp(environment);
   }
 
   // 设置背景色
   setBackground(background: SetBackgroundOptions) {
     //设置背景色
-    this.sceneHDR__three.setBackground({
+    this.sceneHDR__three?.setBackground({
       background
     });
   }
   // 设置背景色
   initBackground(background: Background) {
     //设置背景色
-    this.sceneHDR__three.initBackground({
+    this.sceneHDR__three?.initBackground({
       background
     });
   }
 
-  updateBackgroundProp(background = {}) {
-    this.sceneHDR__three.updateBackgroundProp(background);
+  updateBackgroundProp(background: UpdateBackgroundPropOptions) {
+    this.sceneHDR__three?.updateBackgroundProp(background);
   }
 
   // 更新环境映射类型
   updateEnvironmentTextureMapping({ mapping }: UpdateEnvironmentTextureMappingOptions) {
-    this.sceneHDR__three.updateEnvironmentTextureMapping({ mapping });
+    this.sceneHDR__three?.updateEnvironmentTextureMapping({ mapping });
   }
 
   // 更新材质环境光强度
   updateMaterialsEnvMapIntensity({ envMapIntensity }: UpdateMaterialsEnvMapIntensityOptions) {
-    this.sceneHDR__three.updateMaterialsEnvMapIntensity({ envMapIntensity });
+    this.sceneHDR__three?.updateMaterialsEnvMapIntensity({ envMapIntensity });
   }
 
   /******************* 场景相关 End ********************/
@@ -479,15 +482,15 @@ export class ThreeEngine extends EventEmitter {
   /*******************  材质相关  **********************/
   // 更新材质数据
   async updateMaterial({ uuid, key, value }: UpdateMaterialParams) {
-    await this.material__three.updateMaterial({ uuid, key, value });
+    await this.material__three?.updateMaterial({ uuid, key, value });
   }
   changeMaterial({ uuid, originMaterial, newMaterialType }: ChangeMaterialParams) {
-    return this.material__three.changeMaterial({ uuid, originMaterial, newMaterialType });
+    return this.material__three?.changeMaterial({ uuid, originMaterial, newMaterialType });
   }
 
   // 删除材质
   deleteMaterial({ uuid = '', deleteKeys = [] }: DeleteMaterialParams) {
-    this.material__three.deleteMaterial({ uuid, deleteKeys });
+    this.material__three?.deleteMaterial({ uuid, deleteKeys });
   }
 
   /******************* 材质相关 End ********************/
@@ -498,11 +501,11 @@ export class ThreeEngine extends EventEmitter {
   }
   // 添加贴图数据
   async addImageData(uuid: UUID, url: string) {
-    await this.imageTexture__three.addImageData(uuid, url);
+    await this.imageTexture__three?.addImageData(uuid, url);
   }
 
   renderToCanvas(file: string | File, domElement: HTMLCanvasElement) {
-    this.imageTexture__three.renderToCanvas(file, domElement);
+    this.imageTexture__three?.renderToCanvas(file, domElement);
   }
 
   async exportModelFile(data: object) {
