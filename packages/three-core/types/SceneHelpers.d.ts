@@ -3,11 +3,16 @@ import * as THREE from 'three';
 import { RectAreaLightHelper } from 'three/examples/jsm/helpers/RectAreaLightHelper.js';
 import { ThreeEngine } from '../main';
 // 辅助器类型定义
+interface CustomHelper extends THREE.Object3D {
+  isSkeletonHelper?: boolean;
+  update?: () => void;
+}
+
 export class SceneHelpers {
   threeEngine: ThreeEngine;
   lightHelperVisible: boolean;
   sceneHelpers: THREE.Scene;
-  helpers: Map<number, THREE.Object3D>;
+  helpers: Map<number, CustomHelper>;
   geometry: THREE.SphereGeometry;
   material: THREE.MeshBasicMaterial;
   box: THREE.Box3;

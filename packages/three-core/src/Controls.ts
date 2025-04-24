@@ -6,14 +6,14 @@ import { proxyOptions } from './Proxy.ts';
 import type { ThreeEngine } from '../types/main';
 import type { Camera } from '../types/Camera';
 import type { Renderer } from '../types/Renderer';
-import type { ControlsConfig, TransformControlsMode } from '../types/Controls';
+import type { OrbitControlsConfig, TransformControlsMode, TransformControlsParams } from '../types/Controls';
 import type { SceneHelpers } from '../types/SceneHelpers';
 const originVector = new THREE.Vector3(0, 0, 0); // 原点数据
 
 export class Control extends EventEmitter {
   threeEngine: ThreeEngine; // 请根据实际情况替换为具体类型
-  orbitControllers: OrbitControls | null;
-  transformControls__three: TransformControls | null;
+  orbitControllers!: OrbitControlsConfig | null;
+  transformControls__three!: TransformControlsParams | null;
   originVector: THREE.Vector3;
   config: object; // 请根据实际情况替换为具体类型
   transformControls__visible: boolean;
@@ -41,7 +41,7 @@ export class Control extends EventEmitter {
    * *****/
 
   // 创建轨道控制器
-  async initOrbitControls(config: ControlsConfig): Promise<void> { // 请根据实际情况替换为具体类型
+  async initOrbitControls(config: OrbitControlsConfig): Promise<void> { // 请根据实际情况替换为具体类型
     this.orbitControllers = new OrbitControls(
       this.camera__three.viewportCamera,
       this.renderer__three?.renderer?.domElement
@@ -51,20 +51,30 @@ export class Control extends EventEmitter {
   }
 
   // 更新轨道控制器设置,config和three官网一致
-  async setOrbitControls(config: ControlsConfig | null): Promise<void> { // 请根据实际情况替换为具体类型
+  async setOrbitControls(config: OrbitControlsConfig | null): Promise<void> { // 请根据实际情况替换为具体类型
+    if (!this.orbitControllers) {
+      console.error('OrbitControllers is not initialized.');
+      return;
+    }
     if (config) {
-      for (const key in config) {
-          if (this.orbitControllers && Object.prototype.hasOwnProperty.call(config, key) && Object.prototype.hasOwnProperty.call(this.orbitControllers, key)) {
-              this.orbitControllers[key as keyof OrbitControls] = config[key as keyof OrbitControls];
-          } else {
-              console.warn(`Key "${key}" is not a valid property of OrbitControls.`);
-          }
-      }
-
-
+        for (const key in config) {
+            if (Object.prototype.hasOwnProperty.call(config, key)) {
+                // 确保 key 同时也是 OrbitControls 的属性
+                if (key in this.orbitControllers) {
+                    // 确认 key 在两个类型中都存在并且类型兼容
+                    if (typeof config[key] === typeof this.orbitControllers[key as keyof OrbitControlsConfig]) {
+                        this.orbitControllers[key as keyof OrbitControlsConfig] = config[key as keyof OrbitControlsConfig];
+                    } else {
+                        console.warn(`Type of key "${key}" in config does not match the type of the corresponding property in OrbitControls.`);
+                    }
+                } else {
+                    console.warn(`Key "${key}" is not a valid property of OrbitControls.`);
+                }
+            }
+        }
     }
     if (this.orbitControllers) {
-      await this.orbitControllers.saveState(); //储存控制器状态
+        await this.orbitControllers.saveState(); // 储存控制器状态
     }
   }
 
@@ -83,7 +93,7 @@ export class Control extends EventEmitter {
   }
 
   // 变换控制器
-  async initTransformControls(mode: TransformControlsMode): Promise<TransformControls | null> {
+  async initTransformControls(mode: TransformControlsMode): Promise<TransformControlsParams | null> {
     this.transformControls__three = new TransformControls(
       this.camera__three.viewportCamera,
       this.renderer__three?.renderer?.domElement
@@ -94,7 +104,7 @@ export class Control extends EventEmitter {
     if (this.transformControls__three) {
       this.transformControls__three.visible = this.transformControls__visible;
       this.transformControls__three.enabled = this.transformControls__visible;
-      this.sceneHelpers__three.sceneHelpers.add(this.transformControls__three);
+      this.sceneHelpers__three?.sceneHelpers?.add?.(this.transformControls__three.object);
     }
     return this.transformControls__three;
   }

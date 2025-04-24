@@ -5,22 +5,28 @@ import EventEmitter from 'events';
 import type { ThreeEngine } from './main';
 type TransformControlsMode = 'translate' | 'rotate' |'scale';
 
-type ControlsConfig = OrbitControls | TransformControls;
+type ControlsConfig = OrbitControlsConfig & OrbitControls;
+
+type TransformControlsParams = TransformControls & OrbitControlsConfig;
+
+type OrbitControlsConfig = {
+  [key: string]: number | boolean | Vector3 | Object3D<Object3DEventMap> | HTMLElement | { LEFT: string; UP: string; RIGHT: string; BOTTOM: string; } | null;
+};
 declare class Control extends EventEmitter {
   threeEngine: ThreeEngine;
   originVector: THREE.Vector3;
-  orbitControllers: OrbitControls | null;
-  transformControls__three: TransformControls | null;
+  orbitControllers: OrbitControlsConfig | null;
+  transformControls__three: TransformControlsParams | null;
   config: object;
   transformControls__visible: boolean;
 
   constructor(config: object, threeEngine: ThreeEngine);
 
   // 创建轨道控制器
-  initOrbitControls(config?: ControlsConfig): Promise<void>;
+  initOrbitControls(config?: OrbitControlsConfig): Promise<void>;
 
   // 更新轨道控制器设置,config和three官网一致
-  setOrbitControls(config?: ControlsConfig): Promise<void>;
+  setOrbitControls(config?: OrbitControlsConfig): Promise<void>;
 
   // 重置轨道控制器回原位（上一次调用saveState的状态）
   resetOrbitControls(): void;
