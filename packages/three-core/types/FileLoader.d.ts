@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { ThreeEngine } from '../main';
@@ -8,23 +9,58 @@ type FileData = {
   uuid: string;
 }
 
-type LoadSuccessCallback = (args: { object: THREE.Object3D, data: any, file: File, extension: string, filename: string }) => Promise<void>;
+type FilesMap = {[key: string]: File}
 
-interface LoadFileOptions {
+export interface FileLoaderResult {
+  object: THREE.Object3D;
+  data: any;
+  file: File;
+  extension: string;
+  filename: string;
+}
+
+export type OnSuccessCallback = (result: FileLoaderResult) => Promise<void>;
+
+export interface HandleJSONParams {
+  scope: any;
+  data: any;
+  modelData: any;
+  onSuccess: OnSuccessCallback;
+  file: File;
+  extension: string;
+  filename: string;
+}
+
+export interface HandleZIPParams {
+  scope: any;
+  contents: ArrayBuffer;
+  modelData: any;
+  onSuccess: OnSuccessCallback;
+  file: File;
+  extension: string;
+  filename: string;
+}
+
+export interface LoadFileOptions {
   file: File;
   manager?: THREE.LoadingManager;
   modelData?: any;
-  onSuccess?: LoadSuccessCallback;
+  onSuccess?: OnSuccessCallback;
 }
 
-interface LoadFilesOptions {
+export interface LoadFilesOptions {
   files: File[];
-  filesMap?: FilesMap;
+  filesMap?: Record<string, File>;
   modelData?: any;
-  onSuccess?: LoadSuccessCallback;
+  onSuccess?: OnSuccessCallback;
 }
 
-type FilesMap = {[key: string]: File}
+export interface GLTFLoaderWithDispose extends THREE.Loader {
+  dracoLoader?: THREE.Loader;
+  ktx2Loader?: THREE.Loader;
+  dispose?: () => void;
+  disposeAll?: () => void;
+}
 
 declare class Loader {
   threeEngine: ThreeEngine;
@@ -36,7 +72,7 @@ declare class Loader {
 
   loadFiles(loadFilesOptions: LoadFilesOptions): Promise<PromiseSettledResult<void>[]>;
 
-  loadFile(options: LoadFileOptions): Promise<{ object: THREE.Object3D, data: any, file: File, extension: string, filename: string }>;
+  loadFile(options: LoadFileOptions): Promise<FileLoaderResult>;
 
 }
 

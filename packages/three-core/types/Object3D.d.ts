@@ -57,7 +57,9 @@ interface Object3DChangeMeshParams {
 }
 
 interface AddObject3DParams { 
-  object: ThreeObjectParams; parent?: ThreeObjectParams; index?: number 
+  object: ThreeObjectParams; 
+  parent?: ThreeObjectParams; 
+  index?: number 
 }
 
 export class Object3D {
