@@ -70,6 +70,8 @@ export type ManagerType =
   | 'monitor'
   | 'memory'
   | 'recovery'
+  | 'instance'
+  | 'lod'
   | 'database'
   | 'rayTracing'
   | 'deferred'

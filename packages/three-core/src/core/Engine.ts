@@ -39,6 +39,11 @@ import { LoaderManager } from './LoaderManager';
 import { MonitorManager } from './MonitorManager';
 import { MemoryManager } from './MemoryManager';
 import { RecoveryManager } from './RecoveryManager';
+import { InstanceManager } from './InstanceManager';
+import { LODManager } from './LODManager';
+import { ManagerFactory } from './ManagerFactory';
+import { ManagerRegistry } from './ManagerRegistry';
+import { DynamicManagerRegistry } from './DynamicManagerRegistry';
 
 export interface EngineConfig {
   container?: HTMLElement;
@@ -101,52 +106,37 @@ export class Engine {
   }
 
   private async initializeDefaultManagers(): Promise<void> {
-    // 创建默认管理器
-    const defaultManagers: { [key in ManagerType]?: Manager } = {
-      scene: new SceneManager(this),
-      renderer: new RenderManager(this),
-      camera: new CameraManager(this),
-      controls: new ControlsManager(this),
-      lights: new LightManager(this),
-      materials: new MaterialManager(this),
-      geometries: new GeometryManager(this),
-      textures: new TextureManager(this),
-      animations: new AnimationManager(this),
-      physics: new PhysicsManager(this),
-      audio: new AudioManager(this),
-      particles: new ParticleManager(this),
-      shaders: new ShaderManager(this),
-      environment: new EnvironmentManager(this),
-      events: new EventManager(this),
-      helpers: new HelperManager(this),
-      ui: new UIManager(this),
-      performance: new PerformanceManager(this),
-      export: new ExportManager(this),
-      database: new DatabaseManager(this),
-      rayTracing: new RayTracingManager(this),
-      deferred: new DeferredManager(this),
-      fluid: new FluidManager(this),
-      morph: new MorphManager(this),
-      procedural: new ProceduralManager(this),
-      optimization: new OptimizationManager(this),
-      error: new ErrorManager(this),
-      composer: new ComposerManager(this),
-      viewHelper: new ViewHelperManager(this),
-      volumetric: new VolumetricManager(this),
-      skeleton: new SkeletonManager(this),
-      objects: new ObjectManager(this),
-      loader: new LoaderManager(this),
-      monitor: new MonitorManager(this),
-      memory: new MemoryManager(this),
-      recovery: new RecoveryManager(this)
-    };
-
-    // 初始化启用的管理器
+    const factory = ManagerFactory.getInstance(this);
+    
+    // 只初始化用户启用的管理器
     for (const managerType of this.config.enableManagers!) {
-      const manager = defaultManagers[managerType];
-      if (manager) {
-        await this.addManager(managerType, manager);
+      await this.createManager(managerType, factory);
+    }
+  }
+
+  // 按需创建管理器
+  private async createManager(type: ManagerType, factory: ManagerFactory): Promise<void> {
+    if (this.managers[type]) return; // 已经存在
+
+    try {
+      // 使用动态注册表
+      const registry = DynamicManagerRegistry.getInstance();
+      
+      // 检查依赖
+      const dependencies = registry.getDependencies(type);
+      for (const depType of dependencies) {
+        if (!this.managers[depType]) {
+          await this.createManager(depType, factory);
+        }
       }
+
+      // 动态创建管理器
+      const manager = await registry.createManager(type, this);
+      await this.addManager(type, manager);
+      
+      console.log(`✅ 动态加载管理器: ${type}`);
+    } catch (error) {
+      console.warn(`Failed to create manager ${type}:`, error);
     }
   }
 
@@ -242,159 +232,218 @@ export class Engine {
   // 便捷方法 - 获取特定管理器
   public async getScene(): Promise<SceneManager> {
     if (!this.hasManager('scene')) {
-      await this.addManager('scene', new SceneManager(this));
+      const factory = ManagerFactory.getInstance(this);
+      await this.createManager('scene', factory);
     }
     return this.getManager<SceneManager>('scene')!;
   }
 
   public async getRender(): Promise<RenderManager> {
     if (!this.hasManager('renderer')) {
-      await this.addManager('renderer', new RenderManager(this));
+      const factory = ManagerFactory.getInstance(this);
+      await this.createManager('renderer', factory);
     }
     return this.getManager<RenderManager>('renderer')!;
   }
 
   public async getCamera(): Promise<CameraManager> {
     if (!this.hasManager('camera')) {
-      await this.addManager('camera', new CameraManager(this));
+      const factory = ManagerFactory.getInstance(this);
+      await this.createManager('camera', factory);
     }
     return this.getManager<CameraManager>('camera')!;
   }
 
   public async getControls(): Promise<ControlsManager> {
     if (!this.hasManager('controls')) {
-      await this.addManager('controls', new ControlsManager(this));
+      const factory = ManagerFactory.getInstance(this);
+      await this.createManager('controls', factory);
     }
     return this.getManager<ControlsManager>('controls')!;
   }
 
   public async getLights(): Promise<LightManager> {
     if (!this.hasManager('lights')) {
-      await this.addManager('lights', new LightManager(this));
+      const factory = ManagerFactory.getInstance(this);
+      await this.createManager('lights', factory);
     }
     return this.getManager<LightManager>('lights')!;
   }
 
   public async getMaterials(): Promise<MaterialManager> {
     if (!this.hasManager('materials')) {
-      await this.addManager('materials', new MaterialManager(this));
+      const factory = ManagerFactory.getInstance(this);
+      await this.createManager('materials', factory);
     }
     return this.getManager<MaterialManager>('materials')!;
   }
 
   public async getGeometry(): Promise<GeometryManager> {
     if (!this.hasManager('geometries')) {
-      await this.addManager('geometries', new GeometryManager(this));
+      const factory = ManagerFactory.getInstance(this);
+      await this.createManager('geometries', factory);
     }
     return this.getManager<GeometryManager>('geometries')!;
   }
 
   public async getTextures(): Promise<TextureManager> {
     if (!this.hasManager('textures')) {
-      await this.addManager('textures', new TextureManager(this));
+      const factory = ManagerFactory.getInstance(this);
+      await this.createManager('textures', factory);
     }
     return this.getManager<TextureManager>('textures')!;
   }
 
   public async getAnimations(): Promise<AnimationManager> {
     if (!this.hasManager('animations')) {
-      await this.addManager('animations', new AnimationManager(this));
+      const factory = ManagerFactory.getInstance(this);
+      await this.createManager('animations', factory);
     }
     return this.getManager<AnimationManager>('animations')!;
   }
 
   public async getPhysics(): Promise<PhysicsManager> {
     if (!this.hasManager('physics')) {
-      await this.addManager('physics', new PhysicsManager(this));
+      const factory = ManagerFactory.getInstance(this);
+      await this.createManager('physics', factory);
     }
     return this.getManager<PhysicsManager>('physics')!;
   }
 
   public async getAudio(): Promise<AudioManager> {
     if (!this.hasManager('audio')) {
-      await this.addManager('audio', new AudioManager(this));
+      const factory = ManagerFactory.getInstance(this);
+      await this.createManager('audio', factory);
     }
     return this.getManager<AudioManager>('audio')!;
   }
 
   public async getParticles(): Promise<ParticleManager> {
     if (!this.hasManager('particles')) {
-      await this.addManager('particles', new ParticleManager(this));
+      const factory = ManagerFactory.getInstance(this);
+      await this.createManager('particles', factory);
     }
     return this.getManager<ParticleManager>('particles')!;
   }
 
   public async getShaders(): Promise<ShaderManager> {
     if (!this.hasManager('shaders')) {
-      await this.addManager('shaders', new ShaderManager(this));
+      const factory = ManagerFactory.getInstance(this);
+      await this.createManager('shaders', factory);
     }
     return this.getManager<ShaderManager>('shaders')!;
   }
 
   public async getEnvironment(): Promise<EnvironmentManager> {
     if (!this.hasManager('environment')) {
-      await this.addManager('environment', new EnvironmentManager(this));
+      const factory = ManagerFactory.getInstance(this);
+      await this.createManager('environment', factory);
     }
     return this.getManager<EnvironmentManager>('environment')!;
   }
 
   public async getEvents(): Promise<EventManager> {
     if (!this.hasManager('events')) {
-      await this.addManager('events', new EventManager(this));
+      const factory = ManagerFactory.getInstance(this);
+      await this.createManager('events', factory);
     }
     return this.getManager<EventManager>('events')!;
   }
 
   public async getHelpers(): Promise<HelperManager> {
     if (!this.hasManager('helpers')) {
-      await this.addManager('helpers', new HelperManager(this));
+      const factory = ManagerFactory.getInstance(this);
+      await this.createManager('helpers', factory);
     }
     return this.getManager<HelperManager>('helpers')!;
   }
 
   public async getUI(): Promise<UIManager> {
     if (!this.hasManager('ui')) {
-      await this.addManager('ui', new UIManager(this));
+      const factory = ManagerFactory.getInstance(this);
+      await this.createManager('ui', factory);
     }
     return this.getManager<UIManager>('ui')!;
   }
 
   public async getPerformance(): Promise<PerformanceManager> {
     if (!this.hasManager('performance')) {
-      await this.addManager('performance', new PerformanceManager(this));
+      const factory = ManagerFactory.getInstance(this);
+      await this.createManager('performance', factory);
     }
     return this.getManager<PerformanceManager>('performance')!;
   }
 
   public async getExport(): Promise<ExportManager> {
     if (!this.hasManager('export')) {
-      await this.addManager('export', new ExportManager(this));
+      const factory = ManagerFactory.getInstance(this);
+      await this.createManager('export', factory);
     }
     return this.getManager<ExportManager>('export')!;
   }
 
   public async getDatabase(): Promise<DatabaseManager | null> {
+    if (!this.hasManager('database')) {
+      const factory = ManagerFactory.getInstance(this);
+      await this.createManager('database', factory);
+    }
     return this.getManager<DatabaseManager>('database');
   }
 
   public async getObjects(): Promise<ObjectManager | null> {
+    if (!this.hasManager('objects')) {
+      const factory = ManagerFactory.getInstance(this);
+      await this.createManager('objects', factory);
+    }
     return this.getManager<ObjectManager>('objects');
   }
 
   public async getLoader(): Promise<LoaderManager | null> {
+    if (!this.hasManager('loader')) {
+      const factory = ManagerFactory.getInstance(this);
+      await this.createManager('loader', factory);
+    }
     return this.getManager<LoaderManager>('loader');
   }
 
   public async getMonitor(): Promise<MonitorManager | null> {
+    if (!this.hasManager('monitor')) {
+      const factory = ManagerFactory.getInstance(this);
+      await this.createManager('monitor', factory);
+    }
     return this.getManager<MonitorManager>('monitor');
   }
 
   public async getMemory(): Promise<MemoryManager | null> {
+    if (!this.hasManager('memory')) {
+      const factory = ManagerFactory.getInstance(this);
+      await this.createManager('memory', factory);
+    }
     return this.getManager<MemoryManager>('memory');
   }
 
   public async getRecovery(): Promise<RecoveryManager | null> {
+    if (!this.hasManager('recovery')) {
+      const factory = ManagerFactory.getInstance(this);
+      await this.createManager('recovery', factory);
+    }
     return this.getManager<RecoveryManager>('recovery');
+  }
+
+  public async getInstance(): Promise<InstanceManager | null> {
+    if (!this.hasManager('instance')) {
+      const factory = ManagerFactory.getInstance(this);
+      await this.createManager('instance', factory);
+    }
+    return this.getManager<InstanceManager>('instance');
+  }
+
+  public async getLOD(): Promise<LODManager | null> {
+    if (!this.hasManager('lod')) {
+      const factory = ManagerFactory.getInstance(this);
+      await this.createManager('lod', factory);
+    }
+    return this.getManager<LODManager>('lod');
   }
 
   // 场景对象管理
