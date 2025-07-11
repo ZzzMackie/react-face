@@ -37,6 +37,8 @@ import { VolumetricManager } from './VolumetricManager';
 import { ObjectManager } from './ObjectManager';
 import { LoaderManager } from './LoaderManager';
 import { MonitorManager } from './MonitorManager';
+import { MemoryManager } from './MemoryManager';
+import { RecoveryManager } from './RecoveryManager';
 
 export interface EngineConfig {
   container?: HTMLElement;
@@ -134,7 +136,9 @@ export class Engine {
       skeleton: new SkeletonManager(this),
       objects: new ObjectManager(this),
       loader: new LoaderManager(this),
-      monitor: new MonitorManager(this)
+      monitor: new MonitorManager(this),
+      memory: new MemoryManager(this),
+      recovery: new RecoveryManager(this)
     };
 
     // 初始化启用的管理器
@@ -383,6 +387,14 @@ export class Engine {
 
   public async getMonitor(): Promise<MonitorManager | null> {
     return this.getManager<MonitorManager>('monitor');
+  }
+
+  public async getMemory(): Promise<MemoryManager | null> {
+    return this.getManager<MemoryManager>('memory');
+  }
+
+  public async getRecovery(): Promise<RecoveryManager | null> {
+    return this.getManager<RecoveryManager>('recovery');
   }
 
   // 场景对象管理

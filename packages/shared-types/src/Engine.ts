@@ -68,6 +68,8 @@ export type ManagerType =
   | 'loader'
   | 'objects'
   | 'monitor'
+  | 'memory'
+  | 'recovery'
   | 'database'
   | 'rayTracing'
   | 'deferred'
