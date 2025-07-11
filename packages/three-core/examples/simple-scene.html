@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three-Core 示例 - 完整功能演示</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+            overflow: hidden;
+        }
+        
+        #container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+        
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            max-width: 300px;
+            z-index: 1000;
+        }
+        
+        #controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 5px;
+            z-index: 1000;
+        }
+        
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            margin: 2px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        button:hover {
+            background: #45a049;
+        }
+        
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        
+        .stats {
+            margin: 5px 0;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container"></div>
+    
+    <div id="info">
+        <h3>Three-Core 引擎演示</h3>
+        <div class="stats">
+            <div>管理器数量: <span id="managerCount">0</span></div>
+            <div>场景对象: <span id="objectCount">0</span></div>
+            <div>渲染调用: <span id="renderCalls">0</span></div>
+            <div>三角形数: <span id="triangleCount">0</span></div>
+        </div>
+        <div class="stats">
+            <div>体积光: <span id="volumetricCount">0</span></div>
+            <div>UI元素: <span id="uiCount">0</span></div>
+            <div>动画: <span id="animationCount">0</span></div>
+        </div>
+    </div>
+    
+    <div id="controls">
+        <h4>控制面板</h4>
+        <button onclick="toggleVolumetric()">切换体积光</button>
+        <button onclick="toggleUI()">切换UI</button>
+        <button onclick="toggleAnimation()">切换动画</button>
+        <button onclick="addCube()">添加立方体</button>
+        <button onclick="clearScene()">清空场景</button>
+        <br><br>
+        <button onclick="exportScene()">导出场景</button>
+        <button onclick="takeScreenshot()">截图</button>
+    </div>
+
+    <script type="module">
+        import { Engine } from '../dist/three-core.esm.js';
+        
+        // 全局变量
+        let engine;
+        let volumetricManager;
+        let uiManager;
+        let skeletonManager;
+        let objectManager;
+        let isVolumetricEnabled = false;
+        let isUIEnabled = false;
+        let isAnimationEnabled = false;
+        
+        // 初始化引擎
+        async function initEngine() {
+            try {
+                // 创建引擎实例
+                engine = new Engine({
+                    container: document.getElementById('container'),
+                    width: window.innerWidth,
+                    height: window.innerHeight,
+                    antialias: true,
+                    shadowMap: true,
+                    autoRender: true,
+                    autoResize: true
+                });
+                
+                // 初始化引擎
+                await engine.initialize();
+                console.log('引擎初始化完成');
+                
+                // 获取管理器
+                volumetricManager = await engine.getManager('volumetric');
+                uiManager = await engine.getManager('ui');
+                skeletonManager = await engine.getManager('skeleton');
+                objectManager = await engine.getManager('objects');
+                
+                // 设置基础场景
+                setupBasicScene();
+                
+                // 开始渲染循环
+                engine.startRenderLoop();
+                
+                // 更新统计信息
+                updateStats();
+                
+                console.log('场景设置完成');
+                
+            } catch (error) {
+                console.error('初始化失败:', error);
+            }
+        }
+        
+        // 设置基础场景
+        function setupBasicScene() {
+            // 添加基础几何体
+            const geometry = new THREE.BoxGeometry(1, 1, 1);
+            const material = new THREE.MeshLambertMaterial({ color: 0x00ff00 });
+            const cube = new THREE.Mesh(geometry, material);
+            cube.position.set(0, 0, 0);
+            engine.scene.add(cube);
+            
+            // 添加光源
+            const light = new THREE.DirectionalLight(0xffffff, 1);
+            light.position.set(5, 5, 5);
+            engine.scene.add(light);
+            
+            const ambientLight = new THREE.AmbientLight(0x404040);
+            engine.scene.add(ambientLight);
+        }
+        
+        // 创建体积光
+        function createVolumetricLight() {
+            if (!volumetricManager) return;
+            
+            try {
+                const volumetricLight = volumetricManager.createVolumetricLight('volumetric1', {
+                    color: 0xff6600,
+                    intensity: 2.0,
+                    density: 0.1,
+                    samples: 32,
+                    noiseScale: 2.0,
+                    noiseIntensity: 0.3,
+                    animationSpeed: 0.5,
+                    windDirection: new THREE.Vector3(1, 0, 0),
+                    windSpeed: 0.2,
+                    size: new THREE.Vector3(5, 5, 5),
+                    position: new THREE.Vector3(0, 2, 0)
+                });
+                
+                console.log('体积光创建成功:', volumetricLight);
+                isVolumetricEnabled = true;
+                
+            } catch (error) {
+                console.error('创建体积光失败:', error);
+            }
+        }
+        
+        // 创建UI元素
+        function createUIElements() {
+            if (!uiManager) return;
+            
+            try {
+                // 创建文本元素
+                const textElement = uiManager.createTextElement('text1', 'Hello Three-Core!', {
+                    position: new THREE.Vector3(0, 3, 0),
+                    size: { width: 2, height: 0.5 },
+                    color: 0xffffff,
+                    interactive: true
+                });
+                
+                // 创建按钮元素
+                const buttonElement = uiManager.createButtonElement('button1', '点击我!', {
+                    position: new THREE.Vector3(0, 1.5, 0),
+                    size: { width: 1.5, height: 0.4 },
+                    color: 0x4CAF50,
+                    interactive: true
+                });
+                
+                // 监听UI事件
+                uiManager.elementClicked.subscribe((data) => {
+                    if (data) {
+                        console.log('UI元素被点击:', data.element);
+                        alert(`点击了 ${data.element.type} 元素: ${data.element.id}`);
+                    }
+                });
+                
+                console.log('UI元素创建成功');
+                isUIEnabled = true;
+                
+            } catch (error) {
+                console.error('创建UI元素失败:', error);
+            }
+        }
+        
+        // 切换体积光
+        function toggleVolumetric() {
+            if (!volumetricManager) return;
+            
+            if (isVolumetricEnabled) {
+                volumetricManager.clearAllVolumetricLights();
+                isVolumetricEnabled = false;
+                console.log('体积光已关闭');
+            } else {
+                createVolumetricLight();
+                console.log('体积光已开启');
+            }
+        }
+        
+        // 切换UI
+        function toggleUI() {
+            if (!uiManager) return;
+            
+            if (isUIEnabled) {
+                uiManager.clearAllUIElements();
+                isUIEnabled = false;
+                console.log('UI已关闭');
+            } else {
+                createUIElements();
+                console.log('UI已开启');
+            }
+        }
+        
+        // 切换动画
+        function toggleAnimation() {
+            if (!skeletonManager) return;
+            
+            if (isAnimationEnabled) {
+                // 停止所有动画
+                const animations = skeletonManager.getAllSkeletonAnimations();
+                animations.forEach(anim => {
+                    skeletonManager.stopAnimation(anim.id);
+                });
+                isAnimationEnabled = false;
+                console.log('动画已停止');
+            } else {
+                // 这里可以添加动画播放逻辑
+                isAnimationEnabled = true;
+                console.log('动画已开启');
+            }
+        }
+        
+        // 添加立方体
+        function addCube() {
+            if (!objectManager) return;
+            
+            try {
+                const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+                const material = new THREE.MeshLambertMaterial({ 
+                    color: Math.random() * 0xffffff 
+                });
+                const cube = new THREE.Mesh(geometry, material);
+                
+                cube.position.set(
+                    (Math.random() - 0.5) * 10,
+                    (Math.random() - 0.5) * 10,
+                    (Math.random() - 0.5) * 10
+                );
+                
+                engine.scene.add(cube);
+                console.log('立方体已添加');
+                
+            } catch (error) {
+                console.error('添加立方体失败:', error);
+            }
+        }
+        
+        // 清空场景
+        function clearScene() {
+            if (!objectManager) return;
+            
+            try {
+                // 移除所有对象（除了相机和光源）
+                const objectsToRemove = [];
+                engine.scene.traverse((object) => {
+                    if (object.type === 'Mesh' && object !== engine.camera) {
+                        objectsToRemove.push(object);
+                    }
+                });
+                
+                objectsToRemove.forEach(obj => {
+                    engine.scene.remove(obj);
+                    if (obj.geometry) obj.geometry.dispose();
+                    if (obj.material) obj.material.dispose();
+                });
+                
+                console.log('场景已清空');
+                
+            } catch (error) {
+                console.error('清空场景失败:', error);
+            }
+        }
+        
+        // 导出场景
+        function exportScene() {
+            if (!engine) return;
+            
+            try {
+                const sceneData = {
+                    scene: engine.scene.toJSON(),
+                    camera: engine.camera.toJSON(),
+                    timestamp: new Date().toISOString()
+                };
+                
+                const dataStr = JSON.stringify(sceneData, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(dataBlob);
+                link.download = `scene-${Date.now()}.json`;
+                link.click();
+                
+                console.log('场景导出成功');
+                
+            } catch (error) {
+                console.error('导出场景失败:', error);
+            }
+        }
+        
+        // 截图
+        function takeScreenshot() {
+            if (!engine) return;
+            
+            try {
+                engine.renderer.render(engine.scene, engine.camera);
+                const canvas = engine.renderer.domElement;
+                const link = document.createElement('a');
+                link.download = `screenshot-${Date.now()}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+                
+                console.log('截图成功');
+                
+            } catch (error) {
+                console.error('截图失败:', error);
+            }
+        }
+        
+        // 更新统计信息
+        function updateStats() {
+            if (!engine) return;
+            
+            const stats = engine.getStats();
+            const rendererInfo = engine.renderer.info;
+            
+            document.getElementById('managerCount').textContent = stats.initializedManagers;
+            document.getElementById('objectCount').textContent = engine.scene.children.length;
+            document.getElementById('renderCalls').textContent = rendererInfo.render.calls;
+            document.getElementById('triangleCount').textContent = rendererInfo.render.triangles;
+            
+            if (volumetricManager) {
+                const volumetricStats = volumetricManager.getStats();
+                document.getElementById('volumetricCount').textContent = volumetricStats.enabledLights;
+            }
+            
+            if (uiManager) {
+                const uiStats = uiManager.getStats();
+                document.getElementById('uiCount').textContent = uiStats.enabledElements;
+            }
+            
+            if (skeletonManager) {
+                const skeletonStats = skeletonManager.getStats();
+                document.getElementById('animationCount').textContent = skeletonStats.enabledAnimations;
+            }
+            
+            // 每秒更新一次
+            setTimeout(updateStats, 1000);
+        }
+        
+        // 窗口大小变化处理
+        window.addEventListener('resize', () => {
+            if (engine) {
+                engine.setSize(window.innerWidth, window.innerHeight);
+            }
+        });
+        
+        // 全局函数
+        window.toggleVolumetric = toggleVolumetric;
+        window.toggleUI = toggleUI;
+        window.toggleAnimation = toggleAnimation;
+        window.addCube = addCube;
+        window.clearScene = clearScene;
+        window.exportScene = exportScene;
+        window.takeScreenshot = takeScreenshot;
+        
+        // 启动应用
+        initEngine();
+    </script>
+</body>
+</html> 

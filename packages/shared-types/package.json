@@ -1,0 +1,12 @@
+{
+  "name": "@react-face/shared-types",
+  "version": "0.1.0",
+  "description": "three-core 及相关引擎的共享类型定义包",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc --project tsconfig.json"
+  },
+  "license": "MIT"
+} 

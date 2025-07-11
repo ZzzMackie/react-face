@@ -1,16 +1,48 @@
 {
   "name": "react-face",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "现代化3D引擎和渲染系统",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "test": "turbo run test",
+    "test:watch": "turbo run test:watch",
+    "test:coverage": "turbo run test:coverage",
+    "lint": "turbo run lint",
+    "lint:fix": "turbo run lint:fix",
+    "type-check": "turbo run type-check",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
     "prepare": "husky"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "devDependencies": {
-    "husky": "^9.1.7"
+    "@types/node": "^20.0.0",
+    "@types/three": "^0.174.0",
+    "husky": "^9.1.7",
+    "prettier": "^3.0.0",
+    "turbo": "^1.10.0",
+    "typescript": "^5.0.0"
+  },
+  "packageManager": "pnpm@8.0.0",
+  "engines": {
+    "node": ">=16.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "keywords": [
+    "three.js",
+    "3d",
+    "webgl",
+    "engine",
+    "typescript",
+    "modern",
+    "modular",
+    "turborepo",
+    "monorepo"
+  ],
+  "author": "React-Face Team",
+  "license": "MIT",
+  "dependencies": {
+    "three": ">=0.150.0"
   }
 }

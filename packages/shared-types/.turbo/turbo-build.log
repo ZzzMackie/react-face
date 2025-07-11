@@ -1,0 +1,4 @@
+
+> @react-face/shared-types@0.1.0 build E:\workspace\react-face\packages\shared-types
+> tsc --project tsconfig.json
+

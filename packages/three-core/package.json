@@ -1,44 +1,79 @@
 {
   "name": "three-core",
-  "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
+  "description": "现代化、模块化3D引擎，基于Three.js构建",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "src",
+    "examples"
   ],
-  "main": "./dist/three-core.umd.cjs",
-  "module": "./dist/three-core.mjs",
-  "exports": {
-    ".": {
-      "import": "./dist/three-core.jms",
-      "require": "./dist/three-core.umd.cjs"
-    }
-  },
   "scripts": {
+    "build": "vite build",
     "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "eslint src",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "type-check": "tsc --noEmit",
+    "clean": "rimraf dist",
+    "prepublishOnly": "npm run clean && npm run build"
   },
+  "keywords": [
+    "three.js",
+    "3d",
+    "webgl",
+    "engine",
+    "typescript",
+    "modern",
+    "modular",
+    "vite"
+  ],
+  "author": "Three-Core Team",
+  "license": "MIT",
   "dependencies": {
-    "@tweenjs/tween.js": "^25.0.0",
-    "three": "^0.174.0"
+    "@react-face/shared-types": "workspace:*",
+    "three": ">=0.150.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.21.0",
-    "@types/localforage": "^0.0.34",
-    "@types/node": "^20",
-    "@types/react": "^19.0.10",
-    "@types/react-dom": "^19.0.4",
+    "@types/jest": "^29.0.0",
     "@types/three": "^0.174.0",
-    "@vitejs/plugin-react": "^4.3.4",
-    "eslint": "^9.21.0",
-    "eslint-plugin-react-hooks": "^5.1.0",
-    "eslint-plugin-react-refresh": "^0.4.19",
-    "globals": "^15.15.0",
-    "rollup-plugin-terser": "^7.0.2",
-    "typescript": "~5.7.2",
-    "typescript-eslint": "^8.24.1",
-    "vite": "^6.2.0"
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "@vitejs/plugin-react": "^4.0.0",
+    "eslint": "^8.0.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.20",
+    "globals": "^16.3.0",
+    "jest": "^29.0.0",
+    "rimraf": "^5.0.0",
+    "terser": "^5.43.1",
+    "ts-jest": "^29.0.0",
+    "typescript": "^5.0.0",
+    "typescript-eslint": "^8.36.0",
+    "vite": "^5.0.0",
+    "vite-plugin-dts": "^3.0.0"
+  },
+  "peerDependencies": {
+    "three": ">=0.150.0"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/three-core.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-org/three-core/issues"
+  },
+  "homepage": "https://github.com/your-org/three-core#readme",
+  "publishConfig": {
+    "access": "public"
   }
 }

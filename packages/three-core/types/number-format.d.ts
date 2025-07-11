@@ -1,3 +1,0 @@
-interface NumberFormat {
-    format(): string;
-}

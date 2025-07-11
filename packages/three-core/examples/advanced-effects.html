@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three-Core 高级特效示例</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+        }
+        
+        #container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+        
+        #controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 1000;
+            max-width: 300px;
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+        }
+        
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .control-group input, .control-group select {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #333;
+            border-radius: 3px;
+            background: #222;
+            color: white;
+        }
+        
+        .control-group button {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: none;
+            border-radius: 3px;
+            background: #007acc;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .control-group button:hover {
+            background: #005a9e;
+        }
+        
+        #stats {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            z-index: 1000;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container"></div>
+    
+    <div id="controls">
+        <h3>高级特效控制</h3>
+        
+        <div class="control-group">
+            <label>体积光效果</label>
+            <button onclick="toggleVolumetricLight()">切换体积光</button>
+            <input type="range" id="volumetricIntensity" min="0" max="2" step="0.1" value="1" 
+                   onchange="updateVolumetricIntensity(this.value)">
+            <label>强度: <span id="volumetricIntensityValue">1.0</span></label>
+        </div>
+        
+        <div class="control-group">
+            <label>景深效果</label>
+            <button onclick="toggleDepthOfField()">切换景深</button>
+            <input type="range" id="focusDistance" min="1" max="20" step="0.5" value="10" 
+                   onchange="updateFocusDistance(this.value)">
+            <label>焦距: <span id="focusDistanceValue">10</span></label>
+        </div>
+        
+        <div class="control-group">
+            <label>运动模糊</label>
+            <button onclick="toggleMotionBlur()">切换运动模糊</button>
+            <input type="range" id="motionBlurIntensity" min="0" max="2" step="0.1" value="1" 
+                   onchange="updateMotionBlurIntensity(this.value)">
+            <label>强度: <span id="motionBlurIntensityValue">1.0</span></label>
+        </div>
+        
+        <div class="control-group">
+            <label>色彩校正</label>
+            <button onclick="toggleColorCorrection()">切换色彩校正</button>
+            <input type="range" id="brightness" min="-1" max="1" step="0.1" value="0" 
+                   onchange="updateBrightness(this.value)">
+            <label>亮度: <span id="brightnessValue">0</span></label>
+        </div>
+        
+        <div class="control-group">
+            <label>屏幕空间反射</label>
+            <button onclick="toggleScreenSpaceReflection()">切换反射</button>
+            <input type="range" id="reflectionIntensity" min="0" max="2" step="0.1" value="1" 
+                   onchange="updateReflectionIntensity(this.value)">
+            <label>强度: <span id="reflectionIntensityValue">1.0</span></label>
+        </div>
+        
+        <div class="control-group">
+            <label>环境光遮蔽</label>
+            <button onclick="toggleAmbientOcclusion()">切换AO</button>
+            <input type="range" id="aoIntensity" min="0" max="2" step="0.1" value="1" 
+                   onchange="updateAOIntensity(this.value)">
+            <label>强度: <span id="aoIntensityValue">1.0</span></label>
+        </div>
+        
+        <div class="control-group">
+            <button onclick="resetEffects()">重置所有效果</button>
+            <button onclick="toggleAutoRotation()">切换自动旋转</button>
+        </div>
+    </div>
+    
+    <div id="stats">
+        <div>FPS: <span id="fps">0</span></div>
+        <div>渲染时间: <span id="renderTime">0</span>ms</div>
+        <div>三角形数量: <span id="triangles">0</span></div>
+        <div>绘制调用: <span id="drawCalls">0</span></div>
+    </div>
+
+    <script type="module">
+        // 在开发模式下使用Vite处理TypeScript文件
+        // 在生产环境中应该使用构建后的文件
+        import { Engine } from '../src/core/Engine.js';
+        import * as THREE from 'three';
+
+        // 全局变量
+        let engine;
+        let volumetricManager;
+        let postProcessManager;
+        let screenSpaceManager;
+        let autoRotation = false;
+        let animationId;
+
+        // 初始化引擎
+        async function initEngine() {
+            try {
+                const container = document.getElementById('container');
+                
+                engine = new Engine({
+                    container,
+                    width: window.innerWidth,
+                    height: window.innerHeight,
+                    antialias: true,
+                    shadowMap: true
+                });
+
+                await engine.initialize();
+
+                // 获取管理器
+                volumetricManager = await engine.getManager('volumetric');
+                postProcessManager = await engine.getManager('postProcess');
+                screenSpaceManager = await engine.getManager('screenSpace');
+
+                // 设置场景
+                setupScene();
+                
+                // 创建特效
+                createEffects();
+                
+                // 开始渲染循环
+                startRenderLoop();
+                
+                // 设置事件监听
+                setupEventListeners();
+                
+                console.log('✅ Three-Core 引擎初始化成功');
+            } catch (error) {
+                console.error('❌ Three-Core 引擎初始化失败:', error);
+                document.body.innerHTML += `
+                    <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+                                background: #ff4444; color: white; padding: 20px; border-radius: 10px; z-index: 10000;">
+                        <h3>初始化失败</h3>
+                        <p>请确保在开发模式下运行，或使用构建后的文件。</p>
+                        <p>错误信息: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // 设置场景
+        function setupScene() {
+            const scene = engine.scene;
+            const camera = engine.camera;
+
+            // 设置相机位置
+            camera.position.set(0, 5, 10);
+            camera.lookAt(0, 0, 0);
+
+            // 添加环境光
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.3);
+            scene.add(ambientLight);
+
+            // 添加方向光
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+            directionalLight.position.set(5, 5, 5);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 2048;
+            directionalLight.shadow.mapSize.height = 2048;
+            scene.add(directionalLight);
+
+            // 创建地面
+            const groundGeometry = new THREE.PlaneGeometry(20, 20);
+            const groundMaterial = new THREE.MeshLambertMaterial({ 
+                color: 0x808080,
+                transparent: true,
+                opacity: 0.8
+            });
+            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true;
+            scene.add(ground);
+
+            // 创建多个立方体
+            for (let i = 0; i < 10; i++) {
+                const geometry = new THREE.BoxGeometry(1, 1, 1);
+                const material = new THREE.MeshLambertMaterial({ 
+                    color: Math.random() * 0xffffff 
+                });
+                const cube = new THREE.Mesh(geometry, material);
+                
+                cube.position.set(
+                    (Math.random() - 0.5) * 10,
+                    0.5,
+                    (Math.random() - 0.5) * 10
+                );
+                cube.castShadow = true;
+                cube.receiveShadow = true;
+                scene.add(cube);
+            }
+
+            // 创建球体
+            const sphereGeometry = new THREE.SphereGeometry(1, 32, 32);
+            const sphereMaterial = new THREE.MeshLambertMaterial({ 
+                color: 0x00ff00,
+                transparent: true,
+                opacity: 0.8
+            });
+            const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+            sphere.position.set(0, 2, 0);
+            sphere.castShadow = true;
+            scene.add(sphere);
+        }
+
+        // 创建特效
+        function createEffects() {
+            // 创建体积光
+            volumetricManager.createVolumetricLight('volumetric1', {
+                color: new THREE.Color(0x00ffff),
+                intensity: 1.0,
+                density: 0.1,
+                samples: 64,
+                noiseScale: 1.0,
+                noiseIntensity: 0.5,
+                animationSpeed: 1.0,
+                windDirection: new THREE.Vector3(1, 0, 0),
+                windSpeed: 0.1
+            });
+
+            // 创建景深效果
+            postProcessManager.createDepthOfFieldEffect('dof1', {
+                enabled: true,
+                intensity: 1.0,
+                focusDistance: 10,
+                focusRange: 5,
+                bokehScale: 2
+            });
+
+            // 创建运动模糊效果
+            postProcessManager.createMotionBlurEffect('motionBlur1', {
+                enabled: true,
+                intensity: 1.0,
+                samples: 32,
+                shutterAngle: 1.0
+            });
+
+            // 创建色彩校正效果
+            postProcessManager.createColorCorrectionEffect('colorCorrection1', {
+                enabled: true,
+                intensity: 1.0,
+                brightness: 0,
+                contrast: 1,
+                saturation: 1,
+                hue: 0,
+                gamma: 1,
+                exposure: 1
+            });
+
+            // 创建屏幕空间反射效果
+            screenSpaceManager.createScreenSpaceReflectionEffect('ssr1', {
+                enabled: true,
+                intensity: 1.0,
+                maxSteps: 256,
+                maxDistance: 10,
+                thickness: 0.1,
+                resolution: 512
+            });
+
+            // 创建屏幕空间环境光遮蔽效果
+            screenSpaceManager.createScreenSpaceAmbientOcclusionEffect('ssao1', {
+                enabled: true,
+                intensity: 1.0,
+                samples: 16,
+                radius: 0.5,
+                bias: 0.025
+            });
+        }
+
+        // 开始渲染循环
+        function startRenderLoop() {
+            const animate = () => {
+                animationId = requestAnimationFrame(animate);
+                
+                // 更新体积光动画
+                volumetricManager.updateAllVolumetricLightAnimations();
+                
+                // 自动旋转
+                if (autoRotation) {
+                    engine.scene.rotation.y += 0.01;
+                }
+                
+                // 渲染场景
+                engine.render();
+                
+                // 更新统计信息
+                updateStats();
+            };
+            animate();
+        }
+
+        // 更新统计信息
+        function updateStats() {
+            const stats = engine.getStats();
+            const rendererInfo = engine.renderer.info;
+            
+            document.getElementById('fps').textContent = Math.round(1000 / (performance.now() % 1000));
+            document.getElementById('renderTime').textContent = rendererInfo.render.frame;
+            document.getElementById('triangles').textContent = rendererInfo.render.triangles;
+            document.getElementById('drawCalls').textContent = rendererInfo.render.calls;
+        }
+
+        // 设置事件监听
+        function setupEventListeners() {
+            window.addEventListener('resize', () => {
+                const width = window.innerWidth;
+                const height = window.innerHeight;
+                engine.setSize(width, height);
+            });
+        }
+
+        // 控制函数
+        window.toggleVolumetricLight = function() {
+            const volumetricLight = volumetricManager.getVolumetricLight('volumetric1');
+            if (volumetricLight) {
+                volumetricManager.setVolumetricLightVisible('volumetric1', !volumetricLight.mesh.visible);
+            }
+        };
+
+        window.updateVolumetricIntensity = function(value) {
+            volumetricManager.updateVolumetricLight('volumetric1', { intensity: parseFloat(value) });
+            document.getElementById('volumetricIntensityValue').textContent = value;
+        };
+
+        window.toggleDepthOfField = function() {
+            const effect = postProcessManager.getPostProcessEffect('dof1');
+            if (effect) {
+                postProcessManager.setEffectEnabled('dof1', !effect.enabled);
+            }
+        };
+
+        window.updateFocusDistance = function(value) {
+            postProcessManager.updateDepthOfFieldConfig('dof1', { focusDistance: parseFloat(value) });
+            document.getElementById('focusDistanceValue').textContent = value;
+        };
+
+        window.toggleMotionBlur = function() {
+            const effect = postProcessManager.getPostProcessEffect('motionBlur1');
+            if (effect) {
+                postProcessManager.setEffectEnabled('motionBlur1', !effect.enabled);
+            }
+        };
+
+        window.updateMotionBlurIntensity = function(value) {
+            postProcessManager.updateMotionBlurConfig('motionBlur1', { intensity: parseFloat(value) });
+            document.getElementById('motionBlurIntensityValue').textContent = value;
+        };
+
+        window.toggleColorCorrection = function() {
+            const effect = postProcessManager.getPostProcessEffect('colorCorrection1');
+            if (effect) {
+                postProcessManager.setEffectEnabled('colorCorrection1', !effect.enabled);
+            }
+        };
+
+        window.updateBrightness = function(value) {
+            postProcessManager.updateColorCorrectionConfig('colorCorrection1', { brightness: parseFloat(value) });
+            document.getElementById('brightnessValue').textContent = value;
+        };
+
+        window.toggleScreenSpaceReflection = function() {
+            const effect = screenSpaceManager.getScreenSpaceEffect('ssr1');
+            if (effect) {
+                screenSpaceManager.setEffectEnabled('ssr1', !effect.enabled);
+            }
+        };
+
+        window.updateReflectionIntensity = function(value) {
+            screenSpaceManager.updateScreenSpaceReflectionConfig('ssr1', { intensity: parseFloat(value) });
+            document.getElementById('reflectionIntensityValue').textContent = value;
+        };
+
+        window.toggleAmbientOcclusion = function() {
+            const effect = screenSpaceManager.getScreenSpaceEffect('ssao1');
+            if (effect) {
+                screenSpaceManager.setEffectEnabled('ssao1', !effect.enabled);
+            }
+        };
+
+        window.updateAOIntensity = function(value) {
+            screenSpaceManager.updateScreenSpaceAmbientOcclusionConfig('ssao1', { intensity: parseFloat(value) });
+            document.getElementById('aoIntensityValue').textContent = value;
+        };
+
+        window.resetEffects = function() {
+            // 重置所有效果到默认值
+            updateVolumetricIntensity(1.0);
+            updateFocusDistance(10);
+            updateMotionBlurIntensity(1.0);
+            updateBrightness(0);
+            updateReflectionIntensity(1.0);
+            updateAOIntensity(1.0);
+            
+            // 更新UI
+            document.getElementById('volumetricIntensity').value = 1.0;
+            document.getElementById('focusDistance').value = 10;
+            document.getElementById('motionBlurIntensity').value = 1.0;
+            document.getElementById('brightness').value = 0;
+            document.getElementById('reflectionIntensity').value = 1.0;
+            document.getElementById('aoIntensity').value = 1.0;
+        };
+
+        window.toggleAutoRotation = function() {
+            autoRotation = !autoRotation;
+        };
+
+        // 启动应用
+        initEngine().catch(console.error);
+    </script>
+</body>
+</html> 
