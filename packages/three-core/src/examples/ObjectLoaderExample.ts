@@ -36,28 +36,38 @@ export class ObjectLoaderExample {
 
     // 监听对象选择事件
     const objects = await this.engine.getObjects();
-    objects.objectSelected.subscribe((objectId) => {
-      this.objectSelected.value = objectId;
-      console.log('选中对象:', objectId);
-    });
+    if (objects) {
+      objects.objectSelected.subscribe((objectId) => {
+        this.objectSelected.value = objectId;
+        console.log('选中对象:', objectId);
+      });
+    }
 
     // 监听加载进度
     const loader = await this.engine.getLoader();
-    loader.loadProgress.subscribe((data) => {
-      this.loadProgress.value = data.progress;
-      console.log(`加载进度: ${(data.progress * 100).toFixed(1)}%`);
-    });
+    if (loader) {
+      loader.loadProgress.subscribe((data) => {
+        if (data) {
+          this.loadProgress.value = data.progress;
+          console.log(`加载进度: ${(data.progress * 100).toFixed(1)}%`);
+        }
+      });
 
-    // 监听加载完成
-    loader.loadCompleted.subscribe((data) => {
-      console.log('模型加载完成:', data.url);
-      this.parseLoadedModel(data.url, data.result);
-    });
+      // 监听加载完成
+      loader.loadCompleted.subscribe((data) => {
+        if (data) {
+          console.log('模型加载完成:', data.url);
+          this.parseLoadedModel(data.url, data.result);
+        }
+      });
 
-    // 监听加载错误
-    loader.loadError.subscribe((data) => {
-      console.error('加载失败:', data.url, data.error);
-    });
+      // 监听加载错误
+      loader.loadError.subscribe((data) => {
+        if (data) {
+          console.error('加载失败:', data.url, data.error);
+        }
+      });
+    }
   }
 
   private async setupScene(): Promise<void> {
@@ -65,30 +75,38 @@ export class ObjectLoaderExample {
 
     // 设置相机
     const camera = await this.engine.getCamera();
-    camera.setPosition(0, 5, 10);
-    camera.lookAt(0, 0, 0);
+    if (camera) {
+      camera.setPosition(0, 5, 10);
+      // camera.lookAt(0, 0, 0); // 暂时注释掉，需要实现lookAt方法
+    }
 
     // 设置控制器
     const controls = await this.engine.getControls();
-    controls.createOrbitControls({
-      enableDamping: true,
-      dampingFactor: 0.05,
-      enableZoom: true,
-      enablePan: true,
-      enableRotate: true
-    });
+    if (controls) {
+      controls.createOrbitControls('orbit', {
+        enableDamping: true,
+        dampingFactor: 0.05,
+        enableZoom: true,
+        enablePan: true,
+        enableRotate: true
+      });
+    }
 
     // 创建灯光
     const lights = await this.engine.getLights();
-    lights.createAmbientLight('ambient', 0x404040, 0.4);
-    lights.createDirectionalLight('directional', 0xffffff, 1, {
-      x: 5, y: 5, z: 5
-    }, { x: 0, y: 0, z: 0 }, true);
+    if (lights) {
+      lights.createAmbientLight('ambient', 0x404040, 0.4);
+      lights.createDirectionalLight('directional', 0xffffff, 1, {
+        x: 5, y: 5, z: 5
+      }, { x: 0, y: 0, z: 0 }, true);
+    }
 
     // 创建辅助工具
     const helpers = await this.engine.getHelpers();
-    helpers.createGridHelper('grid', 20, 20);
-    helpers.createAxesHelper('axes', 5);
+    if (helpers) {
+      helpers.createGridHelper('grid', 20, 20);
+      helpers.createAxesHelper('axes', 5);
+    }
 
     // 创建基础几何体
     await this.createBasicObjects();
@@ -105,6 +123,11 @@ export class ObjectLoaderExample {
     const geometry = await this.engine.getGeometry();
     const materials = await this.engine.getMaterials();
     const objects = await this.engine.getObjects();
+
+    if (!geometry || !materials || !objects) {
+      console.error('必要的管理器未初始化');
+      return;
+    }
 
     // 创建几何体
     const boxGeometry = geometry.createBoxGeometry('box', 2, 2, 2);
@@ -167,6 +190,11 @@ export class ObjectLoaderExample {
 
     const loader = await this.engine.getLoader();
 
+    if (!loader) {
+      console.error('Loader管理器未初始化');
+      return;
+    }
+
     try {
       // 设置Draco解码器路径
       loader.setDracoDecoderPath('/draco/');
@@ -199,6 +227,11 @@ export class ObjectLoaderExample {
     const materials = await this.engine.getMaterials();
     const objects = await this.engine.getObjects();
 
+    if (!geometry || !materials || !objects) {
+      console.error('必要的管理器未初始化');
+      return;
+    }
+
     // 创建一个复杂的几何体作为备用模型
     const complexGeometry = geometry.createBoxGeometry('fallback', 1, 1, 1);
     const complexMaterial = materials.createStandardMaterial('fallbackMaterial', {
@@ -223,6 +256,11 @@ export class ObjectLoaderExample {
     const objects = await this.engine.getObjects();
     const scene = await this.engine.getScene();
 
+    if (!objects || !scene) {
+      console.error('必要的管理器未初始化');
+      return;
+    }
+
     // 将加载的场景添加到引擎场景中
     scene.add(result.scene);
 
@@ -243,26 +281,31 @@ export class ObjectLoaderExample {
   // 公共方法
   public async selectObject(objectId: string): Promise<boolean> {
     const objects = await this.engine.getObjects();
+    if (!objects) return false;
     return objects.selectObject(objectId);
   }
 
   public async getObjectStats(): Promise<any> {
     const objects = await this.engine.getObjects();
+    if (!objects) return null;
     return objects.getStats();
   }
 
   public async getLoaderStats(): Promise<any> {
     const loader = await this.engine.getLoader();
+    if (!loader) return null;
     return loader.getStats();
   }
 
   public async removeObject(objectId: string): Promise<boolean> {
     const objects = await this.engine.getObjects();
+    if (!objects) return false;
     return objects.removeObject(objectId);
   }
 
   public async updateObject(objectId: string, config: any): Promise<boolean> {
     const objects = await this.engine.getObjects();
+    if (!objects) return false;
     return objects.updateObject(objectId, config);
   }
 

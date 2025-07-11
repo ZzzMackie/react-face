@@ -36,6 +36,7 @@ export { SkeletonManager } from './core/SkeletonManager';
 export { VolumetricManager } from './core/VolumetricManager';
 export { ObjectManager } from './core/ObjectManager';
 export { LoaderManager } from './core/LoaderManager';
+export { MonitorManager } from './core/MonitorManager';
 
 // 类型定义 - 从 shared-types 导入
 export type { 

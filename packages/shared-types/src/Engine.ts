@@ -67,6 +67,7 @@ export type ManagerType =
   | 'export'
   | 'loader'
   | 'objects'
+  | 'monitor'
   | 'database'
   | 'rayTracing'
   | 'deferred'
