@@ -16,7 +16,7 @@ export interface AnimationClip {
 }
 
 /**
- * 动画管理器
+ * 动画管理�?
  * 负责管理 Three.js 动画
  */
 export class AnimationManager implements Manager {

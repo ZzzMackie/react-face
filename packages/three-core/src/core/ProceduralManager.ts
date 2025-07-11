@@ -17,7 +17,7 @@ export interface ProceduralInfo {
 
 /**
  * 程序化生成管理器
- * 负责管理 Three.js 程序化内容生成
+ * 负责管理 Three.js 程序化内容生�?
  */
 export class ProceduralManager implements Manager {
   private engine: unknown;

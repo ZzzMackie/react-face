@@ -18,7 +18,7 @@ export interface ComposerInfo {
 
 /**
  * 合成器管理器
- * 负责管理 Three.js 后处理效果
+ * 负责管理 Three.js 后处理效�?
  */
 export class ComposerManager implements Manager {
   private engine: unknown;

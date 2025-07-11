@@ -25,8 +25,8 @@ export interface PerformanceMetrics {
 }
 
 /**
- * 性能管理器
- * 负责监控和管理 Three.js 性能
+ * 性能管理�?
+ * 负责监控和管�?Three.js 性能
  */
 export class PerformanceManager implements Manager {
   private engine: unknown;
@@ -107,7 +107,7 @@ export class PerformanceManager implements Manager {
   }
 
   private checkPerformanceWarnings(metrics: PerformanceMetrics): void {
-    // 检查 FPS 警告
+    // 检�?FPS 警告
     if (metrics.fps < 30) {
       this.performanceWarning.emit({
         type: 'low_fps',
@@ -115,7 +115,7 @@ export class PerformanceManager implements Manager {
       });
     }
 
-    // 检查内存警告
+    // 检查内存警�?
     if (metrics.memory.geometries > 1000) {
       this.performanceWarning.emit({
         type: 'high_geometry_count',
@@ -130,7 +130,7 @@ export class PerformanceManager implements Manager {
       });
     }
 
-    // 检查渲染调用警告
+    // 检查渲染调用警�?
     if (metrics.render.calls > 1000) {
       this.performanceWarning.emit({
         type: 'high_render_calls',

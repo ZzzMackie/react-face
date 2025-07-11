@@ -20,7 +20,7 @@ export interface AudioInfo {
 }
 
 /**
- * 音频管理器
+ * 音频管理�?
  * 负责管理 Three.js 音频
  */
 export class AudioManager implements Manager {
@@ -47,11 +47,11 @@ export class AudioManager implements Manager {
     this.listener = this.config.listener || new THREE.AudioListener();
   }
 
-  init(): void {
-    // 初始化音频系统
+  async initialize(): Promise<void> {
+    // 初始化音频系�?
   }
 
-  destroy(): void {
+  dispose(): void {
     this.removeAllSounds();
   }
 

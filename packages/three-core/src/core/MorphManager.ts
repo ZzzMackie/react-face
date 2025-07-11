@@ -16,7 +16,7 @@ export interface MorphInfo {
 }
 
 /**
- * 变形管理器
+ * 变形管理�?
  * 负责管理 Three.js 变形动画
  */
 export class MorphManager implements Manager {
@@ -40,7 +40,7 @@ export class MorphManager implements Manager {
   }
 
   async initialize(): Promise<void> {
-    // 初始化变形系统
+    // 初始化变形系�?
   }
 
   dispose(): void {

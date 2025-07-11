@@ -18,8 +18,8 @@ export interface ErrorInfo {
 }
 
 /**
- * 错误管理器
- * 负责管理 Three.js 错误和异常
+ * 错误管理�?
+ * 负责管理 Three.js 错误和异�?
  */
 export class ErrorManager implements Manager {
   private engine: unknown;
@@ -92,7 +92,7 @@ export class ErrorManager implements Manager {
 
     this.errorCaptured.emit(errorInfo);
 
-    // 自动清理旧错误
+    // 自动清理旧错�?
     if (this.config.errorTimeout) {
       setTimeout(() => {
         this.clearError(id);

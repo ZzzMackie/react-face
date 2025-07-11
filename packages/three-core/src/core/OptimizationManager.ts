@@ -17,7 +17,7 @@ export interface OptimizationInfo {
 }
 
 /**
- * 优化管理器
+ * 优化管理�?
  * 负责管理 Three.js 性能优化
  */
 export class OptimizationManager implements Manager {
@@ -42,7 +42,7 @@ export class OptimizationManager implements Manager {
   }
 
   async initialize(): Promise<void> {
-    // 初始化优化系统
+    // 初始化优化系�?
   }
 
   dispose(): void {

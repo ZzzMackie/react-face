@@ -20,7 +20,7 @@ export interface ControlInfo {
 
 /**
  * 控制器管理器
- * 负责管理 Three.js 控制器
+ * 负责管理 Three.js 控制�?
  */
 export class ControlsManager implements Manager {
   private engine: unknown;

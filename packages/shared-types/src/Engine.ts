@@ -66,6 +66,7 @@ export type ManagerType =
   | 'performance'
   | 'export'
   | 'loader'
+  | 'objects'
   | 'database'
   | 'rayTracing'
   | 'deferred'

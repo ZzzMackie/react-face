@@ -18,7 +18,7 @@ export interface AssetInfo {
 }
 
 /**
- * 资源管理器
+ * 资源管理�?
  * 负责管理 Three.js 资源加载
  */
 export class AssetManager implements Manager {

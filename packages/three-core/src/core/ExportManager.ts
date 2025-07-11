@@ -18,7 +18,7 @@ export interface ExportInfo {
 }
 
 /**
- * 导出管理器
+ * 导出管理�?
  * 负责管理 Three.js 场景导出
  */
 export class ExportManager implements Manager {
@@ -43,7 +43,7 @@ export class ExportManager implements Manager {
   }
 
   async initialize(): Promise<void> {
-    // 初始化导出系统
+    // 初始化导出系�?
   }
 
   dispose(): void {
@@ -116,12 +116,12 @@ export class ExportManager implements Manager {
       let result: unknown;
 
       if (format === 'gltf') {
-        // 这里需要 GLTFExporter，但需要额外安装
+        // 这里需�?GLTFExporter，但需要额外安�?
         // const exporter = new GLTFExporter();
         // result = await exporter.parseAsync(scene, options);
         result = { format: 'gltf', scene };
       } else if (format === 'obj') {
-        // 这里需要 OBJExporter
+        // 这里需�?OBJExporter
         // const exporter = new OBJExporter();
         // result = exporter.parse(scene);
         result = { format: 'obj', scene };
@@ -162,10 +162,10 @@ export class ExportManager implements Manager {
       let result: unknown;
 
       if (format === 'gltf') {
-        // 这里需要 GLTFExporter
+        // 这里需�?GLTFExporter
         result = { format: 'gltf', object };
       } else if (format === 'obj') {
-        // 这里需要 OBJExporter
+        // 这里需�?OBJExporter
         result = { format: 'obj', object };
       }
 

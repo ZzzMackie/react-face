@@ -13,8 +13,8 @@ export interface RenderConfig {
 }
 
 /**
- * 渲染管理器
- * 负责管理 Three.js 渲染器
+ * 渲染管理�?
+ * 负责管理 Three.js 渲染�?
  */
 export class RenderManager implements Manager {
   private engine: unknown;
@@ -41,11 +41,11 @@ export class RenderManager implements Manager {
     };
   }
 
-  init(): void {
+  async initialize(): Promise<void> {
     this.createRenderer();
   }
 
-  destroy(): void {
+  dispose(): void {
     if (this.renderer) {
       this.renderer.dispose();
     }

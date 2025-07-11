@@ -17,7 +17,7 @@ export interface FluidInfo {
 }
 
 /**
- * 流体管理器
+ * 流体管理�?
  * 负责管理 Three.js 流体模拟
  */
 export class FluidManager implements Manager {
@@ -42,7 +42,7 @@ export class FluidManager implements Manager {
   }
 
   async initialize(): Promise<void> {
-    // 初始化流体系统
+    // 初始化流体系�?
   }
 
   dispose(): void {

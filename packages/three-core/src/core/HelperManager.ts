@@ -17,7 +17,7 @@ export interface HelperInfo {
 }
 
 /**
- * 辅助工具管理器
+ * 辅助工具管理�?
  * 负责管理 Three.js 辅助工具
  */
 export class HelperManager implements Manager {
@@ -43,7 +43,7 @@ export class HelperManager implements Manager {
   }
 
   async initialize(): Promise<void> {
-    // 初始化辅助工具系统
+    // 初始化辅助工具系�?
   }
 
   dispose(): void {

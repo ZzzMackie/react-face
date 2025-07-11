@@ -19,7 +19,7 @@ export interface ParticleSystem {
 }
 
 /**
- * 粒子系统管理器
+ * 粒子系统管理�?
  * 负责管理 Three.js 粒子系统
  */
 export class ParticleManager implements Manager {
@@ -42,11 +42,11 @@ export class ParticleManager implements Manager {
     };
   }
 
-  init(): void {
-    // 初始化粒子系统
+  async initialize(): Promise<void> {
+    // 初始化粒子系�?
   }
 
-  destroy(): void {
+  dispose(): void {
     this.removeAllSystems();
   }
 
@@ -68,7 +68,7 @@ export class ParticleManager implements Manager {
     const colors = new Float32Array(particleCount * 3);
     const sizes = new Float32Array(particleCount);
 
-    // 初始化粒子数据
+    // 初始化粒子数�?
     for (let i = 0; i < particleCount; i++) {
       positions[i * 3] = (Math.random() - 0.5) * 10;
       positions[i * 3 + 1] = (Math.random() - 0.5) * 10;

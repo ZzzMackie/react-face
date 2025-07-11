@@ -17,7 +17,7 @@ export interface EventHandler {
 }
 
 /**
- * 事件管理器
+ * 事件管理�?
  * 负责管理 DOM 事件和自定义事件
  */
 export class EventManager implements Manager {
@@ -42,7 +42,7 @@ export class EventManager implements Manager {
   }
 
   async initialize(): Promise<void> {
-    // 初始化事件系统
+    // 初始化事件系�?
   }
 
   dispose(): void {

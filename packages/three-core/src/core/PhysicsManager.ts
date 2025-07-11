@@ -18,7 +18,7 @@ export interface PhysicsBody {
 }
 
 /**
- * 物理管理器
+ * 物理管理�?
  * 负责管理简单的物理模拟
  */
 export class PhysicsManager implements Manager {
@@ -44,11 +44,11 @@ export class PhysicsManager implements Manager {
     this.clock = new THREE.Clock();
   }
 
-  init(): void {
+  async initialize(): Promise<void> {
     this.clock.start();
   }
 
-  destroy(): void {
+  dispose(): void {
     this.bodies.clear();
   }
 

@@ -17,7 +17,7 @@ export interface VolumetricInfo {
 }
 
 /**
- * 体积渲染管理器
+ * 体积渲染管理�?
  * 负责管理 Three.js 体积效果
  */
 export class VolumetricManager implements Manager {
@@ -42,7 +42,7 @@ export class VolumetricManager implements Manager {
   }
 
   async initialize(): Promise<void> {
-    // 初始化体积渲染系统
+    // 初始化体积渲染系�?
   }
 
   dispose(): void {

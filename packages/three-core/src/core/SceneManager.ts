@@ -9,7 +9,7 @@ export interface SceneConfig {
 }
 
 /**
- * 场景管理器
+ * 场景管理�?
  * 负责管理 Three.js 场景
  */
 export class SceneManager implements Manager {
@@ -29,12 +29,12 @@ export class SceneManager implements Manager {
     this.scene = new THREE.Scene();
   }
 
-  init(): void {
+  async initialize(): Promise<void> {
     this.setupScene();
     this.sceneCreated.emit(this.scene);
   }
 
-  destroy(): void {
+  dispose(): void {
     this.scene.clear();
   }
 

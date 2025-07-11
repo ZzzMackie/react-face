@@ -17,7 +17,7 @@ export interface RayTracingInfo {
 }
 
 /**
- * 光线追踪管理器
+ * 光线追踪管理�?
  * 负责管理 Three.js 光线追踪效果
  */
 export class RayTracingManager implements Manager {
@@ -42,7 +42,7 @@ export class RayTracingManager implements Manager {
   }
 
   async initialize(): Promise<void> {
-    // 初始化光线追踪系统
+    // 初始化光线追踪系�?
   }
 
   dispose(): void {

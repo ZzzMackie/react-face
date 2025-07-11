@@ -12,7 +12,7 @@ export interface CameraConfig {
 }
 
 /**
- * 相机管理器
+ * 相机管理�?
  * 负责管理 Three.js 相机
  */
 export class CameraManager implements Manager {
@@ -44,7 +44,7 @@ export class CameraManager implements Manager {
   }
 
   dispose(): void {
-    // 相机不需要特殊销毁
+    // 相机不需要特殊销�?
   }
 
   private createCamera(): void {

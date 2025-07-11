@@ -2,11 +2,7 @@
 export { Engine } from './core/Engine';
 export type { EngineConfig } from '@react-face/shared-types';
 
-// 信号系统
-export { createSignal } from './core/Signal';
-
-// 管理器
-export { ConfigManager } from './core/ConfigManager';
+// 导出所有管理器
 export { SceneManager } from './core/SceneManager';
 export { RenderManager } from './core/RenderManager';
 export { CameraManager } from './core/CameraManager';
@@ -28,8 +24,6 @@ export { AudioManager } from './core/AudioManager';
 export { ParticleManager } from './core/ParticleManager';
 export { ShaderManager } from './core/ShaderManager';
 export { EnvironmentManager } from './core/EnvironmentManager';
-
-// 高级管理器
 export { RayTracingManager } from './core/RayTracingManager';
 export { DeferredManager } from './core/DeferredManager';
 export { FluidManager } from './core/FluidManager';
@@ -40,6 +34,8 @@ export { ErrorManager } from './core/ErrorManager';
 export { UIManager } from './core/UIManager';
 export { SkeletonManager } from './core/SkeletonManager';
 export { VolumetricManager } from './core/VolumetricManager';
+export { ObjectManager } from './core/ObjectManager';
+export { LoaderManager } from './core/LoaderManager';
 
 // 类型定义 - 从 shared-types 导入
 export type { 

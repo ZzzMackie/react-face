@@ -19,7 +19,7 @@ export interface TextureInfo {
 }
 
 /**
- * 纹理管理器
+ * 纹理管理�?
  * 负责管理 Three.js 纹理
  */
 export class TextureManager implements Manager {
@@ -45,11 +45,11 @@ export class TextureManager implements Manager {
     this.loader = new THREE.TextureLoader();
   }
 
-  init(): void {
-    // 初始化纹理系统
+  async initialize(): Promise<void> {
+    // 初始化纹理系�?
   }
 
-  destroy(): void {
+  dispose(): void {
     this.removeAllTextures();
   }
 

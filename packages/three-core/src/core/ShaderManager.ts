@@ -18,7 +18,7 @@ export interface ShaderInfo {
 }
 
 /**
- * 着色器管理器
+ * 着色器管理�?
  * 负责管理 Three.js 着色器
  */
 export class ShaderManager implements Manager {

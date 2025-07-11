@@ -17,7 +17,7 @@ export interface GeometryInfo {
 
 /**
  * 几何体管理器
- * 负责管理 Three.js 几何体
+ * 负责管理 Three.js 几何�?
  */
 export class GeometryManager implements Manager {
   private engine: unknown;
@@ -38,11 +38,11 @@ export class GeometryManager implements Manager {
     };
   }
 
-  init(): void {
+  async initialize(): Promise<void> {
     // 初始化几何体系统
   }
 
-  destroy(): void {
+  dispose(): void {
     this.removeAllGeometries();
   }
 

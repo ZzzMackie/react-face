@@ -16,7 +16,7 @@ export interface LightInfo {
 }
 
 /**
- * 灯光管理器
+ * 灯光管理�?
  * 负责管理 Three.js 灯光
  */
 export class LightManager implements Manager {
@@ -40,12 +40,12 @@ export class LightManager implements Manager {
     };
   }
 
-  init(): void {
+  async initialize(): Promise<void> {
     // 初始化默认环境光
     this.createAmbientLight('default-ambient', this.config.ambientIntensity!);
   }
 
-  destroy(): void {
+  dispose(): void {
     this.removeAllLights();
   }
 

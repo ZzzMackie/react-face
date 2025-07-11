@@ -19,7 +19,7 @@ export interface EnvironmentInfo {
 }
 
 /**
- * 环境管理器
+ * 环境管理�?
  * 负责管理 Three.js 环境效果
  */
 export class EnvironmentManager implements Manager {
@@ -47,7 +47,7 @@ export class EnvironmentManager implements Manager {
   }
 
   async initialize(): Promise<void> {
-    // 初始化环境系统
+    // 初始化环境系�?
   }
 
   dispose(): void {

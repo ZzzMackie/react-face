@@ -16,8 +16,8 @@ export interface ConfigManagerConfig {
 }
 
 /**
- * 配置管理器
- * 负责管理应用程序的配置信息
+ * 配置管理�?
+ * 负责管理应用程序的配置信�?
  */
 export class ConfigManager implements Manager {
   private config: Map<string, unknown> = new Map();
@@ -37,14 +37,14 @@ export class ConfigManager implements Manager {
     this.autoSaveInterval = config.autoSaveInterval ?? 5000;
   }
 
-  init(): void {
+  async initialize(): Promise<void> {
     this.loadConfig();
     if (this.autoSave) {
       this.startAutoSave();
     }
   }
 
-  destroy(): void {
+  dispose(): void {
     if (this.autoSaveTimer) {
       clearInterval(this.autoSaveTimer);
     }

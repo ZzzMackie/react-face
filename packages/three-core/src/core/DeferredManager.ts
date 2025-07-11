@@ -17,7 +17,7 @@ export interface DeferredInfo {
 }
 
 /**
- * 延迟渲染管理器
+ * 延迟渲染管理�?
  * 负责管理 Three.js 延迟渲染
  */
 export class DeferredManager implements Manager {
@@ -42,7 +42,7 @@ export class DeferredManager implements Manager {
   }
 
   async initialize(): Promise<void> {
-    // 初始化延迟渲染系统
+    // 初始化延迟渲染系�?
   }
 
   dispose(): void {

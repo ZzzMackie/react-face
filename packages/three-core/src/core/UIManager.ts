@@ -21,8 +21,8 @@ export interface UIElement {
 }
 
 /**
- * UI 管理器
- * 负责管理交互式 UI 元素
+ * UI 管理�?
+ * 负责管理交互�?UI 元素
  */
 export class UIManager implements Manager {
   private engine: unknown;
@@ -52,11 +52,11 @@ export class UIManager implements Manager {
     this.mouse = new THREE.Vector2();
   }
 
-  init(): void {
+  async initialize(): Promise<void> {
     this.setupEventListeners();
   }
 
-  destroy(): void {
+  dispose(): void {
     this.removeAllElements();
     this.removeEventListeners();
   }
@@ -97,7 +97,7 @@ export class UIManager implements Manager {
     const meshes = Array.from(this.elements.values()).map(element => element.mesh);
     const intersects = this.raycaster.intersectObjects(meshes);
 
-    // 重置所有元素的悬停状态
+    // 重置所有元素的悬停状�?
     this.elements.forEach(element => {
       if (element.hovered) {
         element.hovered = false;
@@ -214,6 +214,6 @@ export class UIManager implements Manager {
   }
 
   update(): void {
-    // 更新逻辑可以在这里添加
+    // 更新逻辑可以在这里添�?
   }
 } 

@@ -16,7 +16,7 @@ export interface MaterialInfo {
 }
 
 /**
- * 材质管理器
+ * 材质管理�?
  * 负责管理 Three.js 材质
  */
 export class MaterialManager implements Manager {
@@ -39,11 +39,11 @@ export class MaterialManager implements Manager {
     };
   }
 
-  init(): void {
-    // 初始化材质系统
+  async initialize(): Promise<void> {
+    // 初始化材质系�?
   }
 
-  destroy(): void {
+  dispose(): void {
     this.removeAllMaterials();
   }
 

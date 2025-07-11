@@ -16,7 +16,7 @@ export interface SkeletonInfo {
 }
 
 /**
- * 骨骼管理器
+ * 骨骼管理�?
  * 负责管理 Three.js 骨骼动画
  */
 export class SkeletonManager implements Manager {
@@ -40,7 +40,7 @@ export class SkeletonManager implements Manager {
   }
 
   async initialize(): Promise<void> {
-    // 初始化骨骼系统
+    // 初始化骨骼系�?
   }
 
   dispose(): void {

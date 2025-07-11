@@ -17,7 +17,7 @@ export interface ViewHelperInfo {
 }
 
 /**
- * 视图辅助管理器
+ * 视图辅助管理�?
  * 负责管理 Three.js 视图辅助工具
  */
 export class ViewHelperManager implements Manager {
@@ -42,7 +42,7 @@ export class ViewHelperManager implements Manager {
   }
 
   async initialize(): Promise<void> {
-    // 初始化视图辅助系统
+    // 初始化视图辅助系�?
   }
 
   dispose(): void {
