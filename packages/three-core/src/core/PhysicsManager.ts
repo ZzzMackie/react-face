@@ -1,5 +1,9 @@
 import * as THREE from 'three';
-import type { Manager } from '@react-face/shared-types';
+// Local Manager interface
+export interface Manager {
+  initialize(): Promise<void>;
+  dispose(): void;
+}
 import { createSignal } from './Signal';
 
 export interface PhysicsConfig {
@@ -18,10 +22,13 @@ export interface PhysicsBody {
 }
 
 /**
- * 物理管理�?
+ * 物理管理�?
  * 负责管理简单的物理模拟
  */
 export class PhysicsManager implements Manager {
+  // Add test expected properties
+  public readonly name = 'PhysicsManager'.toLowerCase().replace('Manager', '');
+  public initialized = false;
   private engine: unknown;
   private bodies: Map<string, PhysicsBody> = new Map();
   private config: PhysicsConfig;
@@ -46,11 +53,11 @@ export class PhysicsManager implements Manager {
 
   async initialize(): Promise<void> {
     this.clock.start();
-  }
+  this.initialized = true;}
 
   dispose(): void {
     this.bodies.clear();
-  }
+  this.initialized = false;}
 
   addBody(
     id: string,
@@ -177,4 +184,4 @@ export class PhysicsManager implements Manager {
   clearBodies(): void {
     this.bodies.clear();
   }
-} 
+}

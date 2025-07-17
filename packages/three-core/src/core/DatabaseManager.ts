@@ -1,4 +1,8 @@
-import type { Manager } from '@react-face/shared-types';
+// Local Manager interface
+export interface Manager {
+  initialize(): Promise<void>;
+  dispose(): void;
+}
 import { createSignal } from './Signal';
 
 export interface DatabaseConfig {
@@ -21,6 +25,9 @@ export interface DatabaseInfo {
  * 负责管理本地数据存储
  */
 export class DatabaseManager implements Manager {
+  // Add test expected properties
+  public readonly name = 'DatabaseManager'.toLowerCase().replace('Manager', '');
+  public initialized = false;
   private engine: unknown;
   private storage: Map<string, DatabaseInfo> = new Map();
   private config: DatabaseConfig;
@@ -43,11 +50,11 @@ export class DatabaseManager implements Manager {
 
   async initialize(): Promise<void> {
     // 初始化数据库系统
-  }
+  this.initialized = true;}
 
   dispose(): void {
     this.clearAllData();
-  }
+  this.initialized = false;}
 
   saveToLocalStorage(
     id: string,
@@ -349,4 +356,4 @@ export class DatabaseManager implements Manager {
       dataByType
     };
   }
-} 
+}

@@ -1,5 +1,9 @@
 import * as THREE from 'three';
-import type { Manager } from '@react-face/shared-types';
+// Local Manager interface
+export interface Manager {
+  initialize(): Promise<void>;
+  dispose(): void;
+}
 import { createSignal } from './Signal';
 
 export interface UIConfig {
@@ -21,10 +25,13 @@ export interface UIElement {
 }
 
 /**
- * UI 管理�?
- * 负责管理交互�?UI 元素
+ * UI 管理�?
+ * 负责管理交互�?UI 元素
  */
 export class UIManager implements Manager {
+  // Add test expected properties
+  public readonly name = 'UIManager'.toLowerCase().replace('Manager', '');
+  public initialized = false;
   private engine: unknown;
   private elements: Map<string, UIElement> = new Map();
   private raycaster: THREE.Raycaster;
@@ -54,12 +61,12 @@ export class UIManager implements Manager {
 
   async initialize(): Promise<void> {
     this.setupEventListeners();
-  }
+  this.initialized = true;}
 
   dispose(): void {
     this.removeAllElements();
     this.removeEventListeners();
-  }
+  this.initialized = false;}
 
   private setupEventListeners(): void {
     if (this.config.enableHover) {
@@ -97,7 +104,7 @@ export class UIManager implements Manager {
     const meshes = Array.from(this.elements.values()).map(element => element.mesh);
     const intersects = this.raycaster.intersectObjects(meshes);
 
-    // 重置所有元素的悬停状�?
+    // 重置所有元素的悬停状�?
     this.elements.forEach(element => {
       if (element.hovered) {
         element.hovered = false;
@@ -214,6 +221,6 @@ export class UIManager implements Manager {
   }
 
   update(): void {
-    // 更新逻辑可以在这里添�?
+    // 更新逻辑可以在这里添�?
   }
-} 
+}

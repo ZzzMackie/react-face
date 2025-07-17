@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Three-Core Gesture Demo</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+            touch-action: none; /* 防止浏览器默认触摸行为 */
+        }
+        #canvas-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+        #ui-container {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 300px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            z-index: 100;
+        }
+        .panel {
+            margin-bottom: 15px;
+        }
+        .panel-header {
+            font-weight: bold;
+            margin-bottom: 5px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .control-group {
+            margin-bottom: 10px;
+        }
+        label {
+            display: block;
+            margin-bottom: 3px;
+        }
+        select, input[type="range"], button {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+        .event-log {
+            height: 200px;
+            overflow-y: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            margin-top: 10px;
+            border-radius: 3px;
+        }
+        .event-log-entry {
+            margin-bottom: 5px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .event-tap {
+            color: #88ff88;
+        }
+        .event-doubletap {
+            color: #ffff88;
+        }
+        .event-longpress {
+            color: #ff8888;
+        }
+        .event-swipe {
+            color: #88ffff;
+        }
+        .event-pinch {
+            color: #ff88ff;
+        }
+        .event-rotate {
+            color: #ffaa88;
+        }
+        .event-pan {
+            color: #88aaff;
+        }
+        .gesture-indicator {
+            position: absolute;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .touch-point {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            margin-left: -15px;
+            margin-top: -15px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.5);
+            border: 2px solid white;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .pinch-line {
+            position: absolute;
+            height: 2px;
+            background-color: rgba(255, 255, 255, 0.7);
+            transform-origin: 0 50%;
+            pointer-events: none;
+            z-index: 9;
+        }
+        .instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            color: white;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            max-width: 400px;
+            font-size: 14px;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    <div id="ui-container">
+        <div class="panel">
+            <div class="panel-header">Gesture Settings</div>
+            <div class="control-group">
+                <label>
+                    <input type="checkbox" id="enable-gestures" checked> Enable Gestures
+                </label>
+            </div>
+            <div class="control-group">
+                <label>
+                    <input type="checkbox" id="enable-tap" checked> Enable Tap
+                </label>
+            </div>
+            <div class="control-group">
+                <label>
+                    <input type="checkbox" id="enable-doubletap" checked> Enable Double Tap
+                </label>
+            </div>
+            <div class="control-group">
+                <label>
+                    <input type="checkbox" id="enable-longpress" checked> Enable Long Press
+                </label>
+            </div>
+            <div class="control-group">
+                <label>
+                    <input type="checkbox" id="enable-swipe" checked> Enable Swipe
+                </label>
+            </div>
+            <div class="control-group">
+                <label>
+                    <input type="checkbox" id="enable-pinch" checked> Enable Pinch
+                </label>
+            </div>
+            <div class="control-group">
+                <label>
+                    <input type="checkbox" id="enable-rotate" checked> Enable Rotate
+                </label>
+            </div>
+            <div class="control-group">
+                <label>
+                    <input type="checkbox" id="enable-pan" checked> Enable Pan
+                </label>
+            </div>
+            <div class="panel-header">Event Log</div>
+            <div class="event-log" id="event-log"></div>
+        </div>
+    </div>
+
+    <div class="instructions">
+        <h3>Gesture Controls:</h3>
+        <ul>
+            <li><strong>Tap</strong>: Touch briefly</li>
+            <li><strong>Double Tap</strong>: Tap twice quickly</li>
+            <li><strong>Long Press</strong>: Touch and hold</li>
+            <li><strong>Swipe</strong>: Touch and move quickly in one direction</li>
+            <li><strong>Pinch</strong>: Touch with two fingers and move them together or apart</li>
+            <li><strong>Rotate</strong>: Touch with two fingers and rotate them around each other</li>
+            <li><strong>Pan</strong>: Touch and drag</li>
+        </ul>
+    </div>
+
+    <script type="module">
+        // Import Three.js and Three-Core
+        import * as THREE from 'three';
+        import { Engine } from '../dist/three-core.es.js';
+
+        // Initialize engine
+        const container = document.getElementById('canvas-container');
+        const engine = new Engine({
+            container,
+            autoRender: true,
+            autoResize: true,
+            antialias: true,
+            enableManagers: [
+                'scene', 'camera', 'renderer', 'controls', 'objects',
+                'lights', 'materials', 'textures', 'gesture'
+            ]
+        });
+
+        // Initialize engine
+        await engine.initialize();
+
+        // Setup scene
+        const sceneManager = await engine.getScene();
+        const cameraManager = await engine.getCamera();
+        const controlsManager = await engine.getControls();
+        const objectsManager = await engine.getObjects();
+        const lightsManager = await engine.getLights();
+        const gestureManager = await engine.getOrCreateManager('gesture');
+
+        // Setup camera
+        cameraManager.setPosition(0, 0, 5);
+        cameraManager.lookAt(0, 0, 0);
+        
+        // Setup lights
+        lightsManager.createAmbientLight('ambient', { intensity: 0.5 });
+        lightsManager.createDirectionalLight('main', { 
+            intensity: 1.0,
+            position: { x: 1, y: 1, z: 1 },
+            castShadow: true
+        });
+        
+        // Create some 3D objects
+        const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
+        const cubeMaterial = new THREE.MeshStandardMaterial({ color: 0x3399ff });
+        objectsManager.createMesh('cube', cubeGeometry, cubeMaterial, {
+            position: { x: -1.5, y: 0, z: 0 },
+            castShadow: true,
+            receiveShadow: true
+        });
+        
+        const sphereGeometry = new THREE.SphereGeometry(0.7, 32, 32);
+        const sphereMaterial = new THREE.MeshStandardMaterial({ color: 0xff5533 });
+        objectsManager.createMesh('sphere', sphereGeometry, sphereMaterial, {
+            position: { x: 1.5, y: 0, z: 0 },
+            castShadow: true,
+            receiveShadow: true
+        });
+        
+        const torusGeometry = new THREE.TorusGeometry(0.5, 0.2, 16, 100);
+        const torusMaterial = new THREE.MeshStandardMaterial({ color: 0x33ff55 });
+        objectsManager.createMesh('torus', torusGeometry, torusMaterial, {
+            position: { x: 0, y: 1.5, z: 0 },
+            castShadow: true,
+            receiveShadow: true
+        });
+        
+        // Create a ground plane
+        const planeGeometry = new THREE.PlaneGeometry(10, 10);
+        const planeMaterial = new THREE.MeshStandardMaterial({ color: 0x999999 });
+        objectsManager.createMesh('ground', planeGeometry, planeMaterial, {
+            position: { x: 0, y: -2, z: 0 },
+            rotation: { x: -Math.PI / 2, y: 0, z: 0 },
+            receiveShadow: true
+        });
+
+        // Create visual elements for touch points
+        const touchElements = new Map();
+        const pinchLine = document.createElement('div');
+        pinchLine.className = 'pinch-line';
+        pinchLine.style.display = 'none';
+        document.body.appendChild(pinchLine);
+
+        // Event log
+        const eventLog = document.getElementById('event-log');
+        function logEvent(type, data) {
+            const entry = document.createElement('div');
+            entry.className = `event-log-entry event-${type}`;
+            
+            let content = `<strong>${type}</strong>: `;
+            
+            switch (type) {
+                case 'tap':
+                case 'doubletap':
+                    content += `at (${Math.round(data.center.x)}, ${Math.round(data.center.y)})`;
+                    break;
+                case 'longpress':
+                    content += `at (${Math.round(data.center.x)}, ${Math.round(data.center.y)})`;
+                    break;
+                case 'swipe':
+                    content += `${data.direction} (${data.velocity.toFixed(2)})`;
+                    break;
+                case 'pinch':
+                    content += `scale: ${data.scale.toFixed(2)}`;
+                    break;
+                case 'rotate':
+                    content += `angle: ${data.rotation.toFixed(2)}°`;
+                    break;
+                case 'pan':
+                    content += `dx: ${data.deltaX?.toFixed(2) || 0}, dy: ${data.deltaY?.toFixed(2) || 0}`;
+                    break;
+                default:
+                    content += JSON.stringify(data);
+            }
+            
+            entry.innerHTML = content;
+            eventLog.prepend(entry);
+            
+            // Limit log entries
+            while (eventLog.children.length > 20) {
+                eventLog.removeChild(eventLog.lastChild);
+            }
+        }
+
+        // Create or update touch point visual element
+        function updateTouchPoint(id, x, y) {
+            let element = touchElements.get(id);
+            
+            if (!element) {
+                element = document.createElement('div');
+                element.className = 'touch-point';
+                document.body.appendChild(element);
+                touchElements.set(id, element);
+            }
+            
+            element.style.left = `${x}px`;
+            element.style.top = `${y}px`;
+        }
+
+        // Remove touch point visual element
+        function removeTouchPoint(id) {
+            const element = touchElements.get(id);
+            if (element) {
+                document.body.removeChild(element);
+                touchElements.delete(id);
+            }
+        }
+
+        // Update pinch line
+        function updatePinchLine(p1x, p1y, p2x, p2y) {
+            const dx = p2x - p1x;
+            const dy = p2y - p1y;
+            const length = Math.sqrt(dx * dx + dy * dy);
+            const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+            
+            pinchLine.style.display = 'block';
+            pinchLine.style.left = `${p1x}px`;
+            pinchLine.style.top = `${p1y}px`;
+            pinchLine.style.width = `${length}px`;
+            pinchLine.style.transform = `rotate(${angle}deg)`;
+        }
+
+        // Hide pinch line
+        function hidePinchLine() {
+            pinchLine.style.display = 'none';
+        }
+
+        // Register gesture event handlers
+        gestureManager.tap.subscribe((event) => {
+            if (event) {
+                logEvent('tap', event);
+                
+                // Visual feedback
+                const element = document.createElement('div');
+                element.className = 'gesture-indicator';
+                element.style.left = `${event.center.x}px`;
+                element.style.top = `${event.center.y}px`;
+                element.style.width = '50px';
+                element.style.height = '50px';
+                element.style.marginLeft = '-25px';
+                element.style.marginTop = '-25px';
+                element.style.borderRadius = '50%';
+                element.style.backgroundColor = 'rgba(136, 255, 136, 0.5)';
+                document.body.appendChild(element);
+                
+                setTimeout(() => {
+                    document.body.removeChild(element);
+                }, 300);
+                
+                // Rotate the cube on tap
+                const cube = objectsManager.getMesh('cube');
+                if (cube) {
+                    cube.rotation.y += Math.PI / 4;
+                }
+            }
+        });
+
+        gestureManager.doubleTap.subscribe((event) => {
+            if (event) {
+                logEvent('doubletap', event);
+                
+                // Visual feedback
+                const element = document.createElement('div');
+                element.className = 'gesture-indicator';
+                element.style.left = `${event.center.x}px`;
+                element.style.top = `${event.center.y}px`;
+                element.style.width = '80px';
+                element.style.height = '80px';
+                element.style.marginLeft = '-40px';
+                element.style.marginTop = '-40px';
+                element.style.borderRadius = '50%';
+                element.style.backgroundColor = 'rgba(255, 255, 136, 0.5)';
+                document.body.appendChild(element);
+                
+                setTimeout(() => {
+                    document.body.removeChild(element);
+                }, 300);
+                
+                // Change sphere color on double tap
+                const sphere = objectsManager.getMesh('sphere');
+                if (sphere && sphere.material) {
+                    const material = sphere.material as THREE.MeshStandardMaterial;
+                    material.color.setHSL(Math.random(), 0.7, 0.5);
+                }
+            }
+        });
+
+        gestureManager.longPress.subscribe((event) => {
+            if (event) {
+                logEvent('longpress', event);
+                
+                // Visual feedback - growing circle
+                const element = document.createElement('div');
+                element.className = 'gesture-indicator';
+                element.style.left = `${event.center.x}px`;
+                element.style.top = `${event.center.y}px`;
+                element.style.width = '20px';
+                element.style.height = '20px';
+                element.style.marginLeft = '-10px';
+                element.style.marginTop = '-10px';
+                element.style.borderRadius = '50%';
+                element.style.backgroundColor = 'rgba(255, 136, 136, 0.5)';
+                element.style.transition = 'all 0.3s ease-out';
+                document.body.appendChild(element);
+                
+                setTimeout(() => {
+                    element.style.width = '100px';
+                    element.style.height = '100px';
+                    element.style.marginLeft = '-50px';
+                    element.style.marginTop = '-50px';
+                }, 10);
+                
+                // Remove after longpress ends
+                gestureManager.longPressEnd.subscribe(() => {
+                    document.body.removeChild(element);
+                });
+                
+                // Scale up the torus on long press
+                const torus = objectsManager.getMesh('torus');
+                if (torus) {
+                    torus.scale.set(1.5, 1.5, 1.5);
+                }
+            }
+        });
+
+        gestureManager.longPressEnd.subscribe((event) => {
+            if (event) {
+                logEvent('longpressend', event);
+                
+                // Scale down the torus when long press ends
+                const torus = objectsManager.getMesh('torus');
+                if (torus) {
+                    torus.scale.set(1, 1, 1);
+                }
+            }
+        });
+
+        gestureManager.swipe.subscribe((event) => {
+            if (event) {
+                logEvent('swipe', event);
+                
+                // Visual feedback - arrow in swipe direction
+                const element = document.createElement('div');
+                element.className = 'gesture-indicator';
+                element.style.left = `${event.center.x}px`;
+                element.style.top = `${event.center.y}px`;
+                element.style.width = '100px';
+                element.style.height = '20px';
+                element.style.backgroundColor = 'rgba(136, 255, 255, 0.5)';
+                element.style.transition = 'all 0.3s ease-out';
+                
+                // Rotate based on direction
+                let rotation = 0;
+                switch (event.direction) {
+                    case 'up': rotation = -90; break;
+                    case 'down': rotation = 90; break;
+                    case 'left': rotation = 180; break;
+                    case 'right': rotation = 0; break;
+                }
+                
+                element.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`;
+                document.body.appendChild(element);
+                
+                setTimeout(() => {
+                    document.body.removeChild(element);
+                }, 500);
+                
+                // Move objects based on swipe direction
+                const objects = [
+                    objectsManager.getMesh('cube'),
+                    objectsManager.getMesh('sphere'),
+                    objectsManager.getMesh('torus')
+                ];
+                
+                const moveDistance = 1.0;
+                let moveX = 0, moveY = 0;
+                
+                switch (event.direction) {
+                    case 'up': moveY = moveDistance; break;
+                    case 'down': moveY = -moveDistance; break;
+                    case 'left': moveX = -moveDistance; break;
+                    case 'right': moveX = moveDistance; break;
+                }
+                
+                objects.forEach(obj => {
+                    if (obj) {
+                        obj.position.x += moveX;
+                        obj.position.y += moveY;
+                    }
+                });
+            }
+        });
+
+        gestureManager.pinchStart.subscribe((event) => {
+            if (event) {
+                logEvent('pinchstart', event);
+            }
+        });
+
+        gestureManager.pinchMove.subscribe((event) => {
+            if (event) {
+                logEvent('pinch', event);
+                
+                // Update pinch line visual
+                if (event.originalEvent instanceof TouchEvent && event.originalEvent.touches.length >= 2) {
+                    const touch1 = event.originalEvent.touches[0];
+                    const touch2 = event.originalEvent.touches[1];
+                    updatePinchLine(touch1.clientX, touch1.clientY, touch2.clientX, touch2.clientY);
+                    
+                    // Update touch points
+                    updateTouchPoint(touch1.identifier, touch1.clientX, touch1.clientY);
+                    updateTouchPoint(touch2.identifier, touch2.clientX, touch2.clientY);
+                }
+                
+                // Scale camera based on pinch
+                if (event.scale) {
+                    const camera = cameraManager.getCamera();
+                    // Adjust zoom instead of position to maintain look-at point
+                    const zoomDelta = (event.scale - 1) * 0.1;
+                    camera.zoom = Math.max(0.5, Math.min(2.0, camera.zoom * (1 - zoomDelta)));
+                    camera.updateProjectionMatrix();
+                }
+            }
+        });
+
+        gestureManager.pinchEnd.subscribe((event) => {
+            if (event) {
+                logEvent('pinchend', event);
+                hidePinchLine();
+            }
+        });
+
+        gestureManager.rotateStart.subscribe((event) => {
+            if (event) {
+                logEvent('rotatestart', event);
+            }
+        });
+
+        gestureManager.rotateMove.subscribe((event) => {
+            if (event) {
+                logEvent('rotate', { ...event, rotation: event.rotation * (180 / Math.PI) });
+                
+                // Rotate all objects
+                const objects = [
+                    objectsManager.getMesh('cube'),
+                    objectsManager.getMesh('sphere'),
+                    objectsManager.getMesh('torus')
+                ];
+                
+                objects.forEach(obj => {
+                    if (obj) {
+                        obj.rotation.y += event.rotation * 0.1;
+                    }
+                });
+            }
+        });
+
+        gestureManager.rotateEnd.subscribe((event) => {
+            if (event) {
+                logEvent('rotateend', event);
+            }
+        });
+
+        gestureManager.panStart.subscribe((event) => {
+            if (event) {
+                logEvent('panstart', event);
+            }
+        });
+
+        gestureManager.panMove.subscribe((event) => {
+            if (event) {
+                logEvent('pan', event);
+                
+                // Move camera based on pan
+                if (event.deltaX !== undefined && event.deltaY !== undefined) {
+                    const camera = cameraManager.getCamera();
+                    camera.position.x -= event.deltaX * 0.01;
+                    camera.position.y += event.deltaY * 0.01;
+                }
+            }
+        });
+
+        gestureManager.panEnd.subscribe((event) => {
+            if (event) {
+                logEvent('panend', event);
+            }
+        });
+
+        // Update touch points on touch events
+        document.addEventListener('touchstart', (e) => {
+            for (let i = 0; i < e.touches.length; i++) {
+                const touch = e.touches[i];
+                updateTouchPoint(touch.identifier, touch.clientX, touch.clientY);
+            }
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            for (let i = 0; i < e.touches.length; i++) {
+                const touch = e.touches[i];
+                updateTouchPoint(touch.identifier, touch.clientX, touch.clientY);
+            }
+            
+            // Update pinch line
+            if (e.touches.length >= 2) {
+                const touch1 = e.touches[0];
+                const touch2 = e.touches[1];
+                updatePinchLine(touch1.clientX, touch1.clientY, touch2.clientX, touch2.clientY);
+            }
+        });
+
+        document.addEventListener('touchend', (e) => {
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                const touch = e.changedTouches[i];
+                removeTouchPoint(touch.identifier);
+            }
+            
+            if (e.touches.length < 2) {
+                hidePinchLine();
+            }
+        });
+
+        document.addEventListener('touchcancel', (e) => {
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                const touch = e.changedTouches[i];
+                removeTouchPoint(touch.identifier);
+            }
+            
+            hidePinchLine();
+        });
+
+        // UI Controls
+        document.getElementById('enable-gestures').addEventListener('change', (e) => {
+            gestureManager.setEnabled(e.target.checked);
+        });
+
+        document.getElementById('enable-tap').addEventListener('change', (e) => {
+            gestureManager.updateConfig({ enableTap: e.target.checked });
+        });
+
+        document.getElementById('enable-doubletap').addEventListener('change', (e) => {
+            gestureManager.updateConfig({ enableDoubleTap: e.target.checked });
+        });
+
+        document.getElementById('enable-longpress').addEventListener('change', (e) => {
+            gestureManager.updateConfig({ enableLongPress: e.target.checked });
+        });
+
+        document.getElementById('enable-swipe').addEventListener('change', (e) => {
+            gestureManager.updateConfig({ enableSwipe: e.target.checked });
+        });
+
+        document.getElementById('enable-pinch').addEventListener('change', (e) => {
+            gestureManager.updateConfig({ enablePinch: e.target.checked });
+        });
+
+        document.getElementById('enable-rotate').addEventListener('change', (e) => {
+            gestureManager.updateConfig({ enableRotate: e.target.checked });
+        });
+
+        document.getElementById('enable-pan').addEventListener('change', (e) => {
+            gestureManager.updateConfig({ enablePan: e.target.checked });
+        });
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Slowly rotate objects
+            const cube = objectsManager.getMesh('cube');
+            if (cube) {
+                cube.rotation.x += 0.005;
+            }
+            
+            const torus = objectsManager.getMesh('torus');
+            if (torus) {
+                torus.rotation.x += 0.01;
+                torus.rotation.z += 0.01;
+            }
+        }
+        
+        animate();
+    </script>
+</body>
+</html> 

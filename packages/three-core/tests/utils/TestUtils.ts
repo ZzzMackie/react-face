@@ -14,40 +14,18 @@ import * as THREE from 'three';
  */
 export class TestUtils {
   /**
-   * 创建测试引擎
+   * 创建测试用的Engine实例
    */
-  static async createTestEngine(config: {
-    width?: number;
-    height?: number;
-    antialias?: boolean;
-    shadowMap?: boolean;
-    autoRender?: boolean;
-    autoResize?: boolean;
-  } = {}): Promise<{ engine: Engine; container: HTMLElement }> {
-    const container = document.createElement('div');
-    container.style.width = `${config.width || 800}px`;
-    container.style.height = `${config.height || 600}px`;
-    document.body.appendChild(container);
-
-    const engine = new Engine({
-      container,
-      width: config.width || 800,
-      height: config.height || 600,
-      antialias: config.antialias !== false,
-      shadowMap: config.shadowMap !== false,
-      autoRender: config.autoRender || false,
-      autoResize: config.autoResize || false
-    });
-
-    await engine.initialize();
-
-    return { engine, container };
+  static createTestEngine(container?: HTMLDivElement): Engine {
+    const testContainer = container || document.createElement('div');
+    document.body.appendChild(testContainer);
+    return new Engine(testContainer);
   }
 
   /**
-   * 清理测试引擎
+   * 清理测试用的Engine实例
    */
-  static cleanupTestEngine(engine: Engine, container: HTMLElement): void {
+  static cleanupTestEngine(engine: Engine, container?: HTMLDivElement): void {
     if (engine) {
       engine.dispose();
     }
@@ -57,349 +35,410 @@ export class TestUtils {
   }
 
   /**
-   * 创建测试场景
-   */
-  static async createTestScene(engine: Engine): Promise<{
-    lights: LightManager;
-    materials: MaterialManager;
-    objects: ObjectManager;
-    geometry: GeometryManager;
-  }> {
-    const lights = await engine.getManager<LightManager>('lights');
-    const materials = await engine.getManager<MaterialManager>('materials');
-    const objects = await engine.getManager<ObjectManager>('objects');
-    const geometry = await engine.getManager<GeometryManager>('geometry');
-
-    // 创建基础灯光
-    lights.createLight('ambient', {
-      type: 'ambient',
-      color: 0x404040,
-      intensity: 0.4
-    });
-
-    lights.createLight('directional', {
-      type: 'directional',
-      color: 0xffffff,
-      intensity: 1.0,
-      position: { x: 10, y: 10, z: 5 },
-      castShadow: true
-    });
-
-    // 创建基础材质
-    materials.createStandardMaterial('test', {
-      color: 0x808080,
-      roughness: 0.5,
-      metalness: 0.5
-    });
-
-    // 创建基础几何体
-    geometry.createBoxGeometry('testBox', { width: 1, height: 1, depth: 1 });
-    geometry.createSphereGeometry('testSphere', { radius: 0.5, segments: 16 });
-
-    return { lights, materials, objects, geometry };
-  }
-
-  /**
-   * 创建测试对象
-   */
-  static async createTestObjects(
-    objects: ObjectManager,
-    geometry: GeometryManager,
-    materials: MaterialManager,
-    count: number = 10
-  ): Promise<void> {
-    const boxGeometry = geometry.getGeometry('testBox');
-    const sphereGeometry = geometry.getGeometry('testSphere');
-    const material = materials.getMaterial('test');
-
-    if (boxGeometry && sphereGeometry && material) {
-      for (let i = 0; i < count; i++) {
-        const isBox = i % 2 === 0;
-        const geometry = isBox ? boxGeometry : sphereGeometry;
-        const name = isBox ? `testBox${i}` : `testSphere${i}`;
-
-        objects.createMesh(name, geometry, material, {
-          position: {
-            x: (i % 5) * 2 - 4,
-            y: 0,
-            z: Math.floor(i / 5) * 2
-          },
-          castShadow: true,
-          receiveShadow: true
-        });
-      }
-    }
-  }
-
-  /**
-   * 创建测试粒子系统
-   */
-  static async createTestParticleSystems(
-    particles: ParticleManager,
-    count: number = 5
-  ): Promise<void> {
-    for (let i = 0; i < count; i++) {
-      particles.createParticleSystem(`testParticles${i}`, {
-        count: 100,
-        size: 0.1,
-        color: new THREE.Color(0xff0000),
-        velocity: new THREE.Vector3(0, 1, 0),
-        lifetime: 2.0,
-        blending: THREE.AdditiveBlending,
-        transparent: true
-      });
-
-      particles.createEmitter(`testParticles${i}`, {
-        position: new THREE.Vector3(i * 2, 0, 0),
-        direction: new THREE.Vector3(0, 1, 0),
-        rate: 10,
-        continuous: true
-      });
-
-      particles.emitParticles(`testParticles${i}`, 50);
-    }
-  }
-
-  /**
-   * 创建测试着色器效果
-   */
-  static async createTestShaderEffects(
-    shaders: ShaderManager,
-    count: number = 5
-  ): Promise<void> {
-    for (let i = 0; i < count; i++) {
-      shaders.createBuiltinEffect(`wave${i}`, 'wave', {
-        amplitude: 0.2,
-        frequency: 2.0,
-        speed: 1.0,
-        color: new THREE.Color(0x0088ff)
-      });
-
-      shaders.createBuiltinEffect(`glow${i}`, 'glow', {
-        color: new THREE.Color(0x00ff00),
-        intensity: 1.0,
-        pulseSpeed: 2.0
-      });
-    }
-  }
-
-  /**
-   * 创建测试环境
-   */
-  static async createTestEnvironment(environment: EnvironmentManager): Promise<void> {
-    environment.setEnvironment({
-      skybox: {
-        type: 'gradient',
-        gradient: {
-          topColor: new THREE.Color(0x87ceeb),
-          bottomColor: new THREE.Color(0x4169e1)
-        }
-      },
-      fog: {
-        type: 'exponential',
-        color: new THREE.Color(0x87ceeb),
-        density: 0.01
-      },
-      ambient: {
-        color: new THREE.Color(0x404040),
-        intensity: 0.4
-      }
-    });
-  }
-
-  /**
-   * 测量性能
-   */
-  static measurePerformance<T>(
-    name: string,
-    fn: () => T,
-    iterations: number = 1
-  ): { result: T; averageTime: number; totalTime: number } {
-    const times: number[] = [];
-
-    for (let i = 0; i < iterations; i++) {
-      const startTime = performance.now();
-      const result = fn();
-      const endTime = performance.now();
-      times.push(endTime - startTime);
-
-      if (i === 0) {
-        // 只返回第一次的结果
-        const averageTime = times.reduce((a, b) => a + b, 0) / times.length;
-        const totalTime = times.reduce((a, b) => a + b, 0);
-
-        console.log(`${name}: ${averageTime.toFixed(2)}ms average, ${totalTime.toFixed(2)}ms total`);
-
-        return { result, averageTime, totalTime };
-      }
-    }
-
-    throw new Error('Should not reach here');
-  }
-
-  /**
    * 等待指定时间
    */
-  static async wait(ms: number): Promise<void> {
+  static wait(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   /**
-   * 等待渲染完成
+   * 等待下一帧
    */
-  static async waitForRender(engine: Engine, frames: number = 1): Promise<void> {
-    for (let i = 0; i < frames; i++) {
-      engine.render();
-      await this.wait(16); // 等待一帧
+  static waitForNextFrame(): Promise<void> {
+    return new Promise(resolve => requestAnimationFrame(resolve));
+  }
+
+  /**
+   * 模拟性能数据
+   */
+  static mockPerformanceData(data: {
+    frameTime?: number;
+    memoryUsage?: number;
+    fps?: number;
+  }): void {
+    if (data.frameTime) {
+      jest.spyOn(performance, 'now').mockReturnValue(data.frameTime);
+    }
+
+    if (data.memoryUsage) {
+      Object.defineProperty(performance, 'memory', {
+        value: { usedJSHeapSize: data.memoryUsage },
+        configurable: true
+      });
+    }
+
+    if (data.fps) {
+      const frameTime = 1000 / data.fps;
+      jest.spyOn(performance, 'now').mockReturnValue(frameTime);
     }
   }
 
   /**
-   * 创建随机颜色
+   * 恢复性能数据模拟
    */
-  static randomColor(): number {
-    return Math.floor(Math.random() * 0xffffff);
+  static restorePerformanceData(): void {
+    jest.restoreAllMocks();
   }
 
   /**
-   * 创建随机位置
+   * 创建模拟的Three.js对象
    */
-  static randomPosition(range: number = 10): { x: number; y: number; z: number } {
-    return {
-      x: (Math.random() - 0.5) * range,
-      y: (Math.random() - 0.5) * range,
-      z: (Math.random() - 0.5) * range
+  static createMockThreeObject(type: string, properties: any = {}): any {
+    const baseObject = {
+      dispose: jest.fn(),
+      update: jest.fn(),
+      ...properties
     };
+
+    switch (type) {
+      case 'geometry':
+        return {
+          ...baseObject,
+          attributes: {},
+          boundingBox: null,
+          boundingSphere: null
+        };
+      case 'material':
+        return {
+          ...baseObject,
+          transparent: false,
+          opacity: 1,
+          visible: true
+        };
+      case 'mesh':
+        return {
+          ...baseObject,
+          geometry: TestUtils.createMockThreeObject('geometry'),
+          material: TestUtils.createMockThreeObject('material'),
+          position: { set: jest.fn(), copy: jest.fn() },
+          rotation: { set: jest.fn(), copy: jest.fn() },
+          scale: { set: jest.fn(), copy: jest.fn() }
+        };
+      case 'light':
+        return {
+          ...baseObject,
+          intensity: 1,
+          position: { set: jest.fn(), copy: jest.fn() }
+        };
+      case 'camera':
+        return {
+          ...baseObject,
+          position: { set: jest.fn(), copy: jest.fn() },
+          lookAt: jest.fn(),
+          updateMatrix: jest.fn(),
+          updateMatrixWorld: jest.fn()
+        };
+      default:
+        return baseObject;
+    }
   }
 
   /**
-   * 创建随机旋转
+   * 测量函数执行时间
    */
-  static randomRotation(): { x: number; y: number; z: number } {
+  static measureExecutionTime<T>(fn: () => T): { result: T; time: number } {
+    const startTime = performance.now();
+    const result = fn();
+    const endTime = performance.now();
+    return { result, time: endTime - startTime };
+  }
+
+  /**
+   * 测量异步函数执行时间
+   */
+  static async measureAsyncExecutionTime<T>(fn: () => Promise<T>): Promise<{ result: T; time: number }> {
+    const startTime = performance.now();
+    const result = await fn();
+    const endTime = performance.now();
+    return { result, time: endTime - startTime };
+  }
+
+  /**
+   * 创建性能基准测试
+   */
+  static createBenchmark(name: string, iterations: number = 1000) {
     return {
-      x: Math.random() * Math.PI * 2,
-      y: Math.random() * Math.PI * 2,
-      z: Math.random() * Math.PI * 2
-    };
-  }
-
-  /**
-   * 验证对象属性
-   */
-  static expectObjectProperties<T extends object>(
-    obj: T,
-    expectedProperties: Partial<T>
-  ): void {
-    Object.entries(expectedProperties).forEach(([key, value]) => {
-      expect(obj[key as keyof T]).toEqual(value);
-    });
-  }
-
-  /**
-   * 验证数组长度
-   */
-  static expectArrayLength<T>(array: T[], expectedLength: number): void {
-    expect(array).toHaveLength(expectedLength);
-  }
-
-  /**
-   * 验证对象存在
-   */
-  static expectObjectExists<T>(obj: T | undefined | null, name: string): asserts obj is T {
-    expect(obj).toBeDefined();
-    expect(obj).not.toBeNull();
-  }
-
-  /**
-   * 验证信号触发
-   */
-  static expectSignalTriggered<T>(
-    signal: { subscribe: (callback: (value: T) => void) => () => void },
-    expectedValue?: T
-  ): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        reject(new Error('Signal not triggered within timeout'));
-      }, 1000);
-
-      const unsubscribe = signal.subscribe((value) => {
-        clearTimeout(timeout);
-        unsubscribe();
-
-        if (expectedValue !== undefined) {
-          expect(value).toEqual(expectedValue);
+      name,
+      iterations,
+      results: [] as number[],
+      
+      run(fn: () => void): void {
+        for (let i = 0; i < this.iterations; i++) {
+          const { time } = TestUtils.measureExecutionTime(fn);
+          this.results.push(time);
         }
+      },
 
-        resolve();
-      });
+      async runAsync(fn: () => Promise<void>): Promise<void> {
+        for (let i = 0; i < this.iterations; i++) {
+          const { time } = await TestUtils.measureAsyncExecutionTime(fn);
+          this.results.push(time);
+        }
+      },
+
+      getStats() {
+        const sorted = [...this.results].sort((a, b) => a - b);
+        const sum = sorted.reduce((a, b) => a + b, 0);
+        const mean = sum / sorted.length;
+        const median = sorted[Math.floor(sorted.length / 2)];
+        const min = sorted[0];
+        const max = sorted[sorted.length - 1];
+        const stdDev = Math.sqrt(
+          sorted.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / sorted.length
+        );
+
+        return {
+          name: this.name,
+          iterations: this.iterations,
+          mean,
+          median,
+          min,
+          max,
+          stdDev,
+          results: this.results
+        };
+      }
+    };
+  }
+
+  /**
+   * 模拟WebGL上下文
+   */
+  static mockWebGLContext(): void {
+    const mockContext = {
+      canvas: document.createElement('canvas'),
+      drawArrays: jest.fn(),
+      drawElements: jest.fn(),
+      createBuffer: jest.fn(() => ({})),
+      bindBuffer: jest.fn(),
+      bufferData: jest.fn(),
+      createProgram: jest.fn(() => ({})),
+      createShader: jest.fn(() => ({})),
+      shaderSource: jest.fn(),
+      compileShader: jest.fn(),
+      attachShader: jest.fn(),
+      linkProgram: jest.fn(),
+      useProgram: jest.fn(),
+      getAttribLocation: jest.fn(() => 0),
+      getUniformLocation: jest.fn(() => ({})),
+      uniformMatrix4fv: jest.fn(),
+      uniform3fv: jest.fn(),
+      uniform1f: jest.fn(),
+      uniform1i: jest.fn(),
+      enableVertexAttribArray: jest.fn(),
+      vertexAttribPointer: jest.fn(),
+      clearColor: jest.fn(),
+      clear: jest.fn(),
+      viewport: jest.fn(),
+      enable: jest.fn(),
+      disable: jest.fn(),
+      blendFunc: jest.fn(),
+      depthFunc: jest.fn(),
+      cullFace: jest.fn(),
+      frontFace: jest.fn(),
+      polygonOffset: jest.fn(),
+      lineWidth: jest.fn(),
+      pointSize: jest.fn(),
+      scissor: jest.fn(),
+      colorMask: jest.fn(),
+      depthMask: jest.fn(),
+      stencilMask: jest.fn(),
+      stencilFunc: jest.fn(),
+      stencilOp: jest.fn(),
+      clearDepth: jest.fn(),
+      clearStencil: jest.fn(),
+      createTexture: jest.fn(() => ({})),
+      bindTexture: jest.fn(),
+      texImage2D: jest.fn(),
+      texParameteri: jest.fn(),
+      generateMipmap: jest.fn(),
+      createFramebuffer: jest.fn(() => ({})),
+      bindFramebuffer: jest.fn(),
+      framebufferTexture2D: jest.fn(),
+      checkFramebufferStatus: jest.fn(() => 36053), // FRAMEBUFFER_COMPLETE
+      createRenderbuffer: jest.fn(() => ({})),
+      bindRenderbuffer: jest.fn(),
+      renderbufferStorage: jest.fn(),
+      framebufferRenderbuffer: jest.fn(),
+      deleteFramebuffer: jest.fn(),
+      deleteRenderbuffer: jest.fn(),
+      deleteTexture: jest.fn(),
+      deleteBuffer: jest.fn(),
+      deleteProgram: jest.fn(),
+      deleteShader: jest.fn(),
+      getError: jest.fn(() => 0),
+      getParameter: jest.fn((param) => {
+        switch (param) {
+          case 34921: return 8; // MAX_VERTEX_UNIFORM_VECTORS
+          case 34922: return 8; // MAX_FRAGMENT_UNIFORM_VECTORS
+          case 35660: return 16; // MAX_VERTEX_ATTRIBS
+          case 34047: return 4096; // MAX_TEXTURE_SIZE
+          case 34930: return 16; // MAX_VERTEX_TEXTURE_IMAGE_UNITS
+          case 35661: return 8; // MAX_VERTEX_UNIFORM_VECTORS
+          case 35662: return 8; // MAX_VARYING_VECTORS
+          case 35720: return 8; // MAX_COMBINED_TEXTURE_IMAGE_UNITS
+          case 35721: return 8; // MAX_VERTEX_UNIFORM_VECTORS
+          case 35722: return 8; // MAX_FRAGMENT_UNIFORM_VECTORS
+          default: return 0;
+        }
+      }),
+      getExtension: jest.fn((name) => {
+        if (name === 'WEBGL_debug_renderer_info') {
+          return {
+            UNMASKED_VENDOR_WEBGL: 0x9245,
+            UNMASKED_RENDERER_WEBGL: 0x9246
+          };
+        }
+        return null;
+      })
+    };
+
+    Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
+      value: jest.fn((contextId) => {
+        if (contextId === 'webgl' || contextId === 'webgl2') {
+          return mockContext;
+        }
+        return null;
+      })
     });
   }
 
   /**
-   * 创建测试数据
+   * 模拟浏览器API
    */
-  static createTestData(size: number = 100): Array<{
-    id: string;
-    name: string;
-    value: number;
-    position: { x: number; y: number; z: number };
-  }> {
-    const data = [];
-    for (let i = 0; i < size; i++) {
-      data.push({
-        id: `test-${i}`,
-        name: `Test Object ${i}`,
-        value: Math.random() * 100,
-        position: this.randomPosition()
-      });
-    }
-    return data;
-  }
-
-  /**
-   * 模拟用户交互
-   */
-  static simulateUserInteraction(
-    element: HTMLElement,
-    eventType: 'click' | 'mousedown' | 'mouseup' | 'mousemove' | 'keydown' | 'keyup',
-    options: any = {}
-  ): void {
-    const event = new Event(eventType, { bubbles: true, ...options });
-    element.dispatchEvent(event);
-  }
-
-  /**
-   * 获取内存使用情况
-   */
-  static getMemoryUsage(): { used: number; total: number; limit: number } | null {
-    if ('memory' in performance) {
-      const memory = (performance as any).memory;
-      return {
-        used: memory.usedJSHeapSize,
-        total: memory.totalJSHeapSize,
-        limit: memory.jsHeapSizeLimit
-      };
-    }
-    return null;
-  }
-
-  /**
-   * 记录性能指标
-   */
-  static recordPerformanceMetrics(
-    name: string,
-    metrics: {
-      duration: number;
-      memoryUsage?: number;
-      frameCount?: number;
-      objectCount?: number;
-    }
-  ): void {
-    console.log(`Performance Metrics - ${name}:`, {
-      duration: `${metrics.duration.toFixed(2)}ms`,
-      memoryUsage: metrics.memoryUsage ? `${(metrics.memoryUsage / 1024 / 1024).toFixed(2)}MB` : 'N/A',
-      frameCount: metrics.frameCount || 'N/A',
-      objectCount: metrics.objectCount || 'N/A'
+  static mockBrowserAPIs(): void {
+    // 模拟 requestAnimationFrame
+    global.requestAnimationFrame = jest.fn((callback) => {
+      return setTimeout(callback, 16);
     });
+
+    // 模拟 cancelAnimationFrame
+    global.cancelAnimationFrame = jest.fn((id) => {
+      clearTimeout(id);
+    });
+
+    // 模拟 ResizeObserver
+    global.ResizeObserver = jest.fn().mockImplementation(() => ({
+      observe: jest.fn(),
+      unobserve: jest.fn(),
+      disconnect: jest.fn(),
+    }));
+
+    // 模拟 IntersectionObserver
+    global.IntersectionObserver = jest.fn().mockImplementation(() => ({
+      observe: jest.fn(),
+      unobserve: jest.fn(),
+      disconnect: jest.fn(),
+    }));
+
+    // 模拟 AudioContext
+    global.AudioContext = jest.fn().mockImplementation(() => ({
+      createOscillator: jest.fn(() => ({
+        connect: jest.fn(),
+        start: jest.fn(),
+        stop: jest.fn(),
+        frequency: { setValueAtTime: jest.fn() }
+      })),
+      createGain: jest.fn(() => ({
+        connect: jest.fn(),
+        gain: { setValueAtTime: jest.fn() }
+      })),
+      createBufferSource: jest.fn(() => ({
+        connect: jest.fn(),
+        start: jest.fn(),
+        stop: jest.fn(),
+        buffer: null
+      })),
+      createAnalyser: jest.fn(() => ({
+        connect: jest.fn(),
+        frequencyBinCount: 1024,
+        getByteFrequencyData: jest.fn(),
+        getByteTimeDomainData: jest.fn()
+      })),
+      decodeAudioData: jest.fn(() => Promise.resolve({})),
+      suspend: jest.fn(),
+      resume: jest.fn(),
+      close: jest.fn()
+    }));
+
+    // 模拟 localStorage
+    const localStorageMock = {
+      getItem: jest.fn(),
+      setItem: jest.fn(),
+      removeItem: jest.fn(),
+      clear: jest.fn(),
+    };
+    global.localStorage = localStorageMock;
+
+    // 模拟 sessionStorage
+    const sessionStorageMock = {
+      getItem: jest.fn(),
+      setItem: jest.fn(),
+      removeItem: jest.fn(),
+      clear: jest.fn(),
+    };
+    global.sessionStorage = sessionStorageMock;
+
+    // 模拟 fetch
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({}),
+        arrayBuffer: () => Promise.resolve(new ArrayBuffer(1024)),
+        text: () => Promise.resolve('test'),
+      })
+    );
+  }
+
+  /**
+   * 创建测试场景
+   */
+  static createTestScene(): any {
+    return {
+      add: jest.fn(),
+      remove: jest.fn(),
+      children: [],
+      background: null,
+      fog: null,
+      traverse: jest.fn()
+    };
+  }
+
+  /**
+   * 创建测试相机
+   */
+  static createTestCamera(): any {
+    return {
+      position: { set: jest.fn(), copy: jest.fn() },
+      lookAt: jest.fn(),
+      updateMatrix: jest.fn(),
+      updateMatrixWorld: jest.fn(),
+      fov: 75,
+      aspect: 1,
+      near: 0.1,
+      far: 1000
+    };
+  }
+
+  /**
+   * 创建测试渲染器
+   */
+  static createTestRenderer(): any {
+    return {
+      setSize: jest.fn(),
+      setClearColor: jest.fn(),
+      render: jest.fn(),
+      dispose: jest.fn(),
+      domElement: document.createElement('canvas'),
+      capabilities: {
+        isWebGL2: true,
+        maxTextureSize: 4096,
+        maxAnisotropy: 16
+      },
+      info: {
+        render: { calls: 0, triangles: 0, points: 0, lines: 0 },
+        memory: { geometries: 0, textures: 0 }
+      }
+    };
   }
 } 

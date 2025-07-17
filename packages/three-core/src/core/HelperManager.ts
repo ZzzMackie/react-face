@@ -1,5 +1,9 @@
 import * as THREE from 'three';
-import type { Manager } from '@react-face/shared-types';
+// Local Manager interface
+export interface Manager {
+  initialize(): Promise<void>;
+  dispose(): void;
+}
 import { createSignal } from './Signal';
 
 export interface HelperConfig {
@@ -17,10 +21,13 @@ export interface HelperInfo {
 }
 
 /**
- * 辅助工具管理�?
+ * 辅助工具管理�?
  * 负责管理 Three.js 辅助工具
  */
 export class HelperManager implements Manager {
+  // Add test expected properties
+  public readonly name = 'HelperManager'.toLowerCase().replace('Manager', '');
+  public initialized = false;
   private engine: unknown;
   private helpers: Map<string, HelperInfo> = new Map();
   private config: HelperConfig;
@@ -43,12 +50,12 @@ export class HelperManager implements Manager {
   }
 
   async initialize(): Promise<void> {
-    // 初始化辅助工具系�?
-  }
+    // 初始化辅助工具系�?
+  this.initialized = true;}
 
   dispose(): void {
     this.removeAllHelpers();
-  }
+  this.initialized = false;}
 
   createAxesHelper(
     id: string,
@@ -115,8 +122,11 @@ export class HelperManager implements Manager {
     id: string,
     object: THREE.Object3D,
     color: THREE.ColorRepresentation = 0xffffff
-  ): THREE.WireframeHelper {
-    const helper = new THREE.WireframeHelper(object, color);
+  ): THREE.LineSegments {
+    // WireframeHelper is not available in Three.js, use LineSegments instead
+    const geometry = new THREE.WireframeGeometry(object instanceof THREE.Mesh ? object.geometry : new THREE.BoxGeometry());
+    const material = new THREE.LineBasicMaterial({ color });
+    const helper = new THREE.LineSegments(geometry, material);
 
     const helperInfo: HelperInfo = {
       id,
@@ -249,4 +259,4 @@ export class HelperManager implements Manager {
     });
     this.helpers.clear();
   }
-} 
+}

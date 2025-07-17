@@ -1,5 +1,9 @@
 import * as THREE from 'three';
-import type { Manager } from '@react-face/shared-types';
+// Local Manager interface
+export interface Manager {
+  initialize(): Promise<void>;
+  dispose(): void;
+}
 import { createSignal } from './Signal';
 
 export interface InstanceConfig {
@@ -55,6 +59,9 @@ export interface InstanceManagerConfig {
 }
 
 export class InstanceManager implements Manager {
+  // Add test expected properties
+  public readonly name = 'InstanceManager'.toLowerCase().replace('Manager', '');
+  public initialized = false;
   private engine: any;
   private config: InstanceManagerConfig;
   private instanceGroups: Map<string, InstanceGroup> = new Map();
@@ -85,13 +92,13 @@ export class InstanceManager implements Manager {
 
   async initialize(): Promise<void> {
     console.log('🎯 InstanceManager initialized');
-  }
+  this.initialized = true;}
 
   dispose(): void {
     this.removeAllInstanceGroups();
     this.instanceGroups.clear();
     // Signal不需要手动dispose，会自动清理
-  }
+  this.initialized = false;}
 
   // 创建实例组
   createInstanceGroup(
@@ -105,7 +112,9 @@ export class InstanceManager implements Manager {
     }
 
     const mesh = new THREE.InstancedMesh(geometry, material, maxCount);
-    mesh.frustumCulled = this.config.enableFrustumCulling;
+    if ('frustumCulled' in mesh) {
+      mesh.frustumCulled = this.config.enableFrustumCulling ?? true;
+    }
 
     const group: InstanceGroup = {
       id,
@@ -510,4 +519,4 @@ export class InstanceManager implements Manager {
   clearHistory(): void {
     // 清理信号历史（如果需要）
   }
-} 
+}

@@ -83,6 +83,9 @@ export type ManagerType =
   | 'composer'
   | 'viewHelper'
   | 'volumetric'
+  | 'volumetricFog'
+  | 'screenSpaceReflection'
+  | 'globalIllumination'
   | 'skeleton';
 
 /**

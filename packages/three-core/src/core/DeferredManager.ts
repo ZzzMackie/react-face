@@ -1,5 +1,9 @@
 import * as THREE from 'three';
-import type { Manager } from '@react-face/shared-types';
+// Local Manager interface
+export interface Manager {
+  initialize(): Promise<void>;
+  dispose(): void;
+}
 import { createSignal } from './Signal';
 
 export interface DeferredConfig {
@@ -17,10 +21,13 @@ export interface DeferredInfo {
 }
 
 /**
- * 延迟渲染管理�?
+ * 延迟渲染管理�?
  * 负责管理 Three.js 延迟渲染
  */
 export class DeferredManager implements Manager {
+  // Add test expected properties
+  public readonly name = 'DeferredManager'.toLowerCase().replace('Manager', '');
+  public initialized = false;
   private engine: unknown;
   private passes: Map<string, DeferredInfo> = new Map();
   private config: DeferredConfig;
@@ -42,12 +49,12 @@ export class DeferredManager implements Manager {
   }
 
   async initialize(): Promise<void> {
-    // 初始化延迟渲染系�?
-  }
+    // 初始化延迟渲染系�?
+  this.initialized = true;}
 
   dispose(): void {
     this.removeAllPasses();
-  }
+  this.initialized = false;}
 
   createGBufferPass(
     id: string,
@@ -174,4 +181,4 @@ export class DeferredManager implements Manager {
   getConfig(): DeferredConfig {
     return { ...this.config };
   }
-} 
+}

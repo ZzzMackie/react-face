@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three-Core Network Demo</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        #canvas-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+        #ui-container {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 300px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            z-index: 100;
+        }
+        .panel {
+            margin-bottom: 15px;
+        }
+        .panel-header {
+            font-weight: bold;
+            margin-bottom: 5px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .control-group {
+            margin-bottom: 10px;
+        }
+        label {
+            display: block;
+            margin-bottom: 3px;
+        }
+        input[type="text"], input[type="url"], select, button {
+            width: 100%;
+            padding: 5px;
+            margin-bottom: 5px;
+            box-sizing: border-box;
+        }
+        .message-log {
+            height: 200px;
+            overflow-y: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            margin-top: 10px;
+            border-radius: 3px;
+        }
+        .message-log-entry {
+            margin-bottom: 5px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .message-sent {
+            color: #88ff88;
+        }
+        .message-received {
+            color: #88aaff;
+        }
+        .message-system {
+            color: #ffaa88;
+        }
+        .message-error {
+            color: #ff8888;
+        }
+        .stats {
+            font-size: 12px;
+            color: #aaffaa;
+            margin-top: 10px;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 5px;
+            background-color: rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+        }
+        .tab.active {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .user-list, .room-list {
+            margin-top: 10px;
+            max-height: 150px;
+            overflow-y: auto;
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 5px;
+            border-radius: 3px;
+        }
+        .user-item, .room-item {
+            padding: 5px;
+            margin-bottom: 2px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+        }
+        .user-item:hover, .room-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .user-item.selected, .room-item.selected {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        .connection-status {
+            padding: 5px;
+            border-radius: 3px;
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .connection-status.connected {
+            background-color: rgba(0, 255, 0, 0.3);
+        }
+        .connection-status.disconnected {
+            background-color: rgba(255, 0, 0, 0.3);
+        }
+        .connection-status.connecting {
+            background-color: rgba(255, 255, 0, 0.3);
+        }
+        textarea {
+            width: 100%;
+            height: 60px;
+            margin-bottom: 5px;
+            padding: 5px;
+            box-sizing: border-box;
+            resize: none;
+        }
+        .instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            color: white;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            max-width: 400px;
+            font-size: 14px;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    <div id="ui-container">
+        <div class="connection-status disconnected" id="connection-status">Disconnected</div>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="connection">Connection</div>
+            <div class="tab" data-tab="messages">Messages</div>
+            <div class="tab" data-tab="rooms">Rooms</div>
+        </div>
+        
+        <div class="tab-content active" id="connection-panel">
+            <div class="panel">
+                <div class="panel-header">WebSocket Connection</div>
+                <div class="control-group">
+                    <label for="ws-url">WebSocket URL</label>
+                    <input type="url" id="ws-url" value="ws://localhost:8080" placeholder="ws://localhost:8080">
+                </div>
+                <div class="control-group">
+                    <label for="user-id">User ID</label>
+                    <input type="text" id="user-id" value="user_1" placeholder="Enter user ID">
+                </div>
+                <div class="control-group">
+                    <button id="connect-btn">Connect</button>
+                    <button id="disconnect-btn">Disconnect</button>
+                </div>
+                <div class="control-group">
+                    <label>
+                        <input type="checkbox" id="auto-reconnect" checked> Auto Reconnect
+                    </label>
+                </div>
+                <div class="control-group">
+                    <label>
+                        <input type="checkbox" id="enable-compression"> Enable Compression
+                    </label>
+                </div>
+                <div class="stats" id="network-stats">
+                    Status: Disconnected<br>
+                    Sent: 0 messages (0 bytes)<br>
+                    Received: 0 messages (0 bytes)<br>
+                    Latency: 0ms<br>
+                    Uptime: 0s
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="messages-panel">
+            <div class="panel">
+                <div class="panel-header">Send Message</div>
+                <div class="control-group">
+                    <label for="message-type">Message Type</label>
+                    <select id="message-type">
+                        <option value="chat">Chat</option>
+                        <option value="position">Position</option>
+                        <option value="action">Action</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="message-target">Target</label>
+                    <select id="message-target">
+                        <option value="">Broadcast</option>
+                        <!-- Dynamically populated with users and rooms -->
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="message-content">Content</label>
+                    <textarea id="message-content" placeholder="Enter message content"></textarea>
+                </div>
+                <div class="control-group">
+                    <button id="send-btn">Send Message</button>
+                </div>
+                <div class="panel-header">Message Log</div>
+                <div class="message-log" id="message-log"></div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="rooms-panel">
+            <div class="panel">
+                <div class="panel-header">Create Room</div>
+                <div class="control-group">
+                    <label for="room-name">Room Name</label>
+                    <input type="text" id="room-name" placeholder="Enter room name">
+                </div>
+                <div class="control-group">
+                    <label>
+                        <input type="checkbox" id="room-private"> Private Room
+                    </label>
+                </div>
+                <div class="control-group">
+                    <button id="create-room-btn">Create Room</button>
+                </div>
+                
+                <div class="panel-header">Rooms</div>
+                <div class="room-list" id="room-list">
+                    <!-- Dynamically populated with rooms -->
+                </div>
+                
+                <div class="panel-header">Users</div>
+                <div class="user-list" id="user-list">
+                    <!-- Dynamically populated with users -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="instructions">
+        <h3>Network Demo Instructions:</h3>
+        <p>This demo shows how to use the NetworkManager to create real-time multiplayer experiences.</p>
+        <p><strong>Note:</strong> You need a WebSocket server running to test this demo. You can use the included simple server or connect to a public WebSocket echo server.</p>
+        <ul>
+            <li><strong>Connection Tab:</strong> Connect to a WebSocket server</li>
+            <li><strong>Messages Tab:</strong> Send and receive messages</li>
+            <li><strong>Rooms Tab:</strong> Create and join rooms</li>
+        </ul>
+        <p>For testing, you can use: <code>wss://echo.websocket.org</code> as an echo server.</p>
+    </div>
+
+    <script type="module">
+        // Import Three.js and Three-Core
+        import * as THREE from 'three';
+        import { Engine } from '../dist/three-core.es.js';
+
+        // Initialize engine
+        const container = document.getElementById('canvas-container');
+        const engine = new Engine({
+            container,
+            autoRender: true,
+            autoResize: true,
+            antialias: true,
+            enableManagers: [
+                'scene', 'camera', 'renderer', 'controls', 'objects',
+                'lights', 'materials', 'textures', 'network'
+            ]
+        });
+
+        // Initialize engine
+        await engine.initialize();
+
+        // Setup scene
+        const sceneManager = await engine.getScene();
+        const cameraManager = await engine.getCamera();
+        const controlsManager = await engine.getControls();
+        const objectsManager = await engine.getObjects();
+        const lightsManager = await engine.getLights();
+        const networkManager = await engine.getOrCreateManager('network');
+
+        // Setup camera
+        cameraManager.setPosition(0, 0, 10);
+        cameraManager.lookAt(0, 0, 0);
+        
+        // Setup controls
+        await controlsManager.createOrbitControls();
+        
+        // Setup lights
+        lightsManager.createAmbientLight('ambient', { intensity: 0.5 });
+        lightsManager.createDirectionalLight('main', { 
+            intensity: 1.0,
+            position: { x: 1, y: 1, z: 1 },
+            castShadow: true
+        });
+        
+        // Create some 3D objects to represent network entities
+        const userObjects = new Map();
+        const colors = [0x3399ff, 0xff5533, 0x33ff55, 0xff33ff, 0xffff33, 0x33ffff];
+        
+        function createUserObject(userId) {
+            if (userObjects.has(userId)) return userObjects.get(userId);
+            
+            const colorIndex = userObjects.size % colors.length;
+            const color = colors[colorIndex];
+            
+            const mesh = objectsManager.createBox(`user_${userId}`, {
+                material: new THREE.MeshStandardMaterial({ color }),
+                position: {
+                    x: (Math.random() - 0.5) * 5,
+                    y: (Math.random() - 0.5) * 5,
+                    z: (Math.random() - 0.5) * 5
+                },
+                castShadow: true,
+                receiveShadow: true
+            });
+            
+            userObjects.set(userId, mesh);
+            return mesh;
+        }
+        
+        // UI Elements
+        const connectionStatus = document.getElementById('connection-status');
+        const networkStats = document.getElementById('network-stats');
+        const messageLog = document.getElementById('message-log');
+        const userList = document.getElementById('user-list');
+        const roomList = document.getElementById('room-list');
+        const messageTarget = document.getElementById('message-target');
+        
+        // Connection tab
+        const wsUrlInput = document.getElementById('ws-url');
+        const userIdInput = document.getElementById('user-id');
+        const connectBtn = document.getElementById('connect-btn');
+        const disconnectBtn = document.getElementById('disconnect-btn');
+        const autoReconnectCheckbox = document.getElementById('auto-reconnect');
+        const enableCompressionCheckbox = document.getElementById('enable-compression');
+        
+        // Messages tab
+        const messageTypeSelect = document.getElementById('message-type');
+        const messageContentTextarea = document.getElementById('message-content');
+        const sendBtn = document.getElementById('send-btn');
+        
+        // Rooms tab
+        const roomNameInput = document.getElementById('room-name');
+        const roomPrivateCheckbox = document.getElementById('room-private');
+        const createRoomBtn = document.getElementById('create-room-btn');
+        
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Deactivate all tabs
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                // Activate selected tab
+                tab.classList.add('active');
+                const tabId = tab.getAttribute('data-tab');
+                document.getElementById(`${tabId}-panel`).classList.add('active');
+            });
+        });
+        
+        // Connect button
+        connectBtn.addEventListener('click', async () => {
+            const url = wsUrlInput.value;
+            const userId = userIdInput.value;
+            
+            if (!url || !userId) {
+                logMessage('system', 'Please enter WebSocket URL and User ID');
+                return;
+            }
+            
+            try {
+                // Update connection status
+                connectionStatus.textContent = 'Connecting...';
+                connectionStatus.className = 'connection-status connecting';
+                
+                // Configure network manager
+                networkManager.updateConfig({
+                    url,
+                    userId,
+                    reconnectAttempts: autoReconnectCheckbox.checked ? 5 : 0,
+                    messageCompression: enableCompressionCheckbox.checked,
+                    debug: true
+                });
+                
+                // Connect to server
+                await networkManager.connect();
+                
+                // Create user object for self
+                createUserObject(userId);
+                
+                logMessage('system', `Connected to ${url} as ${userId}`);
+            } catch (error) {
+                connectionStatus.textContent = 'Connection Failed';
+                connectionStatus.className = 'connection-status disconnected';
+                logMessage('error', `Connection failed: ${error.message}`);
+            }
+        });
+        
+        // Disconnect button
+        disconnectBtn.addEventListener('click', () => {
+            networkManager.disconnect();
+            logMessage('system', 'Disconnected from server');
+        });
+        
+        // Send message button
+        sendBtn.addEventListener('click', async () => {
+            const type = messageTypeSelect.value;
+            const target = messageTarget.value;
+            let content;
+            
+            try {
+                content = JSON.parse(messageContentTextarea.value);
+            } catch (error) {
+                // If not valid JSON, use as string
+                content = messageContentTextarea.value;
+            }
+            
+            try {
+                if (target.startsWith('room:')) {
+                    // Send to room
+                    const roomId = target.substring(5);
+                    await networkManager.broadcastToRoom(roomId, type, content);
+                    logMessage('sent', `Sent ${type} message to room ${roomId}: ${JSON.stringify(content)}`);
+                } else if (target.startsWith('user:')) {
+                    // Send to user
+                    const userId = target.substring(5);
+                    await networkManager.sendToUser(userId, type, content);
+                    logMessage('sent', `Sent ${type} message to user ${userId}: ${JSON.stringify(content)}`);
+                } else {
+                    // Broadcast
+                    await networkManager.send(type, content);
+                    logMessage('sent', `Broadcast ${type} message: ${JSON.stringify(content)}`);
+                }
+                
+                // Clear message content
+                messageContentTextarea.value = '';
+            } catch (error) {
+                logMessage('error', `Failed to send message: ${error.message}`);
+            }
+        });
+        
+        // Create room button
+        createRoomBtn.addEventListener('click', async () => {
+            const name = roomNameInput.value;
+            
+            if (!name) {
+                logMessage('system', 'Please enter a room name');
+                return;
+            }
+            
+            try {
+                const room = await networkManager.createRoom({
+                    name,
+                    private: roomPrivateCheckbox.checked
+                });
+                
+                logMessage('system', `Created room: ${name} (${room.id})`);
+                updateRoomList();
+            } catch (error) {
+                logMessage('error', `Failed to create room: ${error.message}`);
+            }
+        });
+        
+        // Network event handlers
+        networkManager.connected.subscribe((data) => {
+            if (data) {
+                connectionStatus.textContent = `Connected: ${data.userId}`;
+                connectionStatus.className = 'connection-status connected';
+                updateUserList();
+                updateRoomList();
+                updateTargetList();
+            }
+        });
+        
+        networkManager.disconnected.subscribe((data) => {
+            if (data) {
+                connectionStatus.textContent = `Disconnected: ${data.code}`;
+                connectionStatus.className = 'connection-status disconnected';
+                logMessage('system', `Disconnected: ${data.reason} (${data.code})`);
+            }
+        });
+        
+        networkManager.error.subscribe((error) => {
+            if (error) {
+                logMessage('error', `Error: ${error.message}`);
+            }
+        });
+        
+        networkManager.messageReceived.subscribe((message) => {
+            if (message) {
+                logMessage('received', `Received ${message.type} from ${message.sender}: ${JSON.stringify(message.data)}`);
+                
+                // Handle position updates
+                if (message.type === 'position' && message.data && message.sender) {
+                    updateUserPosition(message.sender, message.data);
+                }
+            }
+        });
+        
+        networkManager.roomJoined.subscribe((room) => {
+            if (room) {
+                logMessage('system', `Joined room: ${room.name} (${room.id})`);
+                updateRoomList();
+                updateTargetList();
+            }
+        });
+        
+        networkManager.roomLeft.subscribe((roomId) => {
+            if (roomId) {
+                logMessage('system', `Left room: ${roomId}`);
+                updateRoomList();
+                updateTargetList();
+            }
+        });
+        
+        networkManager.userJoined.subscribe((user) => {
+            if (user) {
+                logMessage('system', `User joined: ${user.id}`);
+                createUserObject(user.id);
+                updateUserList();
+                updateTargetList();
+            }
+        });
+        
+        networkManager.userLeft.subscribe((userId) => {
+            if (userId) {
+                logMessage('system', `User left: ${userId}`);
+                
+                // Remove user object
+                if (userObjects.has(userId)) {
+                    const object = userObjects.get(userId);
+                    objectsManager.removeObject(`user_${userId}`);
+                    userObjects.delete(userId);
+                }
+                
+                updateUserList();
+                updateTargetList();
+            }
+        });
+        
+        // Register message handlers
+        networkManager.addMessageHandler('chat', (message) => {
+            // Handle chat messages
+            const chatMessage = message.data;
+            logMessage('received', `Chat from ${message.sender}: ${chatMessage.text}`);
+        });
+        
+        networkManager.addMessageHandler('position', (message) => {
+            // Handle position updates
+            updateUserPosition(message.sender, message.data);
+        });
+        
+        // Update user position
+        function updateUserPosition(userId, position) {
+            const userObject = createUserObject(userId);
+            
+            if (position.x !== undefined) userObject.position.x = position.x;
+            if (position.y !== undefined) userObject.position.y = position.y;
+            if (position.z !== undefined) userObject.position.z = position.z;
+            
+            if (position.rotation) {
+                if (position.rotation.x !== undefined) userObject.rotation.x = position.rotation.x;
+                if (position.rotation.y !== undefined) userObject.rotation.y = position.rotation.y;
+                if (position.rotation.z !== undefined) userObject.rotation.z = position.rotation.z;
+            }
+        }
+        
+        // Update user list
+        function updateUserList() {
+            const users = networkManager.getUsers();
+            userList.innerHTML = '';
+            
+            users.forEach(user => {
+                const userItem = document.createElement('div');
+                userItem.className = 'user-item';
+                userItem.textContent = user.id;
+                userItem.setAttribute('data-id', user.id);
+                
+                userItem.addEventListener('click', () => {
+                    // Toggle selection
+                    userItem.classList.toggle('selected');
+                });
+                
+                userList.appendChild(userItem);
+            });
+            
+            // Add self if not in list
+            const selfId = userIdInput.value;
+            if (selfId && !users.find(u => u.id === selfId)) {
+                const userItem = document.createElement('div');
+                userItem.className = 'user-item';
+                userItem.textContent = `${selfId} (You)`;
+                userItem.setAttribute('data-id', selfId);
+                
+                userItem.addEventListener('click', () => {
+                    // Toggle selection
+                    userItem.classList.toggle('selected');
+                });
+                
+                userList.appendChild(userItem);
+            }
+        }
+        
+        // Update room list
+        function updateRoomList() {
+            const rooms = networkManager.getRooms();
+            roomList.innerHTML = '';
+            
+            rooms.forEach(room => {
+                const roomItem = document.createElement('div');
+                roomItem.className = 'room-item';
+                roomItem.textContent = `${room.name} (${room.users.length} users)`;
+                roomItem.setAttribute('data-id', room.id);
+                
+                roomItem.addEventListener('click', async () => {
+                    try {
+                        // Join room
+                        await networkManager.joinRoom(room.id);
+                        roomItem.classList.add('selected');
+                    } catch (error) {
+                        logMessage('error', `Failed to join room: ${error.message}`);
+                    }
+                });
+                
+                roomList.appendChild(roomItem);
+            });
+        }
+        
+        // Update target list
+        function updateTargetList() {
+            const users = networkManager.getUsers();
+            const rooms = networkManager.getRooms();
+            
+            // Clear existing options
+            while (messageTarget.options.length > 1) {
+                messageTarget.remove(1);
+            }
+            
+            // Add users
+            if (users.length > 0) {
+                const userGroup = document.createElement('optgroup');
+                userGroup.label = 'Users';
+                
+                users.forEach(user => {
+                    const option = document.createElement('option');
+                    option.value = `user:${user.id}`;
+                    option.textContent = user.id;
+                    userGroup.appendChild(option);
+                });
+                
+                messageTarget.appendChild(userGroup);
+            }
+            
+            // Add rooms
+            if (rooms.length > 0) {
+                const roomGroup = document.createElement('optgroup');
+                roomGroup.label = 'Rooms';
+                
+                rooms.forEach(room => {
+                    const option = document.createElement('option');
+                    option.value = `room:${room.id}`;
+                    option.textContent = room.name;
+                    roomGroup.appendChild(option);
+                });
+                
+                messageTarget.appendChild(roomGroup);
+            }
+        }
+        
+        // Log message
+        function logMessage(type, message) {
+            const entry = document.createElement('div');
+            entry.className = `message-log-entry message-${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            messageLog.prepend(entry);
+            
+            // Limit log entries
+            while (messageLog.children.length > 50) {
+                messageLog.removeChild(messageLog.lastChild);
+            }
+        }
+        
+        // Update network stats
+        function updateNetworkStats() {
+            if (!networkManager) return;
+            
+            const stats = networkManager.getStats();
+            const state = networkManager.getConnectionState();
+            
+            networkStats.innerHTML = `
+                Status: ${state}<br>
+                Sent: ${stats.sentMessages} messages (${formatBytes(stats.sentBytes)})<br>
+                Received: ${stats.receivedMessages} messages (${formatBytes(stats.receivedBytes)})<br>
+                Latency: ${stats.latency}ms<br>
+                Uptime: ${formatTime(stats.connectionUptime)}
+            `;
+        }
+        
+        // Format bytes
+        function formatBytes(bytes) {
+            if (bytes < 1024) return `${bytes} B`;
+            if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(2)} KB`;
+            return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+        }
+        
+        // Format time
+        function formatTime(seconds) {
+            if (seconds < 60) return `${seconds}s`;
+            if (seconds < 3600) return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
+            return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m ${seconds % 60}s`;
+        }
+        
+        // Update stats periodically
+        setInterval(updateNetworkStats, 1000);
+        
+        // Broadcast position periodically
+        setInterval(async () => {
+            if (networkManager.getConnectionState() !== 'open') return;
+            
+            const userId = userIdInput.value;
+            const userObject = userObjects.get(userId);
+            
+            if (userObject) {
+                try {
+                    await networkManager.send('position', {
+                        x: userObject.position.x,
+                        y: userObject.position.y,
+                        z: userObject.position.z,
+                        rotation: {
+                            x: userObject.rotation.x,
+                            y: userObject.rotation.y,
+                            z: userObject.rotation.z
+                        }
+                    });
+                } catch (error) {
+                    console.error('Failed to send position update:', error);
+                }
+            }
+        }, 1000);
+        
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Rotate user objects
+            userObjects.forEach((object, userId) => {
+                if (userId !== userIdInput.value) {
+                    // Only rotate other users' objects
+                    object.rotation.y += 0.01;
+                }
+            });
+        }
+        
+        animate();
+    </script>
+</body>
+</html> 

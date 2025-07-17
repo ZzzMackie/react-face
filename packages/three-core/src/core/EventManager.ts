@@ -1,4 +1,8 @@
-import type { Manager } from '@react-face/shared-types';
+// Local Manager interface
+export interface Manager {
+  initialize(): Promise<void>;
+  dispose(): void;
+}
 import { createSignal } from './Signal';
 
 export interface EventConfig {
@@ -17,10 +21,13 @@ export interface EventHandler {
 }
 
 /**
- * 事件管理�?
+ * 事件管理�?
  * 负责管理 DOM 事件和自定义事件
  */
 export class EventManager implements Manager {
+  // Add test expected properties
+  public readonly name = 'EventManager'.toLowerCase().replace('Manager', '');
+  public initialized = false;
   private engine: unknown;
   private handlers: Map<string, EventHandler> = new Map();
   private config: EventConfig;
@@ -42,12 +49,12 @@ export class EventManager implements Manager {
   }
 
   async initialize(): Promise<void> {
-    // 初始化事件系�?
-  }
+    // 初始化事件系�?
+  this.initialized = true;}
 
   dispose(): void {
     this.removeAllHandlers();
-  }
+  this.initialized = false;}
 
   addHandler(
     id: string,

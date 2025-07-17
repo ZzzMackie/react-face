@@ -1,6 +1,10 @@
 import * as THREE from 'three';
-import type { Manager } from '@react-face/shared-types';
 import { createSignal } from './Signal';
+
+export interface Manager {
+  initialize(): Promise<void>;
+  dispose(): void;
+}
 
 export interface SceneConfig {
   background?: THREE.Color | THREE.Texture | THREE.CubeTexture;
@@ -9,13 +13,16 @@ export interface SceneConfig {
 }
 
 /**
- * 场景管理�?
- * 负责管理 Three.js 场景
+ * 场景管理器
+ * 管理 Three.js 场景
  */
 export class SceneManager implements Manager {
-  private engine: unknown;
   private scene: THREE.Scene;
   private config: SceneConfig;
+
+  // 测试期望的属性
+  public readonly name = 'scene';
+  public initialized = false;
 
   // 信号系统
   public readonly sceneCreated = createSignal<THREE.Scene | null>(null);
@@ -24,18 +31,48 @@ export class SceneManager implements Manager {
   public readonly environmentChanged = createSignal<THREE.CubeTexture | null>(null);
 
   constructor(engine: unknown, config: SceneConfig = {}) {
-    this.engine = engine;
+    // engine parameter kept for interface compatibility
     this.config = config;
     this.scene = new THREE.Scene();
   }
 
   async initialize(): Promise<void> {
     this.setupScene();
+    this.initialized = true;
     this.sceneCreated.emit(this.scene);
   }
 
   dispose(): void {
-    this.scene.clear();
+    if (this.scene && this.scene.clear) {
+      this.scene.clear();
+    }
+    this.initialized = false;
+  }
+
+  // ????????
+  on(event: string, callback: (...args: any[]) => void): void {
+    // ?????????
+    if (event === 'sceneCreated') {
+      this.sceneCreated.subscribe(callback);
+    } else if (event === 'backgroundChanged') {
+      this.backgroundChanged.subscribe(callback);
+    } else if (event === 'fogChanged') {
+      this.fogChanged.subscribe(callback);
+    } else if (event === 'environmentChanged') {
+      this.environmentChanged.subscribe(callback);
+    }
+  }
+
+  emit(event: string, ...args: any[]): void {
+    if (event === 'sceneCreated') {
+      this.sceneCreated.emit(args[0]);
+    } else if (event === 'backgroundChanged') {
+      this.backgroundChanged.emit(args[0]);
+    } else if (event === 'fogChanged') {
+      this.fogChanged.emit(args[0]);
+    } else if (event === 'environmentChanged') {
+      this.environmentChanged.emit(args[0]);
+    }
   }
 
   private setupScene(): void {
@@ -92,7 +129,9 @@ export class SceneManager implements Manager {
   }
 
   clear(): void {
-    this.scene.clear();
+    if (this.scene && this.scene.clear) {
+      this.scene.clear();
+    }
   }
 
   traverse(callback: (object: THREE.Object3D) => void): void {
@@ -109,5 +148,10 @@ export class SceneManager implements Manager {
 
   getObjectById(id: number): THREE.Object3D | undefined {
     return this.scene.getObjectById(id);
+  }
+
+  // ?????????
+  update(): void {
+    // ??????
   }
 }

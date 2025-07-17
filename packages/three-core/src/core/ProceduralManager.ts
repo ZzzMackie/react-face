@@ -1,5 +1,9 @@
 import * as THREE from 'three';
-import type { Manager } from '@react-face/shared-types';
+// Local Manager interface
+export interface Manager {
+  initialize(): Promise<void>;
+  dispose(): void;
+}
 import { createSignal } from './Signal';
 
 export interface ProceduralConfig {
@@ -17,9 +21,12 @@ export interface ProceduralInfo {
 
 /**
  * 程序化生成管理器
- * 负责管理 Three.js 程序化内容生�?
+ * 负责管理 Three.js 程序化内容生�?
  */
 export class ProceduralManager implements Manager {
+  // Add test expected properties
+  public readonly name = 'ProceduralManager'.toLowerCase().replace('Manager', '');
+  public initialized = false;
   private engine: unknown;
   private procedurals: Map<string, ProceduralInfo> = new Map();
   private config: ProceduralConfig;
@@ -41,11 +48,11 @@ export class ProceduralManager implements Manager {
 
   async initialize(): Promise<void> {
     // 初始化程序化生成系统
-  }
+  this.initialized = true;}
 
   dispose(): void {
     this.removeAllProcedurals();
-  }
+  this.initialized = false;}
 
   createNoiseGenerator(
     id: string,
@@ -149,4 +156,4 @@ export class ProceduralManager implements Manager {
   getConfig(): ProceduralConfig {
     return { ...this.config };
   }
-} 
+}

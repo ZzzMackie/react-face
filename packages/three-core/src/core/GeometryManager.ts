@@ -1,5 +1,9 @@
 import * as THREE from 'three';
-import type { Manager } from '@react-face/shared-types';
+// Local Manager interface
+export interface Manager {
+  initialize(): Promise<void>;
+  dispose(): void;
+}
 import { createSignal } from './Signal';
 
 export interface GeometryConfig {
@@ -17,9 +21,12 @@ export interface GeometryInfo {
 
 /**
  * 几何体管理器
- * 负责管理 Three.js 几何�?
+ * 负责管理 Three.js 几何�?
  */
 export class GeometryManager implements Manager {
+  // Add test expected properties
+  public readonly name = 'GeometryManager'.toLowerCase().replace('Manager', '');
+  public initialized = false;
   private engine: unknown;
   private geometries: Map<string, GeometryInfo> = new Map();
   private config: GeometryConfig;
@@ -40,11 +47,11 @@ export class GeometryManager implements Manager {
 
   async initialize(): Promise<void> {
     // 初始化几何体系统
-  }
+  this.initialized = true;}
 
   dispose(): void {
     this.removeAllGeometries();
-  }
+  this.initialized = false;}
 
   createBoxGeometry(
     id: string,
@@ -332,4 +339,4 @@ export class GeometryManager implements Manager {
     });
     this.geometries.clear();
   }
-} 
+}

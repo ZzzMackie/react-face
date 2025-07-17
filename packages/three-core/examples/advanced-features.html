@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three-Core Advanced Features Demo</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        #canvas-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+        #ui-container {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 300px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            z-index: 100;
+        }
+        .panel {
+            margin-bottom: 15px;
+        }
+        .panel-header {
+            font-weight: bold;
+            margin-bottom: 5px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .control-group {
+            margin-bottom: 10px;
+        }
+        label {
+            display: block;
+            margin-bottom: 3px;
+        }
+        select, input[type="range"], button {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+        .stats {
+            font-size: 12px;
+            margin-top: 5px;
+            color: #aaffaa;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 5px;
+            background-color: rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+        }
+        .tab.active {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    <div id="ui-container">
+        <div class="tabs">
+            <div class="tab active" data-tab="ray-tracing">Ray Tracing</div>
+            <div class="tab" data-tab="fluid">Fluid</div>
+            <div class="tab" data-tab="morph">Morph</div>
+        </div>
+        
+        <div class="tab-content active" id="ray-tracing-panel">
+            <div class="panel">
+                <div class="panel-header">Ray Tracing Settings</div>
+                <div class="control-group">
+                    <label for="rt-mode">Performance Mode</label>
+                    <select id="rt-mode">
+                        <option value="quality">Quality</option>
+                        <option value="balanced" selected>Balanced</option>
+                        <option value="performance">Performance</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="rt-bounces">Max Bounces: <span id="rt-bounces-value">3</span></label>
+                    <input type="range" id="rt-bounces" min="1" max="8" value="3">
+                </div>
+                <div class="control-group">
+                    <label for="rt-samples">Max Samples: <span id="rt-samples-value">64</span></label>
+                    <input type="range" id="rt-samples" min="1" max="128" value="64">
+                </div>
+                <div class="control-group">
+                    <label>
+                        <input type="checkbox" id="rt-adaptive" checked> Adaptive Sampling
+                    </label>
+                </div>
+                <div class="control-group">
+                    <label>
+                        <input type="checkbox" id="rt-tiled" checked> Tiled Rendering
+                    </label>
+                </div>
+                <div class="control-group">
+                    <button id="rt-apply">Apply Settings</button>
+                </div>
+                <div class="stats" id="rt-stats">
+                    Render time: 0ms<br>
+                    Ray count: 0<br>
+                    FPS: 0
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="fluid-panel">
+            <div class="panel">
+                <div class="panel-header">Fluid Simulation</div>
+                <div class="control-group">
+                    <label for="fluid-particles">Particle Count: <span id="fluid-particles-value">1000</span></label>
+                    <input type="range" id="fluid-particles" min="100" max="5000" step="100" value="1000">
+                </div>
+                <div class="control-group">
+                    <label for="fluid-viscosity">Viscosity: <span id="fluid-viscosity-value">0.01</span></label>
+                    <input type="range" id="fluid-viscosity" min="0" max="0.1" step="0.001" value="0.01">
+                </div>
+                <div class="control-group">
+                    <label for="fluid-pressure">Pressure: <span id="fluid-pressure-value">3</span></label>
+                    <input type="range" id="fluid-pressure" min="1" max="10" step="0.1" value="3">
+                </div>
+                <div class="control-group">
+                    <label for="fluid-gravity">Gravity: <span id="fluid-gravity-value">-9.8</span></label>
+                    <input type="range" id="fluid-gravity" min="-20" max="0" step="0.1" value="-9.8">
+                </div>
+                <div class="control-group">
+                    <button id="fluid-reset">Reset Simulation</button>
+                    <button id="fluid-splash">Add Splash</button>
+                </div>
+                <div class="stats" id="fluid-stats">
+                    Particles: 0<br>
+                    FPS: 0
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="morph-panel">
+            <div class="panel">
+                <div class="panel-header">Morph Targets</div>
+                <div id="morph-targets-list">
+                    <!-- Dynamically populated -->
+                </div>
+                <div class="control-group">
+                    <label for="morph-sequence">Expression Sequence</label>
+                    <select id="morph-sequence">
+                        <option value="none">None</option>
+                        <option value="smile">Smile</option>
+                        <option value="sad">Sad</option>
+                        <option value="surprise">Surprise</option>
+                        <option value="angry">Angry</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <button id="morph-play">Play Sequence</button>
+                    <button id="morph-stop">Stop</button>
+                    <button id="morph-reset">Reset All</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import Three.js and Three-Core
+        import * as THREE from 'three';
+        import { Engine } from '../dist/three-core.es.js';
+
+        // Initialize engine
+        const container = document.getElementById('canvas-container');
+        const engine = new Engine({
+            container,
+            autoRender: true,
+            autoResize: true,
+            antialias: true,
+            enableManagers: [
+                'scene', 'camera', 'renderer', 'controls', 'lights',
+                'raytracing', 'fluid', 'morph', 'objects', 'materials',
+                'textures', 'monitor', 'performance'
+            ]
+        });
+
+        // Initialize engine
+        await engine.initialize();
+
+        // Setup scene
+        const sceneManager = await engine.getScene();
+        const cameraManager = await engine.getCamera();
+        const controlsManager = await engine.getControls();
+        const lightsManager = await engine.getLights();
+        const objectsManager = await engine.getObjects();
+        const monitorManager = await engine.getMonitor();
+
+        // Setup camera
+        cameraManager.setPosition(0, 2, 5);
+        cameraManager.lookAt(0, 0, 0);
+        
+        // Setup controls
+        await controlsManager.createOrbitControls();
+        
+        // Add lights
+        lightsManager.createAmbientLight('ambient', { intensity: 0.5 });
+        lightsManager.createDirectionalLight('main', { 
+            intensity: 1.0,
+            position: { x: 5, y: 5, z: 5 },
+            castShadow: true
+        });
+        
+        // Add ground plane
+        objectsManager.createPlane('ground', {
+            geometry: new THREE.PlaneGeometry(10, 10),
+            material: new THREE.MeshStandardMaterial({ color: 0x333333 }),
+            position: { x: 0, y: -1, z: 0 },
+            rotation: { x: -Math.PI / 2, y: 0, z: 0 },
+            receiveShadow: true
+        });
+
+        // ===== RAY TRACING SETUP =====
+        const rayTracingManager = await engine.getOrCreateManager('raytracing');
+        
+        // Create ray tracing effect
+        rayTracingManager.createRayTracingEffect('main', {
+            maxBounces: 3,
+            enableSoftShadows: true,
+            enableGlobalIllumination: true,
+            adaptiveSampling: true,
+            minSamples: 1,
+            maxSamples: 64
+        });
+        
+        // Create screen space reflection
+        rayTracingManager.createScreenSpaceReflectionEffect('ssr', {
+            intensity: 0.5,
+            maxSteps: 256,
+            resolution: 512,
+            adaptiveStepSize: true,
+            temporalFilter: true
+        });
+        
+        // Add reflective sphere
+        objectsManager.createSphere('reflective-sphere', {
+            geometry: new THREE.SphereGeometry(0.5, 32, 32),
+            material: new THREE.MeshStandardMaterial({ 
+                color: 0xffffff,
+                metalness: 0.9,
+                roughness: 0.1
+            }),
+            position: { x: -1.5, y: 0, z: 0 },
+            castShadow: true,
+            receiveShadow: true
+        });
+        
+        // UI Controls for Ray Tracing
+        document.getElementById('rt-mode').addEventListener('change', (e) => {
+            rayTracingManager.setPerformanceMode(e.target.value);
+        });
+        
+        document.getElementById('rt-bounces').addEventListener('input', (e) => {
+            document.getElementById('rt-bounces-value').textContent = e.target.value;
+        });
+        
+        document.getElementById('rt-samples').addEventListener('input', (e) => {
+            document.getElementById('rt-samples-value').textContent = e.target.value;
+        });
+        
+        document.getElementById('rt-apply').addEventListener('click', () => {
+            const bounces = parseInt(document.getElementById('rt-bounces').value);
+            const samples = parseInt(document.getElementById('rt-samples').value);
+            const adaptive = document.getElementById('rt-adaptive').checked;
+            const tiled = document.getElementById('rt-tiled').checked;
+            
+            rayTracingManager.updateEffect('main', {
+                maxBounces: bounces,
+                adaptiveSampling: adaptive,
+                maxSamples: samples
+            });
+            
+            rayTracingManager.setTiledRendering({
+                enabled: tiled
+            });
+        });
+        
+        // Performance monitoring
+        rayTracingManager.performanceUpdated.subscribe((stats) => {
+            if (stats) {
+                document.getElementById('rt-stats').innerHTML = `
+                    Render time: ${stats.currentRenderTime.toFixed(2)}ms<br>
+                    Ray count: ${stats.currentRayCount.toLocaleString()}<br>
+                    FPS: ${(1000 / stats.currentRenderTime).toFixed(1)}
+                `;
+            }
+        });
+
+        // ===== FLUID SIMULATION SETUP =====
+        const fluidManager = await engine.getOrCreateManager('fluid');
+        
+        // Create SPH simulation
+        const fluidSim = fluidManager.createSPHSimulation('water', {
+            particleCount: 1000,
+            bounds: {
+                min: new THREE.Vector3(-1, -1, -1),
+                max: new THREE.Vector3(1, 1, 1)
+            },
+            kernelRadius: 0.1,
+            viscosityCoefficient: 0.01,
+            pressureStiffness: 3,
+            particleSize: 0.05,
+            particleColor: 0x00aaff
+        });
+        
+        // Animation loop for fluid simulation
+        function animateFluid() {
+            if (document.getElementById('fluid-panel').style.display !== 'none') {
+                fluidManager.simulateSPHStep('water');
+            }
+            requestAnimationFrame(animateFluid);
+        }
+        animateFluid();
+        
+        // UI Controls for Fluid
+        document.getElementById('fluid-viscosity').addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            document.getElementById('fluid-viscosity-value').textContent = value.toFixed(3);
+            fluidManager.updateSPHConfig('water', { viscosityCoefficient: value });
+        });
+        
+        document.getElementById('fluid-pressure').addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            document.getElementById('fluid-pressure-value').textContent = value.toFixed(1);
+            fluidManager.updateSPHConfig('water', { pressureStiffness: value });
+        });
+        
+        document.getElementById('fluid-gravity').addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            document.getElementById('fluid-gravity-value').textContent = value.toFixed(1);
+            fluidManager.updateSPHConfig('water', { 
+                gravity: { x: 0, y: value, z: 0 }
+            });
+        });
+        
+        document.getElementById('fluid-reset').addEventListener('click', () => {
+            // Remove existing simulation
+            fluidManager.removeSPHSimulation('water');
+            
+            // Create new one
+            const particleCount = parseInt(document.getElementById('fluid-particles').value);
+            document.getElementById('fluid-particles-value').textContent = particleCount;
+            
+            fluidManager.createSPHSimulation('water', {
+                particleCount: particleCount,
+                bounds: {
+                    min: new THREE.Vector3(-1, -1, -1),
+                    max: new THREE.Vector3(1, 1, 1)
+                },
+                kernelRadius: 0.1,
+                viscosityCoefficient: parseFloat(document.getElementById('fluid-viscosity').value),
+                pressureStiffness: parseFloat(document.getElementById('fluid-pressure').value),
+                gravity: { 
+                    x: 0, 
+                    y: parseFloat(document.getElementById('fluid-gravity').value), 
+                    z: 0 
+                },
+                particleSize: 0.05,
+                particleColor: 0x00aaff
+            });
+        });
+        
+        // ===== MORPH TARGETS SETUP =====
+        const morphManager = await engine.getOrCreateManager('morph');
+        
+        // Load a model with morph targets (example)
+        const objectsManager = await engine.getObjects();
+        const loaderManager = await engine.getLoader();
+        
+        // Load face model with morph targets (placeholder)
+        loaderManager.loadGLTF('models/face.glb').then(model => {
+            // Add model to scene
+            objectsManager.createObject('face', model.scene);
+            
+            // Find mesh with morph targets
+            model.scene.traverse(node => {
+                if (node.isMesh && node.morphTargetInfluences && node.morphTargetInfluences.length > 0) {
+                    // Register mesh with morph manager
+                    morphManager.registerMesh('face', node);
+                    
+                    // Create UI controls for morph targets
+                    const targetsList = document.getElementById('morph-targets-list');
+                    targetsList.innerHTML = '';
+                    
+                    // Get all morph targets
+                    const targets = morphManager.getAllMorphTargets();
+                    
+                    targets.forEach(target => {
+                        const div = document.createElement('div');
+                        div.className = 'control-group';
+                        
+                        const label = document.createElement('label');
+                        label.textContent = `${target.name}: ${target.weight.toFixed(2)}`;
+                        label.setAttribute('for', `morph-${target.name}`);
+                        
+                        const slider = document.createElement('input');
+                        slider.type = 'range';
+                        slider.id = `morph-${target.name}`;
+                        slider.min = target.minWeight;
+                        slider.max = target.maxWeight;
+                        slider.step = 0.01;
+                        slider.value = target.weight;
+                        
+                        slider.addEventListener('input', (e) => {
+                            const value = parseFloat(e.target.value);
+                            morphManager.setMorphWeight(target.id, value);
+                            label.textContent = `${target.name}: ${value.toFixed(2)}`;
+                        });
+                        
+                        div.appendChild(label);
+                        div.appendChild(slider);
+                        targetsList.appendChild(div);
+                    });
+                    
+                    // Create expression sequences
+                    morphManager.createMorphSequence('smile', {
+                        targets: ['face_smileLeft', 'face_smileRight'],
+                        keyframes: [
+                            { time: 0, weights: { 'face_smileLeft': 0, 'face_smileRight': 0 } },
+                            { time: 0.5, weights: { 'face_smileLeft': 1, 'face_smileRight': 1 } },
+                            { time: 1, weights: { 'face_smileLeft': 0.8, 'face_smileRight': 0.8 } }
+                        ],
+                        duration: 1.0,
+                        loop: false
+                    });
+                    
+                    morphManager.createMorphSequence('surprise', {
+                        targets: ['face_eyeWideLeft', 'face_eyeWideRight', 'face_jawOpen'],
+                        keyframes: [
+                            { time: 0, weights: { 'face_eyeWideLeft': 0, 'face_eyeWideRight': 0, 'face_jawOpen': 0 } },
+                            { time: 0.3, weights: { 'face_eyeWideLeft': 1, 'face_eyeWideRight': 1, 'face_jawOpen': 0.5 } },
+                            { time: 1, weights: { 'face_eyeWideLeft': 0.8, 'face_eyeWideRight': 0.8, 'face_jawOpen': 0.3 } }
+                        ],
+                        duration: 0.8,
+                        loop: false
+                    });
+                }
+            });
+        });
+        
+        // UI Controls for Morph
+        document.getElementById('morph-play').addEventListener('click', () => {
+            const sequence = document.getElementById('morph-sequence').value;
+            if (sequence !== 'none') {
+                morphManager.playSequence(sequence);
+            }
+        });
+        
+        document.getElementById('morph-stop').addEventListener('click', () => {
+            const sequence = document.getElementById('morph-sequence').value;
+            if (sequence !== 'none') {
+                morphManager.stopSequence(sequence);
+            }
+        });
+        
+        document.getElementById('morph-reset').addEventListener('click', () => {
+            morphManager.resetAllMorphTargets();
+            
+            // Update UI sliders
+            const targets = morphManager.getAllMorphTargets();
+            targets.forEach(target => {
+                const slider = document.getElementById(`morph-${target.name}`);
+                if (slider) {
+                    slider.value = target.defaultWeight;
+                    const label = slider.previousElementSibling;
+                    if (label) {
+                        label.textContent = `${target.name}: ${target.defaultWeight.toFixed(2)}`;
+                    }
+                }
+            });
+        });
+
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Deactivate all tabs
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                // Activate selected tab
+                tab.classList.add('active');
+                const tabId = tab.getAttribute('data-tab');
+                document.getElementById(`${tabId}-panel`).classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html> 

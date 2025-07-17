@@ -1,5 +1,9 @@
 import * as THREE from 'three';
-import type { Manager } from '@react-face/shared-types';
+// Local Manager interface
+export interface Manager {
+  initialize(): Promise<void>;
+  dispose(): void;
+}
 import { createSignal } from './Signal';
 
 export interface LODLevel {
@@ -36,6 +40,9 @@ export interface LODStats {
 }
 
 export class LODManager implements Manager {
+  // Add test expected properties
+  public readonly name = 'LODManager'.toLowerCase().replace('Manager', '');
+  public initialized = false;
   private engine: any;
   private config: LODConfig;
   private lodObjects: Map<string, LODObject> = new Map();
@@ -66,7 +73,7 @@ export class LODManager implements Manager {
     
     if (this.config.enabled && this.config.autoUpdate) {
       this.startAutoUpdate();
-    }
+    this.initialized = true;}
   }
 
   dispose(): void {
@@ -74,7 +81,7 @@ export class LODManager implements Manager {
     this.removeAllLODObjects();
     this.lodObjects.clear();
     // Signal不需要手动dispose，会自动清理
-  }
+  this.initialized = false;}
 
   // 创建LOD对象
   createLODObject(
@@ -279,12 +286,27 @@ export class LODManager implements Manager {
     for (const level of lodObject.levels) {
       if (level.mesh) {
         level.mesh.geometry.dispose();
-        level.mesh.material.dispose();
-        level.mesh.dispose();
+        if (level.mesh.material) {
+          // Handle both single material and material array
+          if (Array.isArray(level.mesh.material)) {
+            level.mesh.material.forEach(mat => {
+              if (typeof mat.dispose === 'function') {
+                mat.dispose();
+              }
+            });
+          } else if (typeof level.mesh.material.dispose === 'function') {
+            level.mesh.material.dispose();
+          }
+        }
+        if (typeof level.mesh.dispose === 'function') {
+          level.mesh.dispose();
+        }
       }
     }
 
-    lodObject.group.dispose();
+    if (lodObject.group && typeof lodObject.group.dispose === 'function') {
+      lodObject.group.dispose();
+    }
     this.lodObjects.delete(id);
     this.lodObjectRemoved.emit(id);
 

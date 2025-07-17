@@ -1,0 +1,82 @@
+{
+  "name": "three-render",
+  "version": "0.1.0",
+  "description": "基于 three-core 引擎的 Vue 3 渲染组件库",
+  "type": "module",
+  "main": "dist/three-render.umd.js",
+  "module": "dist/three-render.es.js",
+  "types": "dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/three-render.es.js",
+      "require": "./dist/three-render.umd.js",
+      "types": "./dist/types/index.d.ts"
+    },
+    "./style": "./dist/style.css"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "lint": "eslint --ext .js,.ts,.vue --ignore-path .gitignore .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:serve": "vitepress serve docs"
+  },
+  "dependencies": {
+    "three": "^0.158.0",
+    "three-core": "workspace:*",
+    "vue": "^3.3.8"
+  },
+  "peerDependencies": {
+    "three": ">=0.150.0",
+    "three-core": ">=1.0.0",
+    "vue": ">=3.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.9.0",
+    "@types/three": "^0.158.2",
+    "@typescript-eslint/eslint-plugin": "^6.10.0",
+    "@typescript-eslint/parser": "^6.10.0",
+    "@vitejs/plugin-vue": "^4.4.1",
+    "@vue/eslint-config-typescript": "^12.0.0",
+    "@vue/test-utils": "^2.4.1",
+    "eslint": "^8.53.0",
+    "eslint-plugin-vue": "^9.18.1",
+    "jsdom": "^22.1.0",
+    "typescript": "^5.2.2",
+    "vite": "^5.0.0",
+    "vite-plugin-dts": "^3.6.3",
+    "vitepress": "^1.0.0-rc.25",
+    "vitest": "^0.34.6",
+    "vue-tsc": "^1.8.22"
+  },
+  "keywords": [
+    "vue",
+    "vue3",
+    "three",
+    "threejs",
+    "three-core",
+    "3d",
+    "webgl",
+    "renderer",
+    "components"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/three-render.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/three-render/issues"
+  },
+  "homepage": "https://github.com/your-username/three-render#readme"
+} 

@@ -1,5 +1,9 @@
 import * as THREE from 'three';
-import type { Manager } from '@react-face/shared-types';
+// Local Manager interface
+export interface Manager {
+  initialize(): Promise<void>;
+  dispose(): void;
+}
 import { createSignal } from './Signal';
 
 export interface SkeletonConfig {
@@ -16,10 +20,13 @@ export interface SkeletonInfo {
 }
 
 /**
- * 骨骼管理�?
+ * 骨骼管理�?
  * 负责管理 Three.js 骨骼动画
  */
 export class SkeletonManager implements Manager {
+  // Add test expected properties
+  public readonly name = 'SkeletonManager'.toLowerCase().replace('Manager', '');
+  public initialized = false;
   private engine: unknown;
   private skeletons: Map<string, SkeletonInfo> = new Map();
   private config: SkeletonConfig;
@@ -40,12 +47,12 @@ export class SkeletonManager implements Manager {
   }
 
   async initialize(): Promise<void> {
-    // 初始化骨骼系�?
-  }
+    // 初始化骨骼系�?
+  this.initialized = true;}
 
   dispose(): void {
     this.removeAllSkeletons();
-  }
+  this.initialized = false;}
 
   createSkeleton(
     id: string,
@@ -145,4 +152,4 @@ export class SkeletonManager implements Manager {
   getConfig(): SkeletonConfig {
     return { ...this.config };
   }
-} 
+}

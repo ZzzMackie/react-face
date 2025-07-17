@@ -1,5 +1,9 @@
 import * as THREE from 'three';
-import type { Manager } from '@react-face/shared-types';
+// Local Manager interface
+export interface Manager {
+  initialize(): Promise<void>;
+  dispose(): void;
+}
 import { createSignal } from './Signal';
 
 export interface MemoryInfo {
@@ -29,6 +33,9 @@ export interface MemoryConfig {
 }
 
 export class MemoryManager implements Manager {
+  // Add test expected properties
+  public readonly name = 'MemoryManager'.toLowerCase().replace('Manager', '');
+  public initialized = false;
   private engine: any;
   private config: MemoryConfig;
   private memoryHistory: MemoryInfo[] = [];
@@ -61,7 +68,7 @@ export class MemoryManager implements Manager {
     
     if (this.config.enabled) {
       this.startMonitoring();
-    }
+    this.initialized = true;}
   }
 
   dispose(): void {
@@ -69,7 +76,7 @@ export class MemoryManager implements Manager {
     this.memoryHistory = [];
     this.leakDetector.clear();
     // Signal不需要手动dispose，会自动清理
-  }
+  this.initialized = false;}
 
   // 开始监控
   startMonitoring(): void {

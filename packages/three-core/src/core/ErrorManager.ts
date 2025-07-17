@@ -1,4 +1,8 @@
-import type { Manager } from '@react-face/shared-types';
+// Local Manager interface
+export interface Manager {
+  initialize(): Promise<void>;
+  dispose(): void;
+}
 import { createSignal } from './Signal';
 
 export interface ErrorConfig {
@@ -18,10 +22,13 @@ export interface ErrorInfo {
 }
 
 /**
- * 错误管理�?
- * 负责管理 Three.js 错误和异�?
+ * 错误管理�?
+ * 负责管理 Three.js 错误和异�?
  */
 export class ErrorManager implements Manager {
+  // Add test expected properties
+  public readonly name = 'ErrorManager'.toLowerCase().replace('Manager', '');
+  public initialized = false;
   private engine: unknown;
   private errors: Map<string, ErrorInfo> = new Map();
   private config: ErrorConfig;
@@ -46,12 +53,12 @@ export class ErrorManager implements Manager {
   async initialize(): Promise<void> {
     if (this.config.enableErrorHandling) {
       this.setupGlobalErrorHandling();
-    }
+    this.initialized = true;}
   }
 
   dispose(): void {
     this.clearAllErrors();
-  }
+  this.initialized = false;}
 
   private setupGlobalErrorHandling(): void {
     // 捕获全局错误
@@ -92,7 +99,7 @@ export class ErrorManager implements Manager {
 
     this.errorCaptured.emit(errorInfo);
 
-    // 自动清理旧错�?
+    // 自动清理旧错�?
     if (this.config.errorTimeout) {
       setTimeout(() => {
         this.clearError(id);
@@ -190,4 +197,4 @@ export class ErrorManager implements Manager {
   getConfig(): ErrorConfig {
     return { ...this.config };
   }
-} 
+}

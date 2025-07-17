@@ -40,7 +40,7 @@ export interface EngineManagerConfig {
 /**
  * 管理器类型
  */
-export type ManagerType = 'scene' | 'camera' | 'renderer' | 'controls' | 'lights' | 'materials' | 'geometries' | 'textures' | 'animations' | 'physics' | 'audio' | 'particles' | 'shaders' | 'environment' | 'events' | 'helpers' | 'ui' | 'performance' | 'export' | 'loader' | 'objects' | 'database' | 'rayTracing' | 'deferred' | 'fluid' | 'morph' | 'procedural' | 'optimization' | 'error' | 'composer' | 'viewHelper' | 'volumetric' | 'skeleton';
+export type ManagerType = 'scene' | 'camera' | 'renderer' | 'controls' | 'lights' | 'materials' | 'geometries' | 'textures' | 'animations' | 'physics' | 'audio' | 'particles' | 'shaders' | 'environment' | 'events' | 'helpers' | 'ui' | 'performance' | 'export' | 'loader' | 'objects' | 'monitor' | 'memory' | 'recovery' | 'instance' | 'lod' | 'database' | 'rayTracing' | 'deferred' | 'fluid' | 'morph' | 'procedural' | 'optimization' | 'error' | 'composer' | 'viewHelper' | 'volumetric' | 'volumetricFog' | 'screenSpaceReflection' | 'globalIllumination' | 'skeleton';
 /**
  * 管理器实例
  */

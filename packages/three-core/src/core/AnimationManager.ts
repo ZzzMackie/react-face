@@ -1,5 +1,9 @@
 import * as THREE from 'three';
-import type { Manager } from '@react-face/shared-types';
+// Local Manager interface
+export interface Manager {
+  initialize(): Promise<void>;
+  dispose(): void;
+}
 import { createSignal } from './Signal';
 
 export interface AnimationConfig {
@@ -16,10 +20,13 @@ export interface AnimationClip {
 }
 
 /**
- * 动画管理�?
+ * 动画管理�?
  * 负责管理 Three.js 动画
  */
 export class AnimationManager implements Manager {
+  // Add test expected properties
+  public readonly name = 'AnimationManager'.toLowerCase().replace('Manager', '');
+  public initialized = false;
   private engine: unknown;
   private animations: Map<string, AnimationClip> = new Map();
   private mixers: THREE.AnimationMixer[] = [];
@@ -46,13 +53,13 @@ export class AnimationManager implements Manager {
 
   async initialize(): Promise<void> {
     this.clock.start();
-  }
+  this.initialized = true;}
 
   dispose(): void {
     this.stopAllAnimations();
     this.animations.clear();
     this.mixers = [];
-  }
+  this.initialized = false;}
 
   addAnimation(
     id: string,

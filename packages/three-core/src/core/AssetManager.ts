@@ -1,5 +1,9 @@
 import * as THREE from 'three';
-import type { Manager } from '@react-face/shared-types';
+// Local Manager interface
+export interface Manager {
+  initialize(): Promise<void>;
+  dispose(): void;
+}
 import { createSignal } from './Signal';
 
 export interface AssetConfig {
@@ -18,10 +22,13 @@ export interface AssetInfo {
 }
 
 /**
- * 资源管理�?
+ * 资源管理�?
  * 负责管理 Three.js 资源加载
  */
 export class AssetManager implements Manager {
+  // Add test expected properties
+  public readonly name = 'AssetManager'.toLowerCase().replace('Manager', '');
+  public initialized = false;
   private engine: unknown;
   private assets: Map<string, AssetInfo> = new Map();
   private loaders: Map<string, unknown> = new Map();
@@ -44,13 +51,13 @@ export class AssetManager implements Manager {
 
   async initialize(): Promise<void> {
     this.setupLoaders();
-  }
+  this.initialized = true;}
 
   dispose(): void {
     this.clearCache();
     this.assets.clear();
     this.loaders.clear();
-  }
+  this.initialized = false;}
 
   private setupLoaders(): void {
     const textureLoader = new THREE.TextureLoader();

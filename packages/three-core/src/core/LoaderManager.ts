@@ -3,7 +3,11 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
-import type { Manager } from '@react-face/shared-types';
+// Local Manager interface
+export interface Manager {
+  initialize(): Promise<void>;
+  dispose(): void;
+}
 import { createSignal } from './Signal';
 
 export interface LoaderConfig {
@@ -33,6 +37,9 @@ export interface LoadOptions {
 }
 
 export class LoaderManager implements Manager {
+  // Add test expected properties
+  public readonly name = 'LoaderManager'.toLowerCase().replace('Manager', '');
+  public initialized = false;
   private engine: any;
   private gltfLoader: GLTFLoader;
   private fbxLoader: FBXLoader;
@@ -63,13 +70,13 @@ export class LoaderManager implements Manager {
     // 设置Draco解码器路径
     this.dracoLoader.setDecoderPath('/draco/');
     this.gltfLoader.setDRACOLoader(this.dracoLoader);
-  }
+  this.initialized = true;}
 
   dispose(): void {
     this.loadedAssets.clear();
     this.loadingAssets.clear();
     // Signal不需要手动dispose，会自动清理
-  }
+  this.initialized = false;}
 
   // 加载GLTF/GLB文件
   async loadGLTF(url: string, options?: LoadOptions): Promise<LoadResult> {
@@ -310,4 +317,4 @@ export class LoaderManager implements Manager {
       total: this.loadedAssets.size + this.loadingAssets.size
     };
   }
-} 
+}

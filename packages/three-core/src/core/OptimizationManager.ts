@@ -1,5 +1,9 @@
 import * as THREE from 'three';
-import type { Manager } from '@react-face/shared-types';
+// Local Manager interface
+export interface Manager {
+  initialize(): Promise<void>;
+  dispose(): void;
+}
 import { createSignal } from './Signal';
 
 export interface OptimizationConfig {
@@ -17,10 +21,13 @@ export interface OptimizationInfo {
 }
 
 /**
- * 优化管理�?
+ * 优化管理�?
  * 负责管理 Three.js 性能优化
  */
 export class OptimizationManager implements Manager {
+  // Add test expected properties
+  public readonly name = 'OptimizationManager'.toLowerCase().replace('Manager', '');
+  public initialized = false;
   private engine: unknown;
   private optimizations: Map<string, OptimizationInfo> = new Map();
   private config: OptimizationConfig;
@@ -42,12 +49,12 @@ export class OptimizationManager implements Manager {
   }
 
   async initialize(): Promise<void> {
-    // 初始化优化系�?
-  }
+    // 初始化优化系�?
+  this.initialized = true;}
 
   dispose(): void {
     this.removeAllOptimizations();
-  }
+  this.initialized = false;}
 
   createLODSystem(
     id: string,

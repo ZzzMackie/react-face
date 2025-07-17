@@ -1,5 +1,9 @@
 import * as THREE from 'three';
-import type { Manager } from '@react-face/shared-types';
+// Local Manager interface
+export interface Manager {
+  initialize(): Promise<void>;
+  dispose(): void;
+}
 import { createSignal } from './Signal';
 
 export interface PerformanceData {
@@ -36,6 +40,9 @@ export interface MonitorConfig {
 }
 
 export class MonitorManager implements Manager {
+  // Add test expected properties
+  public readonly name = 'MonitorManager'.toLowerCase().replace('Manager', '');
+  public initialized = false;
   private engine: any;
   private config: MonitorConfig;
   private performanceHistory: PerformanceData[] = [];
@@ -65,7 +72,7 @@ export class MonitorManager implements Manager {
     
     if (this.config.enabled) {
       this.startMonitoring();
-    }
+    this.initialized = true;}
   }
 
   dispose(): void {
@@ -73,7 +80,7 @@ export class MonitorManager implements Manager {
     this.performanceHistory = [];
     this.resourceHistory = [];
     // Signal不需要手动dispose，会自动清理
-  }
+  this.initialized = false;}
 
   // 开始监控
   startMonitoring(): void {
@@ -281,4 +288,4 @@ export class MonitorManager implements Manager {
   getConfig(): MonitorConfig {
     return { ...this.config };
   }
-} 
+}

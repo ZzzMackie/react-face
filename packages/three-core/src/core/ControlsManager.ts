@@ -1,7 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls';
-import type { Manager } from '@react-face/shared-types';
+// Local Manager interface
+export interface Manager {
+  initialize(): Promise<void>;
+  dispose(): void;
+}
 import { createSignal } from './Signal';
 
 export interface ControlsConfig {
@@ -20,9 +24,12 @@ export interface ControlInfo {
 
 /**
  * 控制器管理器
- * 负责管理 Three.js 控制�?
+ * 负责管理 Three.js 控制�?
  */
 export class ControlsManager implements Manager {
+  // Add test expected properties
+  public readonly name = 'ControlsManager'.toLowerCase().replace('Manager', '');
+  public initialized = false;
   private engine: unknown;
   private controls: Map<string, ControlInfo> = new Map();
   private camera: THREE.Camera | null = null;
@@ -48,11 +55,11 @@ export class ControlsManager implements Manager {
 
   async initialize(): Promise<void> {
     // 初始化控制器系统
-  }
+  this.initialized = true;}
 
   dispose(): void {
     this.removeAllControls();
-  }
+  this.initialized = false;}
 
   setCamera(camera: THREE.Camera): void {
     this.camera = camera;
@@ -76,11 +83,13 @@ export class ControlsManager implements Manager {
       maxPolarAngle?: number;
     }
   ): OrbitControls {
-    if (!this.camera || !this.renderer) {
+    if ((!this.camera || !this.renderer) && !this.engine) {
       throw new Error('Camera and renderer must be set before creating controls');
-    }
+    } 
+    const camera = this.camera ?? (this.engine as any).camera;
+    const renderer = this.renderer ?? (this.engine as any).renderer;
 
-    const controls = new OrbitControls(this.camera, this.renderer.domElement);
+    const controls = new OrbitControls(camera, renderer.domElement);
     
     controls.enableDamping = options?.enableDamping ?? this.config.enableDamping!;
     controls.dampingFactor = options?.dampingFactor ?? this.config.dampingFactor!;
@@ -95,7 +104,7 @@ export class ControlsManager implements Manager {
 
     const controlInfo: ControlInfo = {
       id,
-      control,
+      control: controls,
       type: 'orbit',
       enabled: true
     };
@@ -130,7 +139,7 @@ export class ControlsManager implements Manager {
 
     const controlInfo: ControlInfo = {
       id,
-      control,
+      control: controls,
       type: 'transform',
       enabled: true
     };
@@ -223,4 +232,4 @@ export class ControlsManager implements Manager {
     });
     this.controls.clear();
   }
-} 
+}

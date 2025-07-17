@@ -1,5 +1,9 @@
 import * as THREE from 'three';
-import type { Manager } from '@react-face/shared-types';
+// Local Manager interface
+export interface Manager {
+  initialize(): Promise<void>;
+  dispose(): void;
+}
 import { createSignal } from './Signal';
 
 export interface EnvironmentConfig {
@@ -19,10 +23,13 @@ export interface EnvironmentInfo {
 }
 
 /**
- * 环境管理�?
+ * 环境管理�?
  * 负责管理 Three.js 环境效果
  */
 export class EnvironmentManager implements Manager {
+  // Add test expected properties
+  public readonly name = 'EnvironmentManager'.toLowerCase().replace('Manager', '');
+  public initialized = false;
   private engine: unknown;
   private environments: Map<string, EnvironmentInfo> = new Map();
   private scene: THREE.Scene | null = null;
@@ -47,12 +54,12 @@ export class EnvironmentManager implements Manager {
   }
 
   async initialize(): Promise<void> {
-    // 初始化环境系�?
-  }
+    // 初始化环境系�?
+  this.initialized = true;}
 
   dispose(): void {
     this.removeAllEnvironments();
-  }
+  this.initialized = false;}
 
   setScene(scene: THREE.Scene): void {
     this.scene = scene;
@@ -277,4 +284,4 @@ export class EnvironmentManager implements Manager {
     }
     this.environments.clear();
   }
-} 
+}

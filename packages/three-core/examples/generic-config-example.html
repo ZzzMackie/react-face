@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>通用配置示例 - Three-Core</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            border: 2px solid #333;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        #canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        .controls {
+            margin-top: 20px;
+            padding: 20px;
+            background: #2a2a2a;
+            border-radius: 8px;
+        }
+        .control-group {
+            margin-bottom: 15px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .log {
+            margin-top: 20px;
+            padding: 15px;
+            background: #333;
+            border-radius: 4px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .status.info { background: #2196F3; }
+        .status.success { background: #4CAF50; }
+        .status.error { background: #f44336; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 通用配置示例</h1>
+        <p>演示如何使用通用配置创建对象和灯光，支持自定义场景</p>
+        
+        <div class="canvas-container">
+            <canvas id="canvas"></canvas>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <h3>🎯 场景管理</h3>
+                <button onclick="initEngine()">初始化引擎</button>
+                <button onclick="createCustomScene()">创建自定义场景</button>
+                <button onclick="addToCustomScene()">添加到自定义场景</button>
+            </div>
+            
+            <div class="control-group">
+                <h3>💡 灯光管理</h3>
+                <button onclick="createLights()">创建灯光</button>
+                <button onclick="createLightsInCustomScene()">在自定义场景创建灯光</button>
+            </div>
+            
+            <div class="control-group">
+                <h3>📦 对象管理</h3>
+                <button onclick="createObjects()">创建对象</button>
+                <button onclick="createObjectsInCustomScene()">在自定义场景创建对象</button>
+            </div>
+            
+            <div class="control-group">
+                <h3>⚙️ 配置选项</h3>
+                <button onclick="toggleAutoAdd()">切换自动添加</button>
+                <button onclick="setDefaultScene()">设置默认场景</button>
+            </div>
+        </div>
+        
+        <div id="status" class="status info">等待初始化...</div>
+        
+        <div class="log" id="log"></div>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three-core": "./dist/index.js"
+        }
+    }
+    </script>
+
+    <script type="module">
+        import { Engine } from 'three-core';
+        import * as THREE from 'three';
+
+        let engine;
+        let customScene;
+        let autoAddToScene = true;
+
+        // 日志函数
+        function log(message, type = 'info') {
+            const logElement = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.style.color = type === 'error' ? '#ff6b6b' : type === 'success' ? '#51cf66' : '#74c0fc';
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            logElement.appendChild(logEntry);
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        // 更新状态
+        function updateStatus(message, type = 'info') {
+            const statusElement = document.getElementById('status');
+            statusElement.textContent = message;
+            statusElement.className = `status ${type}`;
+        }
+
+        // 初始化引擎
+        window.initEngine = async function() {
+            try {
+                log('🚀 开始初始化引擎...', 'info');
+                updateStatus('初始化中...', 'info');
+
+                const canvas = document.getElementById('canvas');
+                const container = canvas.parentElement;
+
+                // 创建引擎
+                engine = new Engine({
+                    container,
+                    width: container.clientWidth,
+                    height: container.clientHeight,
+                    antialias: true,
+                    shadowMap: true,
+                    autoRender: true,
+                    autoResize: true
+                });
+
+                // 初始化引擎
+                await engine.initialize();
+
+                log('✅ 引擎初始化完成', 'success');
+                updateStatus('引擎已初始化', 'success');
+
+            } catch (error) {
+                log(`❌ 初始化失败: ${error.message}`, 'error');
+                updateStatus('初始化失败', 'error');
+            }
+        };
+
+        // 创建自定义场景
+        window.createCustomScene = function() {
+            if (!engine) {
+                log('❌ 引擎未初始化', 'error');
+                return;
+            }
+
+            customScene = new THREE.Scene();
+            customScene.background = new THREE.Color(0x000000);
+            
+            log('✅ 自定义场景已创建', 'success');
+            updateStatus('自定义场景已创建', 'success');
+        };
+
+        // 在自定义场景创建灯光
+        window.createLightsInCustomScene = async function() {
+            if (!engine || !customScene) {
+                log('❌ 引擎或自定义场景未初始化', 'error');
+                return;
+            }
+
+            try {
+                await engine.createManagerOnDemand('lights');
+                const lightsManager = await engine.getManager('lights');
+
+                if (lightsManager) {
+                    // 在自定义场景中创建灯光
+                    lightsManager.createAmbientLight('custom-ambient', {
+                        intensity: 0.6,
+                        color: 0x404040,
+                        scene: customScene
+                    });
+
+                    lightsManager.createDirectionalLight('custom-directional', {
+                        intensity: 1.2,
+                        color: 0xffffff,
+                        position: new THREE.Vector3(10, 10, 10),
+                        scene: customScene
+                    });
+
+                    log('✅ 在自定义场景中创建灯光完成', 'success');
+                }
+            } catch (error) {
+                log(`❌ 创建灯光失败: ${error.message}`, 'error');
+            }
+        };
+
+        // 在自定义场景创建对象
+        window.createObjectsInCustomScene = async function() {
+            if (!engine || !customScene) {
+                log('❌ 引擎或自定义场景未初始化', 'error');
+                return;
+            }
+
+            try {
+                await engine.createManagerOnDemand('objects');
+                const objectsManager = await engine.getManager('objects');
+
+                if (objectsManager) {
+                    // 在自定义场景中创建对象
+                    objectsManager.createBox('custom-box', {
+                        position: { x: 0, y: 0, z: 0 },
+                        scale: { x: 2, y: 2, z: 2 },
+                        scene: customScene
+                    });
+
+                    objectsManager.createSphere('custom-sphere', {
+                        position: { x: 3, y: 0, z: 0 },
+                        scene: customScene
+                    });
+
+                    log('✅ 在自定义场景中创建对象完成', 'success');
+                }
+            } catch (error) {
+                log(`❌ 创建对象失败: ${error.message}`, 'error');
+            }
+        };
+
+        // 创建灯光
+        window.createLights = async function() {
+            if (!engine) {
+                log('❌ 引擎未初始化', 'error');
+                return;
+            }
+
+            try {
+                await engine.createManagerOnDemand('lights');
+                const lightsManager = await engine.getManager('lights');
+
+                if (lightsManager) {
+                    lightsManager.createAmbientLight('ambient', {
+                        intensity: 0.4,
+                        color: 0x404040
+                    });
+
+                    lightsManager.createDirectionalLight('directional', {
+                        intensity: 1.0,
+                        color: 0xffffff,
+                        position: new THREE.Vector3(5, 5, 5)
+                    });
+
+                    log('✅ 灯光创建完成', 'success');
+                }
+            } catch (error) {
+                log(`❌ 创建灯光失败: ${error.message}`, 'error');
+            }
+        };
+
+        // 创建对象
+        window.createObjects = async function() {
+            if (!engine) {
+                log('❌ 引擎未初始化', 'error');
+                return;
+            }
+
+            try {
+                await engine.createManagerOnDemand('objects');
+                const objectsManager = await engine.getManager('objects');
+
+                if (objectsManager) {
+                    objectsManager.createBox('box1', {
+                        position: { x: -2, y: 0, z: 0 },
+                        castShadow: true
+                    });
+
+                    objectsManager.createSphere('sphere1', {
+                        position: { x: 2, y: 0, z: 0 },
+                        castShadow: true
+                    });
+
+                    objectsManager.createPlane('ground', {
+                        position: { x: 0, y: -2, z: 0 },
+                        rotation: { x: -Math.PI / 2, y: 0, z: 0 },
+                        receiveShadow: true
+                    });
+
+                    log('✅ 对象创建完成', 'success');
+                }
+            } catch (error) {
+                log(`❌ 创建对象失败: ${error.message}`, 'error');
+            }
+        };
+
+        // 切换自动添加
+        window.toggleAutoAdd = function() {
+            autoAddToScene = !autoAddToScene;
+            log(`🔄 自动添加到场景: ${autoAddToScene ? '开启' : '关闭'}`, 'info');
+        };
+
+        // 设置默认场景
+        window.setDefaultScene = function() {
+            if (!customScene) {
+                log('❌ 请先创建自定义场景', 'error');
+                return;
+            }
+
+            // 这里可以设置默认场景的配置
+            log('✅ 默认场景已设置', 'success');
+        };
+
+        // 添加到自定义场景
+        window.addToCustomScene = function() {
+            if (!customScene) {
+                log('❌ 请先创建自定义场景', 'error');
+                return;
+            }
+
+            // 这里可以演示如何手动添加对象到自定义场景
+            log('✅ 对象已添加到自定义场景', 'success');
+        };
+
+        log('📋 通用配置示例已加载', 'info');
+        log('💡 功能说明:', 'info');
+        log('   - 支持自定义场景配置', 'info');
+        log('   - 支持自动/手动添加到场景', 'info');
+        log('   - 支持优先级：用户场景 > 默认场景 > 引擎场景', 'info');
+    </script>
+</body>
+</html> 

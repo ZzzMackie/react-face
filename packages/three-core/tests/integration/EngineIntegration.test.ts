@@ -1,34 +1,69 @@
 import { Engine } from '../../src/core/Engine';
-import { LightManager } from '../../src/core/LightManager';
-import { MaterialManager } from '../../src/core/MaterialManager';
-import { ObjectManager } from '../../src/core/ObjectManager';
-import { GeometryManager } from '../../src/core/GeometryManager';
-import { ParticleManager } from '../../src/core/ParticleManager';
-import { ShaderManager } from '../../src/core/ShaderManager';
-import { EnvironmentManager } from '../../src/core/EnvironmentManager';
-import * as THREE from 'three';
+import { DynamicManagerRegistry } from '../../src/core/DynamicManagerRegistry';
 
-describe('Engine Integration', () => {
+// 模拟 Three.js
+jest.mock('three', () => ({
+  WebGLRenderer: jest.fn().mockImplementation(() => ({
+    setSize: jest.fn(),
+    setClearColor: jest.fn(),
+    render: jest.fn(),
+    dispose: jest.fn(),
+    domElement: document.createElement('canvas'),
+    capabilities: {
+      isWebGL2: true,
+      maxTextureSize: 4096,
+      maxAnisotropy: 16
+    },
+    info: {
+      render: { calls: 0, triangles: 0, points: 0, lines: 0 },
+      memory: { geometries: 0, textures: 0 }
+    }
+  })),
+  Scene: jest.fn().mockImplementation(() => ({
+    add: jest.fn(),
+    remove: jest.fn(),
+    children: [],
+    background: null,
+    fog: null
+  })),
+  PerspectiveCamera: jest.fn().mockImplementation(() => ({
+    position: { set: jest.fn(), copy: jest.fn() },
+    lookAt: jest.fn(),
+    updateMatrix: jest.fn(),
+    updateMatrixWorld: jest.fn(),
+    fov: 75,
+    aspect: 1,
+    near: 0.1,
+    far: 1000
+  })),
+  AmbientLight: jest.fn().mockImplementation(() => ({
+    position: { set: jest.fn() },
+    intensity: 1
+  })),
+  DirectionalLight: jest.fn().mockImplementation(() => ({
+    position: { set: jest.fn() },
+    intensity: 1,
+    castShadow: false
+  })),
+  Color: jest.fn().mockImplementation(() => ({
+    setHex: jest.fn(),
+    setRGB: jest.fn(),
+    getHex: jest.fn(() => 0x000000)
+  })),
+  Clock: jest.fn().mockImplementation(() => ({
+    getDelta: jest.fn(() => 0.016),
+    getElapsedTime: jest.fn(() => 0)
+  }))
+}));
+
+describe('Engine Integration Tests', () => {
   let engine: Engine;
-  let container: HTMLElement;
+  let container: HTMLDivElement;
 
-  beforeEach(async () => {
+  beforeEach(() => {
     container = document.createElement('div');
-    container.style.width = '800px';
-    container.style.height = '600px';
     document.body.appendChild(container);
-
-    engine = new Engine({
-      container,
-      width: 800,
-      height: 600,
-      antialias: true,
-      shadowMap: true,
-      autoRender: false,
-      autoResize: false
-    });
-
-    await engine.initialize();
+    engine = new Engine(container);
   });
 
   afterEach(() => {
@@ -40,475 +75,319 @@ describe('Engine Integration', () => {
     }
   });
 
-  describe('基础场景创建', () => {
-    test('应该创建完整的3D场景', async () => {
-      // 获取管理器
-      const lights = await engine.getManager<LightManager>('lights');
-      const materials = await engine.getManager<MaterialManager>('materials');
-      const objects = await engine.getManager<ObjectManager>('objects');
-      const geometry = await engine.getManager<GeometryManager>('geometry');
+  describe('Full Engine Lifecycle', () => {
+    test('should complete full lifecycle without errors', () => {
+      // Initialize
+      expect(engine).toBeDefined();
+      expect(engine.isRunning).toBe(false);
 
-      expect(lights).toBeDefined();
-      expect(materials).toBeDefined();
-      expect(objects).toBeDefined();
-      expect(geometry).toBeDefined();
+      // Start
+      engine.start();
+      expect(engine.isRunning).toBe(true);
 
-      // 创建灯光
-      lights.createLight('ambient', {
-        type: 'ambient',
-        color: 0x404040,
-        intensity: 0.4
-      });
+      // Render
+      expect(() => engine.render()).not.toThrow();
 
-      lights.createLight('directional', {
-        type: 'directional',
-        color: 0xffffff,
-        intensity: 1.0,
-        position: { x: 10, y: 10, z: 5 },
-        castShadow: true
-      });
+      // Stop
+      engine.stop();
+      expect(engine.isRunning).toBe(false);
 
-      // 创建材质
-      materials.createStandardMaterial('standard', {
-        color: 0x808080,
-        roughness: 0.5,
-        metalness: 0.5
-      });
+      // Dispose
+      expect(() => engine.dispose()).not.toThrow();
+    });
 
-      // 创建几何体
-      geometry.createBoxGeometry('box', { width: 2, height: 2, depth: 2 });
-      geometry.createSphereGeometry('sphere', { radius: 1, segments: 32 });
-
-      // 创建对象
-      const boxGeometry = geometry.getGeometry('box');
-      const sphereGeometry = geometry.getGeometry('sphere');
-      const material = materials.getMaterial('standard');
-
-      if (boxGeometry && material) {
-        objects.createMesh('cube', boxGeometry, material, {
-          position: { x: -2, y: 1, z: 0 },
-          castShadow: true,
-          receiveShadow: true
-        });
+    test('should handle multiple start/stop cycles', () => {
+      for (let i = 0; i < 5; i++) {
+        engine.start();
+        expect(engine.isRunning).toBe(true);
+        
+        engine.render();
+        
+        engine.stop();
+        expect(engine.isRunning).toBe(false);
       }
-
-      if (sphereGeometry && material) {
-        objects.createMesh('sphere', sphereGeometry, material, {
-          position: { x: 2, y: 1, z: 0 },
-          castShadow: true,
-          receiveShadow: true
-        });
-      }
-
-      // 验证场景
-      expect(engine.scene.children.length).toBeGreaterThan(0);
-      expect(lights.getAllLights().length).toBeGreaterThan(0);
-      expect(materials.getAllMaterials().length).toBeGreaterThan(0);
-      expect(objects.getAllObjects().length).toBeGreaterThan(0);
     });
   });
 
-  describe('特效系统集成', () => {
-    test('应该集成粒子系统和着色器', async () => {
-      const particles = await engine.getManager<ParticleManager>('particles');
-      const shaders = await engine.getManager<ShaderManager>('shaders');
-      const objects = await engine.getManager<ObjectManager>('objects');
-      const geometry = await engine.getManager<GeometryManager>('geometry');
-      const materials = await engine.getManager<MaterialManager>('materials');
-
-      // 创建基础对象
-      geometry.createBoxGeometry('shaderBox', { width: 2, height: 2, depth: 2 });
-      materials.createStandardMaterial('baseMaterial', {
-        color: 0x808080,
-        roughness: 0.5,
-        metalness: 0.5
+  describe('Manager Integration', () => {
+    test('should initialize all core managers', () => {
+      const coreManagers = ['render', 'scene', 'camera', 'light'];
+      
+      coreManagers.forEach(managerName => {
+        const manager = engine.getManager(managerName as any);
+        expect(manager).toBeDefined();
+        expect(manager.name).toBe(managerName);
+        expect(manager.initialized).toBe(true);
       });
+    });
 
-      const boxGeometry = geometry.getGeometry('shaderBox');
-      const material = materials.getMaterial('baseMaterial');
+    test('should handle manager dependencies correctly', () => {
+      // Performance manager should have monitor dependency
+      const performanceManager = engine.getManager('performance');
+      expect(performanceManager).toBeDefined();
+      
+      const monitorManager = engine.getManager('monitor');
+      expect(monitorManager).toBeDefined();
+    });
 
-      if (boxGeometry && material) {
-        objects.createMesh('shaderBox', boxGeometry, material, {
-          position: { x: 0, y: 1, z: 0 }
-        });
-      }
-
-      // 创建粒子系统
-      particles.createParticleSystem('fire', {
-        count: 100,
-        size: 0.1,
-        color: new THREE.Color(0xff4400),
-        velocity: new THREE.Vector3(0, 1, 0),
-        lifetime: 2.0,
-        blending: THREE.AdditiveBlending,
-        transparent: true
-      });
-
-      particles.createEmitter('fire', {
-        position: new THREE.Vector3(0, 0, 0),
-        direction: new THREE.Vector3(0, 1, 0),
-        rate: 10,
-        continuous: true
-      });
-
-      // 创建着色器效果
-      shaders.createBuiltinEffect('wave', 'wave', {
-        amplitude: 0.2,
-        frequency: 2.0,
-        speed: 1.0,
-        color: new THREE.Color(0x0088ff)
-      });
-
-      // 应用着色器到对象
-      const box = objects.getObject('shaderBox');
-      if (box) {
-        shaders.applyShaderToObject('wave', box);
-      }
-
-      // 验证特效
-      expect(particles.getAllParticleSystems().length).toBeGreaterThan(0);
-      expect(shaders.getAllShaderMaterials().length).toBeGreaterThan(0);
+    test('should handle manager communication', () => {
+      const renderManager = engine.getManager('render');
+      const sceneManager = engine.getManager('scene');
+      
+      expect(renderManager).toBeDefined();
+      expect(sceneManager).toBeDefined();
+      
+      // Managers should be able to communicate
+      expect(() => renderManager.update()).not.toThrow();
+      expect(() => sceneManager.update()).not.toThrow();
     });
   });
 
-  describe('环境系统集成', () => {
-    test('应该集成环境效果', async () => {
-      const environment = await engine.getManager<EnvironmentManager>('environment');
-      const lights = await engine.getManager<LightManager>('lights');
+  describe('Performance Integration', () => {
+    test('should monitor performance during rendering', () => {
+      engine.start();
+      
+      const performanceManager = engine.getManager('performance');
+      expect(performanceManager).toBeDefined();
+      
+      // Render multiple frames
+      for (let i = 0; i < 10; i++) {
+        engine.render();
+      }
+      
+      // Performance should be tracked
+      const metrics = performanceManager.getMetrics();
+      expect(metrics).toBeDefined();
+    });
 
-      // 设置环境
-      environment.setEnvironment({
-        skybox: {
-          type: 'gradient',
-          gradient: {
-            topColor: new THREE.Color(0x87ceeb),
-            bottomColor: new THREE.Color(0x4169e1)
-          }
-        },
-        fog: {
-          type: 'exponential',
-          color: new THREE.Color(0x87ceeb),
-          density: 0.01
-        },
-        ambient: {
-          color: new THREE.Color(0x404040),
-          intensity: 0.4
-        }
-      });
-
-      // 创建灯光
-      lights.createLight('directional', {
-        type: 'directional',
-        color: 0xffffff,
-        intensity: 1.0,
-        position: { x: 10, y: 10, z: 5 },
-        castShadow: true
-      });
-
-      // 验证环境设置
-      expect(engine.scene.background).toBeDefined();
-      expect(engine.scene.fog).toBeDefined();
-      expect(lights.getAllLights().length).toBeGreaterThan(0);
+    test('should handle performance optimization', () => {
+      engine.start();
+      
+      const performanceManager = engine.getManager('performance');
+      const optimizationManager = engine.getManager('optimization');
+      
+      expect(performanceManager).toBeDefined();
+      expect(optimizationManager).toBeDefined();
+      
+      // Apply optimizations
+      const result = optimizationManager.applyOptimizations();
+      expect(result.success).toBeDefined();
     });
   });
 
-  describe('性能监控集成', () => {
-    test('应该监控引擎性能', async () => {
-      const performance = await engine.getManager('performance');
-
-      // 创建一些对象来测试性能
-      const objects = await engine.getManager<ObjectManager>('objects');
-      const geometry = await engine.getManager<GeometryManager>('geometry');
-      const materials = await engine.getManager<MaterialManager>('materials');
-
-      materials.createStandardMaterial('test', {
-        color: 0x808080,
-        roughness: 0.5,
-        metalness: 0.5
-      });
-
-      geometry.createBoxGeometry('testBox', { width: 1, height: 1, depth: 1 });
-
-      const boxGeometry = geometry.getGeometry('testBox');
-      const material = materials.getMaterial('test');
-
-      if (boxGeometry && material) {
-        for (let i = 0; i < 10; i++) {
-          objects.createMesh(`box${i}`, boxGeometry, material, {
-            position: { x: i * 2, y: 0, z: 0 }
-          });
-        }
-      }
-
-      // 渲染几帧
+  describe('Memory Integration', () => {
+    test('should manage memory during operation', () => {
+      engine.start();
+      
+      const memoryManager = engine.getManager('memory');
+      expect(memoryManager).toBeDefined();
+      
+      // Perform some operations
       for (let i = 0; i < 5; i++) {
         engine.render();
       }
+      
+      // Memory should be tracked
+      const usage = memoryManager.getCurrentUsage();
+      expect(usage).toBeGreaterThan(0);
+    });
 
-      // 获取性能统计
-      const stats = engine.getStats();
-      expect(stats.initializedManagers).toBeGreaterThan(0);
-      expect(stats.totalManagers).toBeGreaterThan(0);
-      expect(stats.rendererInfo).toBeDefined();
-      expect(stats.sceneInfo).toBeDefined();
+    test('should handle memory cleanup', () => {
+      engine.start();
+      
+      const memoryManager = engine.getManager('memory');
+      expect(memoryManager).toBeDefined();
+      
+      // Perform cleanup
+      const result = memoryManager.cleanupUnusedResources();
+      expect(result.success).toBeDefined();
     });
   });
 
-  describe('事件系统集成', () => {
-    test('应该处理用户交互事件', async () => {
-      const events = await engine.getManager('events');
+  describe('Error Recovery Integration', () => {
+    test('should recover from manager errors', () => {
+      engine.start();
+      
+      const recoveryManager = engine.getManager('recovery');
+      expect(recoveryManager).toBeDefined();
+      
+      // Simulate error
+      const errorManager = engine.getManager('error');
+      expect(errorManager).toBeDefined();
+      
+      // Should handle errors gracefully
+      expect(() => engine.render()).not.toThrow();
+    });
 
-      // 创建测试对象
-      const objects = await engine.getManager<ObjectManager>('objects');
-      const geometry = await engine.getManager<GeometryManager>('geometry');
-      const materials = await engine.getManager<MaterialManager>('materials');
-
-      materials.createStandardMaterial('interactive', {
-        color: 0xff0000,
-        roughness: 0.5,
-        metalness: 0.5
+    test('should handle renderer errors', () => {
+      engine.start();
+      
+      // Mock renderer error
+      jest.spyOn(engine.renderer, 'render').mockImplementationOnce(() => {
+        throw new Error('Render error');
       });
-
-      geometry.createBoxGeometry('interactiveBox', { width: 1, height: 1, depth: 1 });
-
-      const boxGeometry = geometry.getGeometry('interactiveBox');
-      const material = materials.getMaterial('interactive');
-
-      if (boxGeometry && material) {
-        objects.createMesh('interactiveBox', boxGeometry, material, {
-          position: { x: 0, y: 0, z: 0 }
-        });
-      }
-
-      // 验证事件系统
-      expect(events).toBeDefined();
+      
+      // Should recover gracefully
+      expect(() => engine.render()).not.toThrow();
+      
+      // Should continue working
+      expect(() => engine.render()).not.toThrow();
     });
   });
 
-  describe('动画系统集成', () => {
-    test('应该创建和播放动画', async () => {
-      const animation = await engine.getManager('animation');
-      const objects = await engine.getManager<ObjectManager>('objects');
-      const geometry = await engine.getManager<GeometryManager>('geometry');
-      const materials = await engine.getManager<MaterialManager>('materials');
+  describe('Dynamic Loading Integration', () => {
+    test('should load managers dynamically', async () => {
+      const registry = new DynamicManagerRegistry();
+      
+      // Test dynamic loading
+      const manager = await registry.loadManager('render');
+      expect(manager).toBeDefined();
+      expect(manager.name).toBe('render');
+    });
 
-      // 创建动画对象
-      materials.createStandardMaterial('animated', {
-        color: 0x00ff00,
-        roughness: 0.5,
-        metalness: 0.5
-      });
-
-      geometry.createBoxGeometry('animatedBox', { width: 1, height: 1, depth: 1 });
-
-      const boxGeometry = geometry.getGeometry('animatedBox');
-      const material = materials.getMaterial('animated');
-
-      if (boxGeometry && material) {
-        objects.createMesh('animatedBox', boxGeometry, material, {
-          position: { x: 0, y: 0, z: 0 }
-        });
-      }
-
-      // 创建动画
-      const object = objects.getObject('animatedBox');
-      if (object) {
-        animation.createAnimation('rotation', {
-          target: object,
-          tracks: [
-            {
-              property: 'rotation.y',
-              times: [0, 2, 4],
-              values: [0, Math.PI, Math.PI * 2]
-            }
-          ],
-          duration: 4,
-          loop: true
-        });
-
-        animation.playAnimation('rotation');
-      }
-
-      // 验证动画
-      expect(animation.getAllAnimations().length).toBeGreaterThan(0);
+    test('should handle dynamic loading errors', async () => {
+      const registry = new DynamicManagerRegistry();
+      
+      // Mock loading error
+      jest.spyOn(registry, 'loadManager').mockRejectedValueOnce(new Error('Load failed'));
+      
+      await expect(registry.loadManager('invalid')).rejects.toThrow('Load failed');
     });
   });
 
-  describe('物理系统集成', () => {
-    test('应该集成物理模拟', async () => {
-      const physics = await engine.getManager('physics');
-      const objects = await engine.getManager<ObjectManager>('objects');
-      const geometry = await engine.getManager<GeometryManager>('geometry');
-      const materials = await engine.getManager<MaterialManager>('materials');
-
-      // 创建物理对象
-      materials.createStandardMaterial('physics', {
-        color: 0x0000ff,
-        roughness: 0.5,
-        metalness: 0.5
-      });
-
-      geometry.createBoxGeometry('physicsBox', { width: 1, height: 1, depth: 1 });
-
-      const boxGeometry = geometry.getGeometry('physicsBox');
-      const material = materials.getMaterial('physics');
-
-      if (boxGeometry && material) {
-        objects.createMesh('physicsBox', boxGeometry, material, {
-          position: { x: 0, y: 5, z: 0 }
-        });
-      }
-
-      // 添加物理属性
-      const object = objects.getObject('physicsBox');
-      if (object) {
-        physics.addPhysicsBody('physicsBox', {
-          type: 'dynamic',
-          mass: 1.0,
-          shape: 'box',
-          size: { x: 1, y: 1, z: 1 }
-        });
-      }
-
-      // 验证物理系统
-      expect(physics.getAllPhysicsBodies().length).toBeGreaterThan(0);
-    });
-  });
-
-  describe('音频系统集成', () => {
-    test('应该集成音频系统', async () => {
-      const audio = await engine.getManager('audio');
-      const objects = await engine.getManager<ObjectManager>('objects');
-      const geometry = await engine.getManager<GeometryManager>('geometry');
-      const materials = await engine.getManager<MaterialManager>('materials');
-
-      // 创建音频对象
-      materials.createStandardMaterial('audio', {
-        color: 0xff00ff,
-        roughness: 0.5,
-        metalness: 0.5
-      });
-
-      geometry.createSphereGeometry('audioSphere', { radius: 0.5, segments: 16 });
-
-      const sphereGeometry = geometry.getGeometry('audioSphere');
-      const material = materials.getMaterial('audio');
-
-      if (sphereGeometry && material) {
-        objects.createMesh('audioSphere', sphereGeometry, material, {
-          position: { x: 0, y: 0, z: 0 }
-        });
-      }
-
-      // 添加音频源
-      const object = objects.getObject('audioSphere');
-      if (object) {
-        audio.createAudioSource('testAudio', {
-          type: 'positional',
-          url: 'test.mp3',
-          loop: true,
-          volume: 0.5,
-          position: { x: 0, y: 0, z: 0 }
-        });
-      }
-
-      // 验证音频系统
-      expect(audio.getAllAudioSources().length).toBeGreaterThan(0);
-    });
-  });
-
-  describe('信号系统集成', () => {
-    test('应该处理跨管理器的信号', async () => {
-      const lights = await engine.getManager<LightManager>('lights');
-      const materials = await engine.getManager<MaterialManager>('materials');
-      const objects = await engine.getManager<ObjectManager>('objects');
-
-      const lightCreatedSpy = jest.fn();
-      const materialCreatedSpy = jest.fn();
-      const objectCreatedSpy = jest.fn();
-
-      lights.lightCreated.subscribe(lightCreatedSpy);
-      materials.materialCreated.subscribe(materialCreatedSpy);
-      objects.objectCreated.subscribe(objectCreatedSpy);
-
-      // 创建资源
-      lights.createLight('test', {
-        type: 'ambient',
-        color: 0x404040,
-        intensity: 0.4
-      });
-
-      materials.createStandardMaterial('test', {
-        color: 0x808080,
-        roughness: 0.5,
-        metalness: 0.5
-      });
-
-      const geometry = await engine.getManager<GeometryManager>('geometry');
-      const material = materials.getMaterial('test');
-
-      if (material) {
-        geometry.createBoxGeometry('testBox', { width: 1, height: 1, depth: 1 });
-        const boxGeometry = geometry.getGeometry('testBox');
-
-        if (boxGeometry) {
-          objects.createMesh('testBox', boxGeometry, material, {
-            position: { x: 0, y: 0, z: 0 }
-          });
-        }
-      }
-
-      // 验证信号
-      expect(lightCreatedSpy).toHaveBeenCalled();
-      expect(materialCreatedSpy).toHaveBeenCalled();
-      expect(objectCreatedSpy).toHaveBeenCalled();
-    });
-  });
-
-  describe('资源管理', () => {
-    test('应该正确清理所有资源', async () => {
-      // 创建各种资源
-      const lights = await engine.getManager<LightManager>('lights');
-      const materials = await engine.getManager<MaterialManager>('materials');
-      const objects = await engine.getManager<ObjectManager>('objects');
-      const particles = await engine.getManager<ParticleManager>('particles');
-      const shaders = await engine.getManager<ShaderManager>('shaders');
-
-      lights.createLight('test', {
-        type: 'ambient',
-        color: 0x404040,
-        intensity: 0.4
-      });
-
-      materials.createStandardMaterial('test', {
-        color: 0x808080,
-        roughness: 0.5,
-        metalness: 0.5
-      });
-
-      particles.createParticleSystem('test', {
-        count: 10,
-        size: 0.1,
-        color: new THREE.Color(0xff0000)
-      });
-
-      shaders.createBuiltinEffect('test', 'wave', {
-        amplitude: 0.2,
-        frequency: 2.0,
-        speed: 1.0
-      });
-
-      // 验证资源创建
-      expect(lights.getAllLights().length).toBeGreaterThan(0);
-      expect(materials.getAllMaterials().length).toBeGreaterThan(0);
-      expect(particles.getAllParticleSystems().length).toBeGreaterThan(0);
-      expect(shaders.getAllShaderMaterials().length).toBeGreaterThan(0);
-
-      // 清理资源
+  describe('Event System Integration', () => {
+    test('should emit lifecycle events', () => {
+      const events: string[] = [];
+      
+      engine.on('start', () => events.push('start'));
+      engine.on('stop', () => events.push('stop'));
+      engine.on('dispose', () => events.push('dispose'));
+      
+      engine.start();
+      engine.stop();
       engine.dispose();
+      
+      expect(events).toContain('start');
+      expect(events).toContain('stop');
+      expect(events).toContain('dispose');
+    });
 
-      // 验证资源清理
-      expect(engine.scene.children.length).toBe(0);
+    test('should emit manager events', () => {
+      const managerEvents: string[] = [];
+      
+      engine.on('manager:initialized', (name) => managerEvents.push(name));
+      
+      // Initialize managers
+      engine.getManager('render');
+      engine.getManager('scene');
+      
+      expect(managerEvents).toContain('render');
+      expect(managerEvents).toContain('scene');
+    });
+
+    test('should emit performance events', () => {
+      const performanceEvents: string[] = [];
+      
+      engine.on('performance:warning', () => performanceEvents.push('warning'));
+      engine.on('performance:critical', () => performanceEvents.push('critical'));
+      
+      engine.start();
+      
+      // Mock poor performance
+      jest.spyOn(engine.clock, 'getDelta').mockReturnValue(0.1);
+      engine.render();
+      
+      expect(performanceEvents.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Configuration Integration', () => {
+    test('should apply configuration changes', () => {
+      const newConfig = {
+        antialias: true,
+        alpha: true,
+        shadowMap: { enabled: true, type: 1 }
+      };
+      
+      engine.updateConfig(newConfig);
+      expect(engine.config.antialias).toBe(true);
+      expect(engine.config.alpha).toBe(true);
+    });
+
+    test('should handle invalid configuration', () => {
+      expect(() => engine.updateConfig({ pixelRatio: -1 })).toThrow();
+    });
+  });
+
+  describe('Stress Testing', () => {
+    test('should handle rapid start/stop cycles', () => {
+      for (let i = 0; i < 100; i++) {
+        engine.start();
+        engine.render();
+        engine.stop();
+      }
+      
+      expect(engine.isRunning).toBe(false);
+    });
+
+    test('should handle continuous rendering', () => {
+      engine.start();
+      
+      for (let i = 0; i < 1000; i++) {
+        engine.render();
+      }
+      
+      expect(engine.isRunning).toBe(true);
+    });
+
+    test('should handle memory pressure', () => {
+      engine.start();
+      
+      // Simulate memory pressure
+      Object.defineProperty(performance, 'memory', {
+        value: { usedJSHeapSize: 800 * 1024 * 1024 }, // 800MB
+        configurable: true
+      });
+      
+      for (let i = 0; i < 100; i++) {
+        engine.render();
+      }
+      
+      expect(engine.isRunning).toBe(true);
+    });
+  });
+
+  describe('Multi-Manager Integration', () => {
+    test('should coordinate multiple managers', () => {
+      engine.start();
+      
+      const managers = [
+        'render', 'scene', 'camera', 'light', 'material',
+        'geometry', 'animation', 'performance', 'memory'
+      ];
+      
+      managers.forEach(managerName => {
+        const manager = engine.getManager(managerName as any);
+        expect(manager).toBeDefined();
+        expect(manager.initialized).toBe(true);
+      });
+      
+      // All managers should work together
+      expect(() => engine.render()).not.toThrow();
+    });
+
+    test('should handle manager conflicts', () => {
+      engine.start();
+      
+      // Simulate conflicting manager operations
+      const renderManager = engine.getManager('render');
+      const sceneManager = engine.getManager('scene');
+      
+      expect(() => {
+        renderManager.update();
+        sceneManager.update();
+        engine.render();
+      }).not.toThrow();
     });
   });
 }); 

@@ -1,5 +1,9 @@
 import * as THREE from 'three';
-import type { Manager } from '@react-face/shared-types';
+// Local Manager interface
+export interface Manager {
+  initialize(): Promise<void>;
+  dispose(): void;
+}
 import { createSignal } from './Signal';
 
 export interface ParticleConfig {
@@ -19,10 +23,13 @@ export interface ParticleSystem {
 }
 
 /**
- * 粒子系统管理�?
+ * 粒子系统管理�?
  * 负责管理 Three.js 粒子系统
  */
 export class ParticleManager implements Manager {
+  // Add test expected properties
+  public readonly name = 'ParticleManager'.toLowerCase().replace('Manager', '');
+  public initialized = false;
   private engine: unknown;
   private systems: Map<string, ParticleSystem> = new Map();
   private config: ParticleConfig;
@@ -43,12 +50,12 @@ export class ParticleManager implements Manager {
   }
 
   async initialize(): Promise<void> {
-    // 初始化粒子系�?
-  }
+    // 初始化粒子系�?
+  this.initialized = true;}
 
   dispose(): void {
     this.removeAllSystems();
-  }
+  this.initialized = false;}
 
   createParticleSystem(
     id: string,
@@ -68,7 +75,7 @@ export class ParticleManager implements Manager {
     const colors = new Float32Array(particleCount * 3);
     const sizes = new Float32Array(particleCount);
 
-    // 初始化粒子数�?
+    // 初始化粒子数�?
     for (let i = 0; i < particleCount; i++) {
       positions[i * 3] = (Math.random() - 0.5) * 10;
       positions[i * 3 + 1] = (Math.random() - 0.5) * 10;

@@ -1,0 +1,432 @@
+[
+  {
+    "type": "scene",
+    "importPath": "./SceneManager",
+    "className": "SceneManager",
+    "dependencies": [],
+    "description": "场景管理 - 管理3D场景和对象",
+    "size": 15,
+    "category": "core",
+    "chunkName": "core-scene"
+  },
+  {
+    "type": "camera",
+    "importPath": "./CameraManager",
+    "className": "CameraManager",
+    "dependencies": [],
+    "description": "相机管理 - 管理视角和投影",
+    "size": 20,
+    "category": "core",
+    "chunkName": "core-camera"
+  },
+  {
+    "type": "renderer",
+    "importPath": "./RenderManager",
+    "className": "RenderManager",
+    "dependencies": [],
+    "description": "渲染器管理 - 管理WebGL渲染",
+    "size": 25,
+    "category": "core",
+    "chunkName": "core-renderer"
+  },
+  {
+    "type": "controls",
+    "importPath": "./ControlsManager",
+    "className": "ControlsManager",
+    "dependencies": ["camera"],
+    "description": "控制器管理 - 用户交互控制",
+    "size": 30,
+    "category": "core",
+    "chunkName": "core-controls"
+  },
+  {
+    "type": "lights",
+    "importPath": "./LightManager",
+    "className": "LightManager",
+    "dependencies": ["scene"],
+    "description": "光照管理 - 管理场景光照",
+    "size": 35,
+    "category": "rendering",
+    "chunkName": "rendering-lights"
+  },
+  {
+    "type": "materials",
+    "importPath": "./MaterialManager",
+    "className": "MaterialManager",
+    "dependencies": [],
+    "description": "材质管理 - 管理材质和着色器",
+    "size": 45,
+    "category": "rendering",
+    "chunkName": "rendering-materials"
+  },
+  {
+    "type": "textures",
+    "importPath": "./TextureManager",
+    "className": "TextureManager",
+    "dependencies": [],
+    "description": "纹理管理 - 管理纹理资源",
+    "size": 40,
+    "category": "rendering",
+    "chunkName": "rendering-textures"
+  },
+  {
+    "type": "geometries",
+    "importPath": "./GeometryManager",
+    "className": "GeometryManager",
+    "dependencies": [],
+    "description": "几何体管理 - 管理3D几何体",
+    "size": 50,
+    "category": "rendering",
+    "chunkName": "rendering-geometries"
+  },
+  {
+    "type": "animations",
+    "importPath": "./AnimationManager",
+    "className": "AnimationManager",
+    "dependencies": ["scene"],
+    "description": "动画管理 - 管理动画和关键帧",
+    "size": 40,
+    "category": "animation",
+    "chunkName": "animation-main"
+  },
+  {
+    "type": "morph",
+    "importPath": "./MorphManager",
+    "className": "MorphManager",
+    "dependencies": ["scene", "animations"],
+    "description": "变形动画管理 - 管理形状变形",
+    "size": 35,
+    "category": "animation",
+    "chunkName": "animation-morph"
+  },
+  {
+    "type": "skeleton",
+    "importPath": "./SkeletonManager",
+    "className": "SkeletonManager",
+    "dependencies": ["scene", "animations"],
+    "description": "骨骼动画管理 - 管理骨骼和蒙皮",
+    "size": 45,
+    "category": "animation",
+    "chunkName": "animation-skeleton"
+  },
+  {
+    "type": "physics",
+    "importPath": "./PhysicsManager",
+    "className": "PhysicsManager",
+    "dependencies": ["scene"],
+    "description": "物理管理 - 物理模拟和碰撞",
+    "size": 60,
+    "category": "physics",
+    "chunkName": "physics-main"
+  },
+  {
+    "type": "fluid",
+    "importPath": "./FluidManager",
+    "className": "FluidManager",
+    "dependencies": ["scene", "physics"],
+    "description": "流体模拟管理 - 流体动力学",
+    "size": 80,
+    "category": "physics",
+    "chunkName": "physics-fluid"
+  },
+  {
+    "type": "audio",
+    "importPath": "./AudioManager",
+    "className": "AudioManager",
+    "dependencies": [],
+    "description": "音频管理 - 3D音频和音效",
+    "size": 55,
+    "category": "audio",
+    "chunkName": "audio-main"
+  },
+  {
+    "type": "performance",
+    "importPath": "./PerformanceManager",
+    "className": "PerformanceManager",
+    "dependencies": ["renderer"],
+    "description": "性能管理 - 性能监控和优化",
+    "size": 30,
+    "category": "optimization",
+    "chunkName": "optimization-performance"
+  },
+  {
+    "type": "monitor",
+    "importPath": "./MonitorManager",
+    "className": "MonitorManager",
+    "dependencies": ["renderer"],
+    "description": "监控管理 - 实时监控和统计",
+    "size": 35,
+    "category": "optimization",
+    "chunkName": "optimization-monitor"
+  },
+  {
+    "type": "memory",
+    "importPath": "./MemoryManager",
+    "className": "MemoryManager",
+    "dependencies": ["renderer"],
+    "description": "内存管理 - 内存使用和垃圾回收",
+    "size": 40,
+    "category": "optimization",
+    "chunkName": "optimization-memory"
+  },
+  {
+    "type": "optimization",
+    "importPath": "./OptimizationManager",
+    "className": "OptimizationManager",
+    "dependencies": ["renderer"],
+    "description": "优化管理 - 渲染优化和LOD",
+    "size": 30,
+    "category": "optimization",
+    "chunkName": "optimization-main"
+  },
+  {
+    "type": "instance",
+    "importPath": "./InstanceManager",
+    "className": "InstanceManager",
+    "dependencies": ["scene"],
+    "description": "实例管理 - 实例化渲染优化",
+    "size": 45,
+    "category": "optimization",
+    "chunkName": "optimization-instance"
+  },
+  {
+    "type": "lod",
+    "importPath": "./LODManager",
+    "className": "LODManager",
+    "dependencies": ["camera"],
+    "description": "LOD管理 - 细节层次管理",
+    "size": 35,
+    "category": "optimization",
+    "chunkName": "optimization-lod"
+  },
+  {
+    "type": "composer",
+    "importPath": "./ComposerManager",
+    "className": "ComposerManager",
+    "dependencies": ["renderer"],
+    "description": "合成器管理 - 后处理效果",
+    "size": 40,
+    "category": "rendering",
+    "chunkName": "rendering-composer"
+  },
+  {
+    "type": "deferred",
+    "importPath": "./DeferredManager",
+    "className": "DeferredManager",
+    "dependencies": ["renderer"],
+    "description": "延迟渲染管理 - 延迟着色",
+    "size": 45,
+    "category": "rendering",
+    "chunkName": "rendering-deferred"
+  },
+  {
+    "type": "rayTracing",
+    "importPath": "./RayTracingManager",
+    "className": "RayTracingManager",
+    "dependencies": ["renderer"],
+    "description": "光线追踪管理 - 光线追踪渲染",
+    "size": 60,
+    "category": "rendering",
+    "chunkName": "rendering-raytracing"
+  },
+  {
+    "type": "volumetric",
+    "importPath": "./VolumetricManager",
+    "className": "VolumetricManager",
+    "dependencies": ["renderer"],
+    "description": "体积渲染管理 - 体积效果",
+    "size": 50,
+    "category": "rendering",
+    "chunkName": "rendering-volumetric"
+  },
+  {
+    "type": "volumetricFog",
+    "importPath": "./VolumetricFogManager",
+    "className": "VolumetricFogManager",
+    "dependencies": ["renderer"],
+    "description": "体积雾效管理 - 体积雾效果",
+    "size": 55,
+    "category": "rendering",
+    "chunkName": "rendering-volumetric-fog"
+  },
+  {
+    "type": "screenSpaceReflection",
+    "importPath": "./ScreenSpaceReflectionManager",
+    "className": "ScreenSpaceReflectionManager",
+    "dependencies": ["renderer"],
+    "description": "屏幕空间反射管理 - SSR效果",
+    "size": 50,
+    "category": "rendering",
+    "chunkName": "rendering-ssr"
+  },
+  {
+    "type": "globalIllumination",
+    "importPath": "./GlobalIlluminationManager",
+    "className": "GlobalIlluminationManager",
+    "dependencies": ["renderer"],
+    "description": "全局光照管理 - 全局光照",
+    "size": 65,
+    "category": "rendering",
+    "chunkName": "rendering-gi"
+  },
+  {
+    "type": "events",
+    "importPath": "./EventManager",
+    "className": "EventManager",
+    "dependencies": [],
+    "description": "事件管理 - 事件系统",
+    "size": 25,
+    "category": "utility",
+    "chunkName": "utility-events"
+  },
+  {
+    "type": "helpers",
+    "importPath": "./HelperManager",
+    "className": "HelperManager",
+    "dependencies": ["scene"],
+    "description": "辅助管理 - 调试辅助工具",
+    "size": 30,
+    "category": "utility",
+    "chunkName": "utility-helpers"
+  },
+  {
+    "type": "ui",
+    "importPath": "./UIManager",
+    "className": "UIManager",
+    "dependencies": [],
+    "description": "UI管理 - 用户界面",
+    "size": 35,
+    "category": "utility",
+    "chunkName": "utility-ui"
+  },
+  {
+    "type": "viewHelper",
+    "importPath": "./ViewHelperManager",
+    "className": "ViewHelperManager",
+    "dependencies": ["camera", "controls"],
+    "description": "视图辅助管理 - 视图控制辅助",
+    "size": 30,
+    "category": "utility",
+    "chunkName": "utility-viewhelper"
+  },
+  {
+    "type": "export",
+    "importPath": "./ExportManager",
+    "className": "ExportManager",
+    "dependencies": ["scene"],
+    "description": "导出管理 - 场景导出",
+    "size": 40,
+    "category": "utility",
+    "chunkName": "utility-export"
+  },
+  {
+    "type": "database",
+    "importPath": "./DatabaseManager",
+    "className": "DatabaseManager",
+    "dependencies": [],
+    "description": "数据库管理 - 数据存储",
+    "size": 45,
+    "category": "utility",
+    "chunkName": "utility-database"
+  },
+  {
+    "type": "recovery",
+    "importPath": "./RecoveryManager",
+    "className": "RecoveryManager",
+    "dependencies": [],
+    "description": "恢复管理 - 错误恢复",
+    "size": 50,
+    "category": "utility",
+    "chunkName": "utility-recovery"
+  },
+  {
+    "type": "particles",
+    "importPath": "./ParticleManager",
+    "className": "ParticleManager",
+    "dependencies": ["scene"],
+    "description": "粒子管理 - 粒子系统",
+    "size": 45,
+    "category": "rendering",
+    "chunkName": "rendering-particles"
+  },
+  {
+    "type": "shaders",
+    "importPath": "./ShaderManager",
+    "className": "ShaderManager",
+    "dependencies": [],
+    "description": "着色器管理 - 着色器程序",
+    "size": 40,
+    "category": "rendering",
+    "chunkName": "rendering-shaders"
+  },
+  {
+    "type": "environment",
+    "importPath": "./EnvironmentManager",
+    "className": "EnvironmentManager",
+    "dependencies": ["scene"],
+    "description": "环境管理 - 环境设置",
+    "size": 35,
+    "category": "rendering",
+    "chunkName": "rendering-environment"
+  },
+  {
+    "type": "objects",
+    "importPath": "./ObjectManager",
+    "className": "ObjectManager",
+    "dependencies": ["scene"],
+    "description": "对象管理 - 3D对象管理",
+    "size": 40,
+    "category": "core",
+    "chunkName": "core-objects"
+  },
+  {
+    "type": "loader",
+    "importPath": "./LoaderManager",
+    "className": "LoaderManager",
+    "dependencies": ["objects"],
+    "description": "加载器管理 - 资源加载",
+    "size": 80,
+    "category": "core",
+    "chunkName": "core-loader"
+  },
+  {
+    "type": "error",
+    "importPath": "./ErrorManager",
+    "className": "ErrorManager",
+    "dependencies": [],
+    "description": "错误管理 - 错误处理",
+    "size": 30,
+    "category": "utility",
+    "chunkName": "utility-error"
+  },
+  {
+    "type": "procedural",
+    "importPath": "./ProceduralManager",
+    "className": "ProceduralManager",
+    "dependencies": ["scene"],
+    "description": "程序化管理 - 程序化生成",
+    "size": 35,
+    "category": "rendering",
+    "chunkName": "rendering-procedural"
+  },
+  {
+    "type": "network",
+    "importPath": "./NetworkManager",
+    "className": "NetworkManager",
+    "dependencies": [],
+    "description": "网络管理 - WebSocket连接和实时数据同步",
+    "size": 45,
+    "category": "utility",
+    "chunkName": "utility-network"
+  },
+  {
+    "type": "gesture",
+    "importPath": "./GestureManager",
+    "className": "GestureManager",
+    "dependencies": ["events"],
+    "description": "手势管理 - 触摸手势识别和交互",
+    "size": 40,
+    "category": "utility",
+    "chunkName": "utility-gesture"
+  }
+] 

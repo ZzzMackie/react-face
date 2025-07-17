@@ -1,5 +1,9 @@
 import * as THREE from 'three';
-import type { Manager } from '@react-face/shared-types';
+// Local Manager interface
+export interface Manager {
+  initialize(): Promise<void>;
+  dispose(): void;
+}
 import { createSignal } from './Signal';
 
 export interface ErrorContext {
@@ -35,6 +39,9 @@ export interface RecoveryResult {
 }
 
 export class RecoveryManager implements Manager {
+  // Add test expected properties
+  public readonly name = 'RecoveryManager'.toLowerCase().replace('Manager', '');
+  public initialized = false;
   private engine: any;
   private config: RecoveryConfig;
   private errorHistory: ErrorContext[] = [];
@@ -68,7 +75,7 @@ export class RecoveryManager implements Manager {
     
     if (this.config.enabled) {
       this.setupErrorHandling();
-    }
+    this.initialized = true;}
   }
 
   dispose(): void {
@@ -76,7 +83,7 @@ export class RecoveryManager implements Manager {
     this.recoveryHistory = [];
     this.retryCounts.clear();
     // Signal不需要手动dispose，会自动清理
-  }
+  this.initialized = false;}
 
   // 设置默认恢复策略
   private setupDefaultStrategies(): void {
@@ -482,4 +489,4 @@ export class RecoveryManager implements Manager {
     this.recoveryHistory = [];
     this.retryCounts.clear();
   }
-} 
+}

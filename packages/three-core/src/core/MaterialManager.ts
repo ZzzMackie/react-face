@@ -20,17 +20,19 @@ export interface MaterialInfo {
  * 负责管理 Three.js 材质
  */
 export class MaterialManager implements Manager {
-  private engine: unknown;
+  // Add test expected properties
+  public readonly name = 'MaterialManager'.toLowerCase().replace('Manager', '');
+  public initialized = false;
   private materials: Map<string, MaterialInfo> = new Map();
   private config: MaterialConfig;
 
-  // 信号系统
+  // ????
   public readonly materialCreated = createSignal<MaterialInfo | null>(null);
   public readonly materialRemoved = createSignal<string | null>(null);
   public readonly materialUpdated = createSignal<MaterialInfo | null>(null);
 
   constructor(engine: unknown, config: MaterialConfig = {}) {
-    this.engine = engine;
+    // engine parameter kept for interface compatibility
     this.config = {
       defaultColor: 0xffffff,
       defaultOpacity: 1.0,
@@ -226,7 +228,10 @@ export class MaterialManager implements Manager {
   setMaterialColor(id: string, color: THREE.ColorRepresentation): void {
     const materialInfo = this.materials.get(id);
     if (materialInfo) {
-      materialInfo.material.color.set(color);
+      // Check if material has color property and it's a Color object
+      if ('color' in materialInfo.material && materialInfo.material.color && typeof materialInfo.material.color.set === 'function') {
+        (materialInfo.material.color as THREE.Color).set(color);
+      }
       this.materialUpdated.emit(materialInfo);
     }
   }
@@ -286,4 +291,4 @@ export class MaterialManager implements Manager {
     });
     this.materials.clear();
   }
-} 
+}

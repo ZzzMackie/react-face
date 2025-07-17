@@ -1,5 +1,9 @@
 import * as THREE from 'three';
-import type { Manager } from '@react-face/shared-types';
+// Local Manager interface
+export interface Manager {
+  initialize(): Promise<void>;
+  dispose(): void;
+}
 import { createSignal } from './Signal';
 
 export interface PerformanceConfig {
@@ -25,10 +29,13 @@ export interface PerformanceMetrics {
 }
 
 /**
- * 性能管理�?
- * 负责监控和管�?Three.js 性能
+ * 性能管理�?
+ * 负责监控和管�?Three.js 性能
  */
 export class PerformanceManager implements Manager {
+  // Add test expected properties
+  public readonly name = 'PerformanceManager'.toLowerCase().replace('Manager', '');
+  public initialized = false;
   private engine: unknown;
   private renderer: THREE.WebGLRenderer | null = null;
   private config: PerformanceConfig;
@@ -55,11 +62,11 @@ export class PerformanceManager implements Manager {
 
   async initialize(): Promise<void> {
     this.clock.start();
-  }
+  this.initialized = true;}
 
   dispose(): void {
     // 清理性能监控
-  }
+  this.initialized = false;}
 
   setRenderer(renderer: THREE.WebGLRenderer): void {
     this.renderer = renderer;
@@ -107,7 +114,7 @@ export class PerformanceManager implements Manager {
   }
 
   private checkPerformanceWarnings(metrics: PerformanceMetrics): void {
-    // 检�?FPS 警告
+    // 检�?FPS 警告
     if (metrics.fps < 30) {
       this.performanceWarning.emit({
         type: 'low_fps',
@@ -115,7 +122,7 @@ export class PerformanceManager implements Manager {
       });
     }
 
-    // 检查内存警�?
+    // 检查内存警�?
     if (metrics.memory.geometries > 1000) {
       this.performanceWarning.emit({
         type: 'high_geometry_count',
@@ -130,7 +137,7 @@ export class PerformanceManager implements Manager {
       });
     }
 
-    // 检查渲染调用警�?
+    // 检查渲染调用警�?
     if (metrics.render.calls > 1000) {
       this.performanceWarning.emit({
         type: 'high_render_calls',

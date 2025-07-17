@@ -1,5 +1,9 @@
 import * as THREE from 'three';
-import type { Manager } from '@react-face/shared-types';
+// Local Manager interface
+export interface Manager {
+  initialize(): Promise<void>;
+  dispose(): void;
+}
 import { createSignal } from './Signal';
 
 export interface ComposerConfig {
@@ -16,13 +20,21 @@ export interface ComposerInfo {
   config: unknown;
 }
 
+export interface PostProcessEffectInfo extends ComposerInfo {
+  enabled: boolean;
+}
+
 /**
  * 合成器管理器
- * 负责管理 Three.js 后处理效�?
+ * 负责管理 Three.js 后处理效果
  */
 export class ComposerManager implements Manager {
+  // Add test expected properties
+  public readonly name = 'ComposerManager'.toLowerCase().replace('Manager', '');
+  public initialized = false;
   private engine: unknown;
   private composers: Map<string, ComposerInfo> = new Map();
+  private postProcessEffects: Map<string, PostProcessEffectInfo> = new Map();
   private config: ComposerConfig;
 
   // 信号系统
@@ -43,12 +55,164 @@ export class ComposerManager implements Manager {
 
   async initialize(): Promise<void> {
     // 初始化合成器系统
+    this.initialized = true;
   }
 
   dispose(): void {
     this.removeAllComposers();
+    this.removeAllPostProcessEffects();
+    this.initialized = false;
   }
 
+  // 后处理效果方法
+  createDepthOfFieldEffect(
+    id: string,
+    options?: {
+      enabled?: boolean;
+      intensity?: number;
+      focusDistance?: number;
+      focusRange?: number;
+      bokehScale?: number;
+    }
+  ): void {
+    const effectInfo: PostProcessEffectInfo = {
+      id,
+      type: 'depthOfField',
+      enabled: options?.enabled ?? true,
+      config: {
+        intensity: options?.intensity ?? 1.0,
+        focusDistance: options?.focusDistance ?? 10,
+        focusRange: options?.focusRange ?? 5,
+        bokehScale: options?.bokehScale ?? 2
+      }
+    };
+
+    this.postProcessEffects.set(id, effectInfo);
+    this.composerAdded.emit(effectInfo);
+  }
+
+  createMotionBlurEffect(
+    id: string,
+    options?: {
+      enabled?: boolean;
+      intensity?: number;
+      samples?: number;
+      shutterAngle?: number;
+    }
+  ): void {
+    const effectInfo: PostProcessEffectInfo = {
+      id,
+      type: 'motionBlur',
+      enabled: options?.enabled ?? true,
+      config: {
+        intensity: options?.intensity ?? 1.0,
+        samples: options?.samples ?? 32,
+        shutterAngle: options?.shutterAngle ?? 1.0
+      }
+    };
+
+    this.postProcessEffects.set(id, effectInfo);
+    this.composerAdded.emit(effectInfo);
+  }
+
+  createColorCorrectionEffect(
+    id: string,
+    options?: {
+      enabled?: boolean;
+      intensity?: number;
+      brightness?: number;
+      contrast?: number;
+      saturation?: number;
+      hue?: number;
+      gamma?: number;
+      exposure?: number;
+    }
+  ): void {
+    const effectInfo: PostProcessEffectInfo = {
+      id,
+      type: 'colorCorrection',
+      enabled: options?.enabled ?? true,
+      config: {
+        intensity: options?.intensity ?? 1.0,
+        brightness: options?.brightness ?? 0,
+        contrast: options?.contrast ?? 1,
+        saturation: options?.saturation ?? 1,
+        hue: options?.hue ?? 0,
+        gamma: options?.gamma ?? 1,
+        exposure: options?.exposure ?? 1
+      }
+    };
+
+    this.postProcessEffects.set(id, effectInfo);
+    this.composerAdded.emit(effectInfo);
+  }
+
+  getPostProcessEffect(id: string): PostProcessEffectInfo | undefined {
+    return this.postProcessEffects.get(id);
+  }
+
+  setEffectEnabled(id: string, enabled: boolean): void {
+    const effect = this.postProcessEffects.get(id);
+    if (effect) {
+      effect.enabled = enabled;
+      this.composerUpdated.emit(effect);
+    }
+  }
+
+  updateDepthOfFieldConfig(id: string, config: Partial<{
+    focusDistance: number;
+    focusRange: number;
+    bokehScale: number;
+    intensity: number;
+  }>): void {
+    const effect = this.postProcessEffects.get(id);
+    if (effect && effect.type === 'depthOfField') {
+      effect.config = { ...(effect.config as any), ...config };
+      this.composerUpdated.emit(effect);
+    }
+  }
+
+  updateMotionBlurConfig(id: string, config: Partial<{
+    intensity: number;
+    samples: number;
+    shutterAngle: number;
+  }>): void {
+    const effect = this.postProcessEffects.get(id);
+    if (effect && effect.type === 'motionBlur') {
+      effect.config = { ...(effect.config as any), ...config };
+      this.composerUpdated.emit(effect);
+    }
+  }
+
+  updateColorCorrectionConfig(id: string, config: Partial<{
+    brightness: number;
+    contrast: number;
+    saturation: number;
+    hue: number;
+    gamma: number;
+    exposure: number;
+    intensity: number;
+  }>): void {
+    const effect = this.postProcessEffects.get(id);
+    if (effect && effect.type === 'colorCorrection') {
+      effect.config = { ...(effect.config as any), ...config };
+      this.composerUpdated.emit(effect);
+    }
+  }
+
+  removePostProcessEffect(id: string): void {
+    const effect = this.postProcessEffects.get(id);
+    if (effect) {
+      this.postProcessEffects.delete(id);
+      this.composerRemoved.emit(id);
+    }
+  }
+
+  removeAllPostProcessEffects(): void {
+    this.postProcessEffects.clear();
+  }
+
+  // 原有的合成器方法
   createBloomPass(
     id: string,
     options?: {
@@ -168,4 +332,4 @@ export class ComposerManager implements Manager {
   getConfig(): ComposerConfig {
     return { ...this.config };
   }
-} 
+}

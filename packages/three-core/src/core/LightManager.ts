@@ -6,6 +6,8 @@ export interface LightConfig {
   ambientIntensity?: number;
   enableShadows?: boolean;
   shadowMapSize?: number;
+  autoAddToScene?: boolean; // ?????????
+  defaultScene?: THREE.Scene; // ????
 }
 
 export interface LightInfo {
@@ -15,16 +17,25 @@ export interface LightInfo {
   enabled: boolean;
 }
 
+export interface LightCreationConfig {
+  scene?: THREE.Scene; // ????????
+  [key: string]: any; // ????
+}
+
 /**
- * 灯光管理�?
- * 负责管理 Three.js 灯光
+ * ?????
+ * ??????????
  */
 export class LightManager implements Manager {
   private engine: unknown;
   private lights: Map<string, LightInfo> = new Map();
   private config: LightConfig;
 
-  // 信号系统
+  // ???????
+  public readonly name = 'light';
+  public initialized = false;
+
+  // ????
   public readonly lightAdded = createSignal<LightInfo | null>(null);
   public readonly lightRemoved = createSignal<string | null>(null);
   public readonly lightEnabled = createSignal<string | null>(null);
@@ -36,27 +47,82 @@ export class LightManager implements Manager {
       ambientIntensity: 0.4,
       enableShadows: true,
       shadowMapSize: 2048,
+      autoAddToScene: true,
       ...config
     };
   }
 
   async initialize(): Promise<void> {
-    // 初始化默认环境光
-    this.createAmbientLight('default-ambient', this.config.ambientIntensity!);
+    console.log('?? LightManager initialized');
+    this.initialized = true;
   }
 
   dispose(): void {
-    this.removeAllLights();
+    this.lights.forEach(lightInfo => {
+      lightInfo.light.dispose();
+    });
+    this.lights.clear();
+    this.initialized = false;
   }
 
-  createAmbientLight(id: string, intensity: number = 0.4, color: THREE.ColorRepresentation = 0xffffff): THREE.AmbientLight {
-    const light = new THREE.AmbientLight(color, intensity);
-    const lightInfo: LightInfo = {
+  // ????????????
+  private addToScene(light: THREE.Light, config?: LightCreationConfig): void {
+    if (!this.config.autoAddToScene) return;
+
+    let targetScene: THREE.Scene | null = null;
+
+    // ?????????? > ???? > ????
+    if (config?.scene) {
+      targetScene = config.scene;
+    } else if (this.config.defaultScene) {
+      targetScene = this.config.defaultScene;
+    } else {
+      const sceneManager = (this.engine as any)?.getManager('scene');
+      if (sceneManager) {
+        targetScene = sceneManager.getScene();
+      }
+    }
+
+    if (targetScene) {
+      targetScene.add(light);
+    }
+  }
+
+  // ????????????
+  private removeFromScene(light: THREE.Light): void {
+    if (light.parent) {
+      light.parent.remove(light);
+    }
+  }
+
+  // ???????????
+  private createLightInfo(id: string, light: THREE.Light, type: LightInfo['type']): LightInfo {
+    return {
       id,
       light,
-      type: 'ambient',
+      type,
       enabled: true
     };
+  }
+
+  // ???????????
+  private setupLightShadows(light: THREE.Light): void {
+    if (this.config.enableShadows && 'castShadow' in light) {
+      (light as any).castShadow = true;
+      if ('shadow' in light) {
+        (light as any).shadow.mapSize.width = this.config.shadowMapSize!;
+        (light as any).shadow.mapSize.height = this.config.shadowMapSize!;
+      }
+    }
+  }
+
+  createAmbientLight(id: string, config?: LightCreationConfig & { intensity?: number; color?: THREE.ColorRepresentation }): THREE.AmbientLight {
+    const intensity = config?.intensity ?? 0.4;
+    const color = config?.color ?? 0xffffff;
+    const light = new THREE.AmbientLight(color, intensity);
+    
+    this.addToScene(light, config);
+    const lightInfo: LightInfo = this.createLightInfo(id, light, 'ambient');
 
     this.lights.set(id, lightInfo);
     this.lightAdded.emit(lightInfo);
@@ -66,26 +132,30 @@ export class LightManager implements Manager {
 
   createDirectionalLight(
     id: string,
-    intensity: number = 1,
-    color: THREE.ColorRepresentation = 0xffffff,
-    position: THREE.Vector3 = new THREE.Vector3(5, 5, 5)
+    config?: LightCreationConfig & { 
+      intensity?: number; 
+      color?: THREE.ColorRepresentation;
+      position?: THREE.Vector3 | { x: number; y: number; z: number };
+    }
   ): THREE.DirectionalLight {
+    const intensity = config?.intensity ?? 1;
+    const color = config?.color ?? 0xffffff;
+    const positionConfig = config?.position ?? { x: 5, y: 5, z: 5 };
+    
+    // ??position??????????Vector3??
+    let position: THREE.Vector3;
+    if (positionConfig instanceof THREE.Vector3) {
+      position = positionConfig;
+    } else {
+      position = new THREE.Vector3(positionConfig.x, positionConfig.y, positionConfig.z);
+    }
+    
     const light = new THREE.DirectionalLight(color, intensity);
     light.position.copy(position);
+    this.setupLightShadows(light);
+    const lightInfo: LightInfo = this.createLightInfo(id, light, 'directional');
 
-    if (this.config.enableShadows) {
-      light.castShadow = true;
-      light.shadow.mapSize.width = this.config.shadowMapSize!;
-      light.shadow.mapSize.height = this.config.shadowMapSize!;
-    }
-
-    const lightInfo: LightInfo = {
-      id,
-      light,
-      type: 'directional',
-      enabled: true
-    };
-
+    this.addToScene(light, config);
     this.lights.set(id, lightInfo);
     this.lightAdded.emit(lightInfo);
 
@@ -94,28 +164,34 @@ export class LightManager implements Manager {
 
   createPointLight(
     id: string,
-    intensity: number = 1,
-    color: THREE.ColorRepresentation = 0xffffff,
-    position: THREE.Vector3 = new THREE.Vector3(0, 0, 0),
-    distance: number = 0,
-    decay: number = 2
+    config?: LightCreationConfig & {
+      intensity?: number;
+      color?: THREE.ColorRepresentation;
+      position?: THREE.Vector3 | { x: number; y: number; z: number };
+      distance?: number;
+      decay?: number;
+    }
   ): THREE.PointLight {
+    const intensity = config?.intensity ?? 1;
+    const color = config?.color ?? 0xffffff;
+    const distance = config?.distance ?? 0;
+    const decay = config?.decay ?? 2;
+    const positionConfig = config?.position ?? { x: 0, y: 0, z: 0 };
+    
+    // ??position??????????Vector3??
+    let position: THREE.Vector3;
+    if (positionConfig instanceof THREE.Vector3) {
+      position = positionConfig;
+    } else {
+      position = new THREE.Vector3(positionConfig.x, positionConfig.y, positionConfig.z);
+    }
+    
     const light = new THREE.PointLight(color, intensity, distance, decay);
     light.position.copy(position);
+    this.setupLightShadows(light);
+    const lightInfo: LightInfo = this.createLightInfo(id, light, 'point');
 
-    if (this.config.enableShadows) {
-      light.castShadow = true;
-      light.shadow.mapSize.width = this.config.shadowMapSize!;
-      light.shadow.mapSize.height = this.config.shadowMapSize!;
-    }
-
-    const lightInfo: LightInfo = {
-      id,
-      light,
-      type: 'point',
-      enabled: true
-    };
-
+    this.addToScene(light, config);
     this.lights.set(id, lightInfo);
     this.lightAdded.emit(lightInfo);
 
@@ -124,31 +200,47 @@ export class LightManager implements Manager {
 
   createSpotLight(
     id: string,
-    intensity: number = 1,
-    color: THREE.ColorRepresentation = 0xffffff,
-    position: THREE.Vector3 = new THREE.Vector3(0, 0, 0),
-    target: THREE.Vector3 = new THREE.Vector3(0, 0, 0),
-    angle: number = Math.PI / 3,
-    penumbra: number = 0,
-    distance: number = 0
+    config?: LightCreationConfig & {
+      intensity?: number;
+      color?: THREE.ColorRepresentation;
+      position?: THREE.Vector3 | { x: number; y: number; z: number };
+      target?: THREE.Vector3 | { x: number; y: number; z: number };
+      angle?: number;
+      penumbra?: number;
+      distance?: number;
+    }
   ): THREE.SpotLight {
+    const intensity = config?.intensity ?? 1;
+    const color = config?.color ?? 0xffffff;
+    const angle = config?.angle ?? Math.PI / 3;
+    const penumbra = config?.penumbra ?? 0;
+    const distance = config?.distance ?? 0;
+    const positionConfig = config?.position ?? { x: 0, y: 0, z: 0 };
+    const targetConfig = config?.target ?? { x: 0, y: 0, z: 0 };
+    
+    // ??position??????????Vector3??
+    let position: THREE.Vector3;
+    if (positionConfig instanceof THREE.Vector3) {
+      position = positionConfig;
+    } else {
+      position = new THREE.Vector3(positionConfig.x, positionConfig.y, positionConfig.z);
+    }
+    
+    // ??target??????????Vector3??
+    let target: THREE.Vector3;
+    if (targetConfig instanceof THREE.Vector3) {
+      target = targetConfig;
+    } else {
+      target = new THREE.Vector3(targetConfig.x, targetConfig.y, targetConfig.z);
+    }
+    
     const light = new THREE.SpotLight(color, intensity, distance, angle, penumbra);
     light.position.copy(position);
     light.target.position.copy(target);
+    this.setupLightShadows(light);
+    const lightInfo: LightInfo = this.createLightInfo(id, light, 'spot');
 
-    if (this.config.enableShadows) {
-      light.castShadow = true;
-      light.shadow.mapSize.width = this.config.shadowMapSize!;
-      light.shadow.mapSize.height = this.config.shadowMapSize!;
-    }
-
-    const lightInfo: LightInfo = {
-      id,
-      light,
-      type: 'spot',
-      enabled: true
-    };
-
+    this.addToScene(light, config);
     this.lights.set(id, lightInfo);
     this.lightAdded.emit(lightInfo);
 
@@ -162,14 +254,9 @@ export class LightManager implements Manager {
     intensity: number = 1
   ): THREE.HemisphereLight {
     const light = new THREE.HemisphereLight(skyColor, groundColor, intensity);
+    const lightInfo: LightInfo = this.createLightInfo(id, light, 'hemisphere');
 
-    const lightInfo: LightInfo = {
-      id,
-      light,
-      type: 'hemisphere',
-      enabled: true
-    };
-
+    this.addToScene(light);
     this.lights.set(id, lightInfo);
     this.lightAdded.emit(lightInfo);
 
@@ -187,6 +274,7 @@ export class LightManager implements Manager {
   removeLight(id: string): void {
     const lightInfo = this.lights.get(id);
     if (lightInfo) {
+      this.removeFromScene(lightInfo.light);
       lightInfo.light.dispose();
       this.lights.delete(id);
       this.lightRemoved.emit(id);
@@ -246,8 +334,9 @@ export class LightManager implements Manager {
 
   removeAllLights(): void {
     this.lights.forEach(lightInfo => {
+      this.removeFromScene(lightInfo.light);
       lightInfo.light.dispose();
     });
     this.lights.clear();
   }
-} 
+}

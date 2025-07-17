@@ -36,8 +36,12 @@ export class Signal<T = unknown> {
   emit(value: T): void {
     this.value = value;
   }
+
+  dispose(): void {
+    this._subscribers.clear();
+  }
 }
 
 export function createSignal<T = unknown>(initialValue: T): Signal<T> {
   return new Signal(initialValue);
-}
+} 

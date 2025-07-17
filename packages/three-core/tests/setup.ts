@@ -1,5 +1,3 @@
-import '@testing-library/jest-dom';
-
 // 模拟 WebGL 上下文
 const mockWebGLContext = {
   canvas: document.createElement('canvas'),
@@ -98,6 +96,307 @@ Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
     return null;
   })
 });
+
+// 模拟 Three.js 核心类
+const mockThree = {
+  Ray: jest.fn().mockImplementation(() => ({
+    set: jest.fn(),
+    copy: jest.fn(),
+    clone: jest.fn(),
+    lookAt: jest.fn(),
+    at: jest.fn(),
+    recast: jest.fn(),
+    intersectSphere: jest.fn(),
+    intersectPlane: jest.fn(),
+    intersectBox: jest.fn(),
+    intersectTriangle: jest.fn(),
+    applyMatrix4: jest.fn()
+  })),
+  Vector3: jest.fn().mockImplementation((x = 0, y = 0, z = 0) => ({
+    x, y, z,
+    set: jest.fn(),
+    copy: jest.fn(),
+    clone: jest.fn(),
+    add: jest.fn(),
+    sub: jest.fn(),
+    multiply: jest.fn(),
+    divide: jest.fn(),
+    length: jest.fn(() => Math.sqrt(x * x + y * y + z * z)),
+    normalize: jest.fn(),
+    distanceTo: jest.fn(),
+    dot: jest.fn(),
+    cross: jest.fn()
+  })),
+  Matrix4: jest.fn().mockImplementation(() => ({
+    elements: new Array(16).fill(0),
+    set: jest.fn(),
+    copy: jest.fn(),
+    clone: jest.fn(),
+    multiply: jest.fn(),
+    multiplyMatrices: jest.fn(),
+    makeTranslation: jest.fn(),
+    makeRotationX: jest.fn(),
+    makeRotationY: jest.fn(),
+    makeRotationZ: jest.fn(),
+    makeScale: jest.fn(),
+    compose: jest.fn(),
+    decompose: jest.fn(),
+    lookAt: jest.fn(),
+    invert: jest.fn(),
+    transpose: jest.fn()
+  })),
+  Quaternion: jest.fn().mockImplementation(() => ({
+    x: 0, y: 0, z: 0, w: 1,
+    set: jest.fn(),
+    copy: jest.fn(),
+    clone: jest.fn(),
+    setFromAxisAngle: jest.fn(),
+    setFromEuler: jest.fn(),
+    setFromRotationMatrix: jest.fn(),
+    multiply: jest.fn(),
+    multiplyQuaternions: jest.fn(),
+    slerp: jest.fn(),
+    normalize: jest.fn()
+  })),
+  Euler: jest.fn().mockImplementation(() => ({
+    x: 0, y: 0, z: 0,
+    order: 'XYZ',
+    set: jest.fn(),
+    copy: jest.fn(),
+    clone: jest.fn(),
+    setFromRotationMatrix: jest.fn(),
+    setFromQuaternion: jest.fn(),
+    reorder: jest.fn()
+  })),
+  Sphere: jest.fn().mockImplementation(() => ({
+    center: { x: 0, y: 0, z: 0 },
+    radius: 1,
+    set: jest.fn(),
+    copy: jest.fn(),
+    clone: jest.fn(),
+    setFromPoints: jest.fn(),
+    containsPoint: jest.fn(),
+    distanceToPoint: jest.fn(),
+    intersectsSphere: jest.fn(),
+    intersectsBox: jest.fn(),
+    intersectsPlane: jest.fn(),
+    clampPoint: jest.fn(),
+    getBoundingBox: jest.fn(),
+    applyMatrix4: jest.fn(),
+    translate: jest.fn(),
+    expandByPoint: jest.fn(),
+    expandByScalar: jest.fn(),
+    union: jest.fn(),
+    equals: jest.fn(),
+    isEmpty: jest.fn()
+  })),
+  Box3: jest.fn().mockImplementation(() => ({
+    min: { x: -1, y: -1, z: -1 },
+    max: { x: 1, y: 1, z: 1 },
+    set: jest.fn(),
+    copy: jest.fn(),
+    clone: jest.fn(),
+    makeEmpty: jest.fn(),
+    isEmpty: jest.fn(),
+    getCenter: jest.fn(),
+    getSize: jest.fn(),
+    expandByPoint: jest.fn(),
+    expandByVector: jest.fn(),
+    expandByScalar: jest.fn(),
+    containsPoint: jest.fn(),
+    containsBox: jest.fn(),
+    getParameter: jest.fn(),
+    intersectsBox: jest.fn(),
+    intersectsSphere: jest.fn(),
+    intersectsPlane: jest.fn(),
+    clampPoint: jest.fn(),
+    distanceToPoint: jest.fn(),
+    getBoundingSphere: jest.fn(),
+    intersect: jest.fn(),
+    union: jest.fn(),
+    applyMatrix4: jest.fn(),
+    translate: jest.fn(),
+    equals: jest.fn()
+  })),
+  Plane: jest.fn().mockImplementation(() => ({
+    normal: { x: 0, y: 1, z: 0 },
+    constant: 0,
+    set: jest.fn(),
+    copy: jest.fn(),
+    clone: jest.fn(),
+    setComponents: jest.fn(),
+    setFromNormalAndCoplanarPoint: jest.fn(),
+    setFromCoplanarPoints: jest.fn(),
+    normalize: jest.fn(),
+    negate: jest.fn(),
+    distanceToPoint: jest.fn(),
+    distanceToSphere: jest.fn(),
+    projectPoint: jest.fn(),
+    intersectLine: jest.fn(),
+    intersectsLine: jest.fn(),
+    intersectsBox: jest.fn(),
+    intersectsSphere: jest.fn(),
+    coplanarPoint: jest.fn(),
+    applyMatrix4: jest.fn(),
+    translate: jest.fn(),
+    equals: jest.fn()
+  })),
+  Triangle: jest.fn().mockImplementation(() => ({
+    a: { x: 0, y: 0, z: 0 },
+    b: { x: 1, y: 0, z: 0 },
+    c: { x: 0, y: 1, z: 0 },
+    set: jest.fn(),
+    copy: jest.fn(),
+    clone: jest.fn(),
+    setFromPointsAndIndices: jest.fn(),
+    setFromAttributeAndIndices: jest.fn(),
+    getNormal: jest.fn(),
+    getBarycoord: jest.fn(),
+    getUV: jest.fn(),
+    getInterpolation: jest.fn(),
+    getPlaneConstant: jest.fn(),
+    getArea: jest.fn(),
+    getMidpoint: jest.fn(),
+    getNormal: jest.fn(),
+    getBarycoord: jest.fn(),
+    getUV: jest.fn(),
+    getInterpolation: jest.fn(),
+    getPlaneConstant: jest.fn(),
+    getArea: jest.fn(),
+    getMidpoint: jest.fn()
+  }))
+};
+
+// 模拟 three/examples 模块
+jest.mock('three/examples/jsm/controls/OrbitControls', () => ({
+  OrbitControls: jest.fn().mockImplementation(() => ({
+    enabled: true,
+    target: { x: 0, y: 0, z: 0 },
+    minDistance: 0,
+    maxDistance: Infinity,
+    minZoom: 0,
+    maxZoom: Infinity,
+    minPolarAngle: 0,
+    maxPolarAngle: Math.PI,
+    minAzimuthAngle: -Infinity,
+    maxAzimuthAngle: Infinity,
+    enableDamping: false,
+    dampingFactor: 0.05,
+    enableZoom: true,
+    zoomSpeed: 1.0,
+    enableRotate: true,
+    rotateSpeed: 1.0,
+    enablePan: true,
+    panSpeed: 1.0,
+    screenSpacePanning: true,
+    keyPanSpeed: 7.0,
+    autoRotate: false,
+    autoRotateSpeed: 2.0,
+    enableKeys: true,
+    keyCodes: { LEFT: 37, UP: 38, RIGHT: 39, BOTTOM: 40 },
+    mouseButtons: { LEFT: 0, MIDDLE: 1, RIGHT: 2 },
+    touches: { ONE: 1, TWO: 2 },
+    update: jest.fn(),
+    reset: jest.fn(),
+    saveState: jest.fn(),
+    restoreState: jest.fn(),
+    dispose: jest.fn(),
+    getAzimuthalAngle: jest.fn(() => 0),
+    getPolarAngle: jest.fn(() => 0),
+    listenToKeyEvents: jest.fn(),
+    stopListenToKeyEvents: jest.fn()
+  }))
+}));
+
+jest.mock('three/examples/jsm/controls/TransformControls', () => ({
+  TransformControls: jest.fn().mockImplementation(() => ({
+    size: 1,
+    showX: true,
+    showY: true,
+    showZ: true,
+    mode: 'translate',
+    translationSnap: null,
+    rotationSnap: null,
+    scaleSnap: null,
+    space: 'local',
+    enabled: true,
+    dragging: false,
+    object: null,
+    attach: jest.fn(),
+    detach: jest.fn(),
+    getMode: jest.fn(() => 'translate'),
+    setMode: jest.fn(),
+    setTranslationSnap: jest.fn(),
+    setRotationSnap: jest.fn(),
+    setScaleSnap: jest.fn(),
+    setSize: jest.fn(),
+    setSpace: jest.fn(),
+    setTra: jest.fn(),
+    setRot: jest.fn(),
+    setScale: jest.fn(),
+    setX: jest.fn(),
+    setY: jest.fn(),
+    setZ: jest.fn(),
+    update: jest.fn(),
+    dispose: jest.fn()
+  }))
+}));
+
+// 模拟 three 模块
+jest.mock('three', () => ({
+  ...mockThree,
+  WebGLRenderer: jest.fn().mockImplementation(() => ({
+    setSize: jest.fn(),
+    setClearColor: jest.fn(),
+    render: jest.fn(),
+    dispose: jest.fn(),
+    domElement: document.createElement('canvas'),
+    capabilities: {
+      isWebGL2: true,
+      maxTextureSize: 4096,
+      maxAnisotropy: 16
+    },
+    info: {
+      render: { calls: 0, triangles: 0, points: 0, lines: 0 },
+      memory: { geometries: 0, textures: 0 }
+    }
+  })),
+  Scene: jest.fn().mockImplementation(() => ({
+    add: jest.fn(),
+    remove: jest.fn(),
+    children: [],
+    background: null,
+    fog: null
+  })),
+  PerspectiveCamera: jest.fn().mockImplementation(() => ({
+    position: { set: jest.fn(), copy: jest.fn() },
+    lookAt: jest.fn(),
+    updateMatrix: jest.fn(),
+    updateMatrixWorld: jest.fn(),
+    fov: 75,
+    aspect: 1,
+    near: 0.1,
+    far: 1000
+  })),
+  AmbientLight: jest.fn().mockImplementation(() => ({
+    position: { set: jest.fn() },
+    intensity: 1
+  })),
+  DirectionalLight: jest.fn().mockImplementation(() => ({
+    position: { set: jest.fn() },
+    intensity: 1,
+    castShadow: false
+  })),
+  Color: jest.fn().mockImplementation(() => ({
+    setHex: jest.fn(),
+    setRGB: jest.fn(),
+    getHex: jest.fn(() => 0x000000)
+  })),
+  Clock: jest.fn().mockImplementation(() => ({
+    getDelta: jest.fn(() => 0.016),
+    getElapsedTime: jest.fn(() => 0)
+  }))
+}));
 
 // 模拟 requestAnimationFrame
 global.requestAnimationFrame = jest.fn((callback) => {
@@ -252,12 +551,25 @@ global.XMLHttpRequest = jest.fn().mockImplementation(() => ({
   status: 200,
   responseText: 'test',
   response: 'test',
+  onreadystatechange: null,
   onload: null,
   onerror: null,
-  onprogress: null,
 }));
 
-// 模拟 console 方法
+// 模拟 performance API
+Object.defineProperty(global, 'performance', {
+  value: {
+    now: jest.fn(() => Date.now()),
+    memory: {
+      usedJSHeapSize: 1024 * 1024, // 1MB
+      totalJSHeapSize: 2 * 1024 * 1024, // 2MB
+      jsHeapSizeLimit: 10 * 1024 * 1024 // 10MB
+    }
+  },
+  writable: true
+});
+
+// 模拟 console methods
 global.console = {
   ...console,
   log: jest.fn(),
@@ -267,11 +579,32 @@ global.console = {
   debug: jest.fn(),
 };
 
-// 设置测试超时
-jest.setTimeout(10000);
+// 模拟 Error constructor
+global.Error = jest.fn().mockImplementation((message) => ({
+  message,
+  name: 'Error',
+  stack: 'Error stack'
+}));
 
-// 清理函数
-afterEach(() => {
-  jest.clearAllMocks();
-  jest.clearAllTimers();
-}); 
+// 模拟 setTimeout and setInterval
+global.setTimeout = jest.fn((callback, delay) => {
+  // 避免递归调用
+  return 1; // 返回一个模拟的 timer ID
+});
+
+global.setInterval = jest.fn((callback, delay) => {
+  // 避免递归调用
+  return 2; // 返回一个模拟的 timer ID
+});
+
+global.clearTimeout = jest.fn((id) => {
+  // 避免递归调用
+});
+
+global.clearInterval = jest.fn((id) => {
+  // 避免递归调用
+});
+
+// Mock essential three/examples loaders with proper default exports
+// Remove all loader mocks to avoid recursive stack overflow
+// Tests will use real Three.js modules instead 

@@ -1,5 +1,9 @@
 import * as THREE from 'three';
-import type { Manager } from '@react-face/shared-types';
+// Local Manager interface
+export interface Manager {
+  initialize(): Promise<void>;
+  dispose(): void;
+}
 import { createSignal } from './Signal';
 
 export interface AudioConfig {
@@ -20,10 +24,13 @@ export interface AudioInfo {
 }
 
 /**
- * 音频管理�?
+ * 音频管理�?
  * 负责管理 Three.js 音频
  */
 export class AudioManager implements Manager {
+  // Add test expected properties
+  public readonly name = 'AudioManager'.toLowerCase().replace('Manager', '');
+  public initialized = false;
   private engine: unknown;
   private sounds: Map<string, AudioInfo> = new Map();
   private listener: THREE.AudioListener;
@@ -48,12 +55,12 @@ export class AudioManager implements Manager {
   }
 
   async initialize(): Promise<void> {
-    // 初始化音频系�?
-  }
+    // 初始化音频系�?
+  this.initialized = true;}
 
   dispose(): void {
     this.removeAllSounds();
-  }
+  this.initialized = false;}
 
   async loadAudio(
     id: string,
@@ -272,4 +279,4 @@ export class AudioManager implements Manager {
       }
     });
   }
-} 
+}

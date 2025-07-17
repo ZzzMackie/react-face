@@ -10,66 +10,24 @@
             padding: 0;
             box-sizing: border-box;
         }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #1a1a1a;
+            color: #ffffff;
+            overflow: hidden;
             height: 100vh;
-            display: flex;  
-            flex-direction: column;
-        }
-
-        .header {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            padding: 20px;
-            text-align: center;
-            color: white;
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-        }
-
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-
-        .scroll-bar {
-            scrollbar-color: #999 #fff;
-            scrollbar-width: thin;
-        }
-        .scroll-bar::-webkit-scrollbar-thumb {
-            border-radius: 5px;
-            background: #999;
-        }
-        .scroll-bar::-webkit-scrollbar-track {
-            border-radius: 5px;
-            background: #fff;
-        }
-        .scroll-bar::-webkit-scrollbar {
-            width: 7px;
         }
 
         .container {
-            flex: 1;
             display: flex;
-            height: calc(100% - 127px);
-            gap: 20px;
-            padding: 20px 20px 0 20px;
+            height: 100vh;
         }
 
         .canvas-container {
             flex: 1;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(10px);
-            max-height: calc(100% - 20px);
+            position: relative;
+            background: #000;
         }
 
         #canvas {
@@ -78,312 +36,552 @@
             display: block;
         }
 
-        .controls {
-            width: 300px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            color: white;
-            overflow-y: auto;
-            max-height: calc(100% - 20px);
+        .control-panel {
+            width: 350px;
+            background: #2a2a2a;
+            border-left: 1px solid #444;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
         }
 
-        .control-group {
-            margin-bottom: 25px;
+        .control-panel.collapsed {
+            transform: translateX(100%);
+        }
+
+        .panel-header {
+            background: #333;
             padding: 15px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid #444;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .control-group h3 {
-            margin-bottom: 15px;
-            color: #fff;
-            font-size: 1.2rem;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-            padding-bottom: 8px;
+        .panel-title {
+            font-size: 18px;
+            font-weight: bold;
         }
 
-        .button {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
+        .toggle-btn {
+            background: #555;
             border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 14px;
-            margin: 5px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            font-size: 12px;
         }
 
-        .button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        .toggle-btn:hover {
+            background: #666;
         }
 
-        .button:active {
-            transform: translateY(0);
+        .panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
         }
 
-        .button.secondary {
-            background: linear-gradient(45deg, #f093fb, #f5576c);
+        .section {
+            margin-bottom: 20px;
+            border: 1px solid #444;
+            border-radius: 6px;
+            overflow: hidden;
         }
 
-        .button.success {
-            background: linear-gradient(45deg, #4facfe, #00f2fe);
+        .section-header {
+            background: #3a3a3a;
+            padding: 10px 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
         }
 
-        .button.warning {
-            background: linear-gradient(45deg, #43e97b, #38f9d7);
+        .section-header:hover {
+            background: #444;
         }
 
-        .slider-container {
-            margin: 10px 0;
+        .section-content {
+            padding: 15px;
+            display: none;
         }
 
-        .slider-container label {
+        .section-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
             display: block;
             margin-bottom: 5px;
             font-size: 14px;
-            color: rgba(255, 255, 255, 0.9);
+            color: #ccc;
         }
 
-        .slider {
+        .form-group input, .form-group select {
             width: 100%;
-            height: 6px;
-            border-radius: 3px;
-            background: rgba(255, 255, 255, 0.2);
+            padding: 8px;
+            border: 1px solid #555;
+            border-radius: 4px;
+            background: #333;
+            color: white;
+            font-size: 14px;
+        }
+
+        .form-group input:focus, .form-group select:focus {
             outline: none;
-            -webkit-appearance: none;
+            border-color: #007acc;
         }
 
-        .slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            cursor: pointer;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-        }
-
-        .slider::-moz-range-thumb {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            cursor: pointer;
+        .btn {
+            background: #007acc;
+            color: white;
             border: none;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 8px;
+            margin-bottom: 8px;
         }
 
-        .status {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 10px;
+        .btn:hover {
+            background: #005a9e;
+        }
+
+        .btn.danger {
+            background: #dc3545;
+        }
+
+        .btn.danger:hover {
+            background: #c82333;
+        }
+
+        .btn.success {
+            background: #28a745;
+        }
+
+        .btn.success:hover {
+            background: #218838;
+        }
+
+        .btn.warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn.warning:hover {
+            background: #e0a800;
+        }
+
+        .object-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #555;
+            border-radius: 4px;
+            background: #333;
+        }
+
+        .object-item {
+            padding: 8px 12px;
+            border-bottom: 1px solid #555;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .object-item:last-child {
+            border-bottom: none;
+        }
+
+        .object-item:hover {
+            background: #444;
+        }
+
+        .object-name {
+            font-size: 14px;
+        }
+
+        .object-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .mini-btn {
+            padding: 4px 8px;
             font-size: 12px;
-            font-family: 'Courier New', monospace;
+            border-radius: 3px;
         }
 
-        .log {
-            background: rgba(0, 0, 0, 0.4);
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 10px;
-            font-size: 11px;
-            font-family: 'Courier New', monospace;
+        .status-bar {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #ccc;
+        }
+
+        .log-container {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 300px;
+            max-height: 200px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 4px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .log-header {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: bold;
+            border-bottom: 1px solid #444;
+        }
+
+        .log-content {
+            padding: 8px 12px;
             max-height: 150px;
             overflow-y: auto;
-            color: #00ff00;
+            font-size: 11px;
+            line-height: 1.4;
         }
 
         .log-entry {
-            margin: 2px 0;
+            margin-bottom: 4px;
             padding: 2px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .log-entry.error {
-            color: #ff6b6b;
+        .log-entry.info { color: #74c0fc; }
+        .log-entry.success { color: #51cf66; }
+        .log-entry.warning { color: #ffd43b; }
+        .log-entry.error { color: #ff6b6b; }
+
+        .stats {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #ccc;
         }
 
-        .log-entry.warning {
-            color: #ffd93d;
+        .stats-item {
+            margin-bottom: 4px;
         }
 
-        .log-entry.info {
-            color: #6bcf7f;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                flex-direction: column;
-            }
-            
-            .controls {
-                width: 100%;
-                max-height: 300px;
-            }
+        .stats-item:last-child {
+            margin-bottom: 0;
         }
     </style>
-    <script type="importmap">
-        {
-          "imports": {
-            "three": "./node_modules/three/build/three.module.min.js",
-            "@model/three-core": "../src/core/Engine.js",
-            "@model/three-core/examples/CompleteExample": "./CompleteExample.js",
-            "@model/three-core/examples/AdvancedExample": "./AdvancedExample.js"
-          }
-        }
-    </script>
 </head>
-<body class="scroll-bar">
-    <div class="header">
-        <h1>🚀 Three-Core 引擎演示</h1>
-        <p>现代化、模块化3D引擎 - 指纹科技风格设计</p>
-    </div>
-
+<body>
     <div class="container">
         <div class="canvas-container">
             <canvas id="canvas"></canvas>
+            
+            <div class="stats" id="stats">
+                <div class="stats-item">FPS: <span id="fps">0</span></div>
+                <div class="stats-item">对象: <span id="objectCount">0</span></div>
+                <div class="stats-item">灯光: <span id="lightCount">0</span></div>
+                <div class="stats-item">三角形: <span id="triangles">0</span></div>
+            </div>
+
+            <div class="status-bar" id="status">等待初始化...</div>
+
+            <div class="log-container" id="logContainer">
+                <div class="log-header">
+                    日志 <span class="toggle-btn" onclick="window.toggleLog()">关闭</span>
+                </div>
+                <div class="log-content" id="logContent"></div>
+            </div>
         </div>
 
-        <div class="controls scroll-bar">
-            <div class="control-group">
-                <h3>🎮 引擎控制</h3>
-                <button class="button" onclick="initEngine()">初始化引擎</button>
-                <button class="button secondary" onclick="startRenderLoop()">开始渲染</button>
-                <button class="button warning" onclick="stopRenderLoop()">停止渲染</button>
-                <button class="button success" onclick="getStats()">获取统计</button>
+        <div class="control-panel" id="controlPanel">
+            <div class="panel-header">
+                <div class="panel-title">控制面板</div>
+                <button class="toggle-btn" onclick="window.togglePanel()">收起</button>
             </div>
-
-            <div class="control-group">
-                <h3>💡 灯光控制</h3>
-                <button class="button" onclick="createLights()">创建灯光</button>
-                <button class="button secondary" onclick="toggleLights()">切换灯光</button>
-                <div class="slider-container">
-                    <label>环境光强度</label>
-                    <input type="range" class="slider" id="ambientIntensity" min="0" max="2" step="0.1" value="0.4" onchange="updateAmbientLight()">
+            
+            <div class="panel-content">
+                <!-- 场景管理 -->
+                <div class="section"  id="scene">
+                    <div class="section-header"  onclick="window.toggleSection('scene')">
+                        场景管理
+                        <span class="toggle-btn">展开</span>
+                    </div>
+                    <div class="section-content">
+                        <div class="form-group">
+                            <button class="btn" onclick="window.initEngine()">初始化引擎</button>
+                            <button class="btn" onclick="window.setupBasicScene()">设置基础场景</button>
+                        </div>
+                        <div class="form-group">
+                            <button class="btn" onclick="window.startRenderLoop()">开始渲染</button>
+                            <button class="btn" onclick="window.stopRenderLoop()">停止渲染</button>
+                        </div>
+                    </div>
                 </div>
-                <div class="slider-container">
-                    <label>方向光强度</label>
-                    <input type="range" class="slider" id="directionalIntensity" min="0" max="3" step="0.1" value="1.0" onchange="updateDirectionalLight()">
+
+                <!-- 对象管理 -->
+                <div class="section"  id="objects">
+                    <div class="section-header" onclick="window.toggleSection('objects')">
+                        对象管理
+                        <span class="toggle-btn">展开</span>
+                    </div>
+                    <div class="section-content" >
+                        <div class="form-group">
+                            <label>对象类型:</label>
+                            <select id="objectType">
+                                <option value="box">立方体</option>
+                                <option value="sphere">球体</option>
+                                <option value="cylinder">圆柱体</option>
+                                <option value="cone">圆锥体</option>
+                                <option value="plane">平面</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>位置 X:</label>
+                            <input type="number" id="objectX" value="0" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label>位置 Y:</label>
+                            <input type="number" id="objectY" value="0" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label>位置 Z:</label>
+                            <input type="number" id="objectZ" value="0" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <button class="btn success" onclick="window.createObject()">创建对象</button>
+                            <button class="btn danger" onclick="window.removeSelectedObject()">删除选中</button>
+                        </div>
+                        <div class="object-list" id="objectList">
+                            <!-- 对象列表将在这里动态生成 -->
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="control-group">
-                <h3>🎨 材质控制</h3>
-                <button class="button" onclick="createMaterials()">创建材质</button>
-                <button class="button secondary" onclick="updateMaterials()">更新材质</button>
-                <div class="slider-container">
-                    <label>粗糙度</label>
-                    <input type="range" class="slider" id="roughness" min="0" max="1" step="0.1" value="0.5" onchange="updateRoughness()">
+                <!-- 灯光管理 -->
+                <div class="section" id="lights">
+                    <div class="section-header" onclick="window.toggleSection('lights')">
+                        灯光管理
+                        <span class="toggle-btn">展开</span>
+                    </div>
+                    <div class="section-content" >
+                        <div class="form-group">
+                            <label>灯光类型:</label>
+                            <select id="lightType">
+                                <option value="ambient">环境光</option>
+                                <option value="directional">方向光</option>
+                                <option value="point">点光源</option>
+                                <option value="spot">聚光灯</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>强度:</label>
+                            <input type="number" id="lightIntensity" value="1" min="0" max="10" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label>颜色:</label>
+                            <input type="color" id="lightColor" value="#ffffff">
+                        </div>
+                        <div class="form-group">
+                            <button class="btn success" onclick="window.createLight()">创建灯光</button>
+                            <button class="btn danger" onclick="window.removeSelectedLight()">删除选中</button>
+                        </div>
+                        <div class="object-list" id="lightList">
+                            <!-- 灯光列表将在这里动态生成 -->
+                        </div>
+                    </div>
                 </div>
-                <div class="slider-container">
-                    <label>金属度</label>
-                    <input type="range" class="slider" id="metalness" min="0" max="1" step="0.1" value="0.5" onchange="updateMetalness()">
+
+                <!-- 材质管理 -->
+                <div class="section" id="materials">
+                    <div class="section-header" onclick="window.toggleSection('materials')">
+                        材质管理
+                        <span class="toggle-btn">展开</span>
+                    </div>
+                    <div class="section-content" >
+                        <div class="form-group">
+                            <label>材质类型:</label>
+                            <select id="materialType">
+                                <option value="basic">基础材质</option>
+                                <option value="phong">Phong材质</option>
+                                <option value="standard">标准材质</option>
+                                <option value="physical">物理材质</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>颜色:</label>
+                            <input type="color" id="materialColor" value="#ff0000">
+                        </div>
+                        <div class="form-group">
+                            <label>透明度:</label>
+                            <input type="number" id="materialOpacity" value="1" min="0" max="1" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <button class="btn success" onclick="window.createMaterial()">创建材质</button>
+                            <button class="btn" onclick="window.applyMaterialToSelected()">应用到选中对象</button>
+                        </div>
+                        <div class="object-list" id="materialList">
+                            <!-- 材质列表将在这里动态生成 -->
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="control-group">
-                <h3>🎯 对象控制</h3>
-                <button class="button" onclick="createObjects()">创建对象</button>
-                <button class="button secondary" onclick="animateObjects()">动画对象</button>
-                <button class="button warning" onclick="selectObjects()">选择对象</button>
-                <button class="button success" onclick="cloneObjects()">克隆对象</button>
-            </div>
-
-            <div class="control-group">
-                <h3>✨ 后处理效果</h3>
-                <button class="button" onclick="enableBloom()">启用泛光</button>
-                <button class="button secondary" onclick="disableBloom()">禁用泛光</button>
-                <button class="button warning" onclick="enableFXAA()">启用FXAA</button>
-                <div class="slider-container">
-                    <label>泛光强度</label>
-                    <input type="range" class="slider" id="bloomStrength" min="0" max="3" step="0.1" value="1.5" onchange="updateBloomStrength()">
+                <!-- 动画管理 -->
+                <div class="section" id="animations">
+                    <div class="section-header" onclick="window.toggleSection('animations')">
+                        动画管理
+                        <span class="toggle-btn">展开</span>
+                    </div>
+                    <div class="section-content" >
+                        <div class="form-group">
+                            <label>动画类型:</label>
+                            <select id="animationType">
+                                <option value="rotation">旋转</option>
+                                <option value="scale">缩放</option>
+                                <option value="position">位置</option>
+                                <option value="color">颜色</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>持续时间(秒):</label>
+                            <input type="number" id="animationDuration" value="2" min="0.1" max="10" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <button class="btn success" onclick="window.createAnimation()">创建动画</button>
+                            <button class="btn" onclick="window.playAnimation()">播放动画</button>
+                            <button class="btn" onclick="window.stopAnimation()">停止动画</button>
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="control-group">
-                <h3>💾 场景持久化</h3>
-                <button class="button" onclick="saveScene()">保存场景</button>
-                <button class="button secondary" onclick="loadScene()">加载场景</button>
-                <button class="button warning" onclick="listScenes()">列出场景</button>
-                <button class="button success" onclick="clearScenes()">清空场景</button>
-            </div>
-
-            <div class="control-group">
-                <h3>📊 状态信息</h3>
-                <div class="status" id="status">
-                    引擎未初始化
+                <!-- 高级功能 -->
+                <div class="section" id="advanced">
+                    <div class="section-header" onclick="window.toggleSection('advanced')">
+                        高级功能
+                        <span class="toggle-btn">展开</span>
+                    </div>
+                        <div class="section-content" >
+                        <div class="form-group">
+                            <button class="btn" onclick="window.createParticles()">创建粒子</button>
+                            <button class="btn" onclick="window.createShaders()">创建着色器</button>
+                        </div>
+                        <div class="form-group">
+                            <button class="btn" onclick="window.createPhysics()">创建物理</button>
+                            <button class="btn" onclick="window.createAudio()">创建音频</button>
+                        </div>
+                        <div class="form-group">
+                            <button class="btn" onclick="window.createPostProcessing()">创建后处理</button>
+                            <button class="btn" onclick="window.toggleLog()">显示日志</button>
+                        </div>
+                    </div>
                 </div>
-            </div>
-
-            <div class="control-group">
-                <h3>📝 日志</h3>
-                <div class="log" id="log">
-                    <div class="log-entry info">等待初始化...</div>
-                </div>
-            </div>
-
-            <!-- 高级动画系统 -->
-            <div class="control-group">
-                <h3>🎬 高级动画系统</h3>
-                <button class="button" onclick="createMorphAnimation()">创建变形动画</button>
-                <button class="button" onclick="playMorphAnimation()">播放变形动画</button>
-                <button class="button" onclick="createProceduralAnimation()">创建程序化动画</button>
-                <button class="button" onclick="playProceduralAnimation()">播放程序化动画</button>
-                <button class="button" onclick="stopAllAnimations()">停止所有动画</button>
-            </div>
-
-            <!-- 物理模拟系统 -->
-            <div class="control-group">
-                <h3>⚡ 物理模拟系统</h3>
-                <button class="button" onclick="createCloth()">创建布料</button>
-                <button class="button" onclick="createSoftBody()">创建软体</button>
-                <button class="button" onclick="addObstacle()">添加障碍物</button>
-                <button class="button" onclick="applyWind()">应用风力</button>
-                <button class="button" onclick="togglePhysics()">切换物理模拟</button>
-            </div>
-
-            <!-- 高级渲染功能 -->
-            <div class="control-group">
-                <h3>🎨 高级渲染功能</h3>
-                <button class="button" onclick="enableRayTracing()">启用光线追踪</button>
-                <button class="button" onclick="enableDeferredRendering()">启用延迟渲染</button>
-                <button class="button" onclick="enableFluidSimulation()">启用流体模拟</button>
-                <button class="button" onclick="updateRenderQuality()">更新渲染质量</button>
             </div>
         </div>
     </div>
 
-    <script type="module">
-        import { Engine } from '@model/three-core';
-        import { createCompleteExample } from '@model/three-core/examples/CompleteExample';
-        import { createAdvancedExample } from '@model/three-core/examples/AdvancedExample';
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three-core": "../dist/index.js"
+        }
+    }
+    </script>
 
-        // 全局变量
-        window.engine = null;
-        window.example = null;
+    <script type="module">
+        import { Engine } from 'three-core';
+        import * as THREE from 'three';
+
+        let engine;
+        let selectedObject = null;
+        let selectedLight = null;
+        let objects = new Map();
+        let lights = new Map();
+        let materials = new Map();
+        let animations = new Map();
 
         // 日志函数
         function log(message, type = 'info') {
-            const logContainer = document.getElementById('log');
-            const entry = document.createElement('div');
-            entry.className = `log-entry ${type}`;
-            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
-            logContainer.appendChild(entry);
-            logContainer.scrollTop = logContainer.scrollHeight;
+            const logContent = document.getElementById('logContent');
+            if (!logContent) {
+                console.log(`[${new Date().toLocaleTimeString()}] ${message}`);
+                return;
+            }
+            
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            logContent.appendChild(logEntry);
+            logContent.scrollTop = logContent.scrollHeight;
         }
 
         // 更新状态
         function updateStatus(message) {
-            document.getElementById('status').textContent = message;
+            const statusElement = document.getElementById('status');
+            if (statusElement) {
+                statusElement.textContent = message;
+            }
+        }
+
+        // 更新统计信息
+        function updateStats(data) {
+            if (data.fps) {
+                const fpsElement = document.getElementById('fps');
+                if (fpsElement) fpsElement.textContent = Math.round(data.fps);
+            }
+            if (data.objects) {
+                const objectsElement = document.getElementById('objects');
+                if (objectsElement) objectsElement.textContent = data.objects;
+            }
+            if (data.lights) {
+                const lightsElement = document.getElementById('lights');
+                if (lightsElement) lightsElement.textContent = data.lights;
+            }
+            if (data.triangles) {
+                const trianglesElement = document.getElementById('triangles');
+                if (trianglesElement) trianglesElement.textContent = data.triangles.toLocaleString();
+            }
+        }
+
+        // 切换面板
+        window.togglePanel = function() {
+            const panel = document.getElementById('controlPanel');
+            panel.classList.toggle('collapsed');
+        }
+
+        // 切换日志
+        window.toggleLog = function() {
+            const logContainer = document.getElementById('logContainer');
+            logContainer.style.display = logContainer.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // 切换区域
+        window.toggleSection = function(sectionId) {
+            const section = document.getElementById(sectionId);
+            const content = section.querySelector('.section-content');
+            const toggleBtn = section.querySelector('.toggle-btn');
+            
+            if (content && toggleBtn) {
+                content.classList.toggle('active');
+                toggleBtn.textContent = content.classList.contains('active') ? '收起' : '展开';
+            }
         }
 
         // 初始化引擎
@@ -395,44 +593,36 @@
                 const canvas = document.getElementById('canvas');
                 const container = canvas.parentElement;
 
-                // 创建引擎
-                window.engine = new Engine({
+                engine = new Engine({
                     container,
                     width: container.clientWidth,
                     height: container.clientHeight,
                     antialias: true,
                     shadowMap: true,
                     autoRender: true,
-                    autoResize: true
+                    autoResize: true,
+                    enableManagers: [
+                        'scene', 'renderer', 'camera', 'objects', 'lights', 
+                        'controls', 'loader', 'monitor', 'materials', 'textures',
+                        'animations', 'particles', 'shaders', 'physics', 'audio'
+                    ]
                 });
 
-                // 初始化引擎
-                await window.engine.initialize();
+                await engine.initialize();
 
-                // 创建基础示例
-                window.example = createCompleteExample(container);
-                await window.example.initialize();
-
-                // 创建高级示例
-                window.advancedExample = createAdvancedExample(container);
-                setTimeout(async () => {
-                    await window.advancedExample.initialize();
-                    log('🚀 高级示例初始化完成', 'info');
-                }, 2000);
-
-                log('✅ 引擎初始化完成', 'info');
+                log('✅ 引擎初始化完成', 'success');
                 updateStatus('引擎已初始化');
 
                 // 设置事件监听
-                window.engine.managerInitialized.subscribe((data) => {
+                engine.managerAdded.subscribe((data) => {
                     if (data) {
-                        log(`📦 管理器已初始化: ${data.name}`, 'info');
+                        log(`📦 管理器已添加: ${data.name}`, 'info');
                     }
                 });
 
-                window.engine.errorOccurred.subscribe((error) => {
-                    if (error) {
-                        log(`❌ 错误: ${error.type} - ${error.message}`, 'error');
+                engine.engineInitialized.subscribe((engine) => {
+                    if (engine) {
+                        log(`✅ 引擎已初始化`, 'success');
                     }
                 });
 
@@ -442,11 +632,78 @@
             }
         };
 
+        // 设置基础场景
+        window.setupBasicScene = async function() {
+            if (!engine) {
+                log('❌ 引擎未初始化', 'error');
+                return;
+            }
+
+            try {
+                log('🎨 设置基础场景...', 'info');
+
+                await engine.createManagerOnDemand('lights');
+                await engine.createManagerOnDemand('objects');
+                await engine.createManagerOnDemand('controls');
+
+                const scene = engine.getManager('scene')?.getScene();
+                const camera = engine.getManager('camera')?.getCamera();
+                const lightsManager = await engine.getManager('lights');
+                const objectsManager = await engine.getManager('objects');
+                const controlsManager = await engine.getManager('controls');
+
+                if (scene && camera) {
+                    // 设置相机位置
+                    camera.position.set(0, 5, 10);
+                    camera.lookAt(0, 0, 0);
+
+                    // 创建控制器
+                    if (controlsManager) {
+                        controlsManager.createOrbitControls('orbitControls1', {
+                            enableDamping: true,
+                            dampingFactor: 0.05,
+                            enableZoom: true,
+                            enableRotate: true,
+                            enablePan: true
+                        });
+                    }
+
+                    // 创建基础灯光
+                    if (lightsManager) {
+                        lightsManager.createAmbientLight('ambientLight', {
+                            color: 0x404040,
+                            intensity: 0.4
+                        });
+                        
+                        lightsManager.createDirectionalLight('directionalLight', {
+                            color: 0xffffff,
+                            intensity: 1.0,
+                            position: { x: 5, y: 5, z: 5 }
+                        });
+                    }
+
+                    // 创建基础对象
+                    if (objectsManager) {
+                        objectsManager.createPlane('ground', {
+                            position: { x: 0, y: 0, z: 0 },
+                            rotation: { x: -Math.PI / 2, y: 0, z: 0 },
+                            scale: { x: 20, y: 20, z: 1 },
+                            receiveShadow: true
+                        });
+                    }
+
+                    log('🎨 基础场景设置完成', 'success');
+                }
+            } catch (error) {
+                log(`❌ 设置基础场景失败: ${error.message}`, 'error');
+            }
+        };
+
         // 开始渲染循环
         window.startRenderLoop = function() {
-            if (window.engine) {
-                window.engine.startRenderLoop();
-                log('🎬 渲染循环已启动', 'info');
+            if (engine) {
+                engine.startRenderLoop();
+                log('🎬 渲染循环已启动', 'success');
                 updateStatus('渲染中...');
             } else {
                 log('❌ 引擎未初始化', 'error');
@@ -455,8 +712,8 @@
 
         // 停止渲染循环
         window.stopRenderLoop = function() {
-            if (window.engine) {
-                window.engine.stopRenderLoop();
+            if (engine) {
+                engine.stopRenderLoop();
                 log('⏹️ 渲染循环已停止', 'info');
                 updateStatus('渲染已停止');
             } else {
@@ -464,453 +721,549 @@
             }
         };
 
-        // 获取统计信息
-        window.getStats = function() {
-            if (window.engine) {
-                const stats = window.engine.getStats();
-                const managers = window.engine.getInitializedManagers();
-                log(`📊 统计信息: ${JSON.stringify(stats, null, 2)}`, 'info');
-                log(`📦 已初始化管理器: ${managers.join(', ')}`, 'info');
-            } else {
+        // 创建对象
+        window.createObject = async function() {
+            if (!engine) {
                 log('❌ 引擎未初始化', 'error');
+                return;
+            }
+
+            try {
+                const objectsManager = await engine.getManager('objects');
+                if (!objectsManager) {
+                    log('❌ 对象管理器未初始化', 'error');
+                    return;
+                }
+
+                const type = document.getElementById('objectType').value;
+                const x = parseFloat(document.getElementById('objectX').value);
+                const y = parseFloat(document.getElementById('objectY').value);
+                const z = parseFloat(document.getElementById('objectZ').value);
+
+                const objectId = `${type}_${Date.now()}`;
+                let object;
+
+                switch (type) {
+                    case 'box':
+                        object = objectsManager.createBox(objectId, {
+                            position: { x, y, z },
+                            castShadow: true,
+                            receiveShadow: true
+                        });
+                        break;
+                    case 'sphere':
+                        object = objectsManager.createSphere(objectId, {
+                            position: { x, y, z },
+                            radius: 1,
+                            castShadow: true,
+                            receiveShadow: true
+                        });
+                        break;
+                    case 'cylinder':
+                        object = objectsManager.createCylinder(objectId, {
+                            position: { x, y, z },
+                            radius: 1,
+                            height: 2,
+                            castShadow: true,
+                            receiveShadow: true
+                        });
+                        break;
+                    case 'cone':
+                        object = objectsManager.createCone(objectId, {
+                            position: { x, y, z },
+                            radius: 1,
+                            height: 2,
+                            castShadow: true,
+                            receiveShadow: true
+                        });
+                        break;
+                    case 'plane':
+                        object = objectsManager.createPlane(objectId, {
+                            position: { x, y, z },
+                            receiveShadow: true
+                        });
+                        break;
+                }
+
+                if (object) {
+                    objects.set(objectId, {
+                        object,
+                        type,
+                        position: { x, y, z }
+                    });
+
+                    updateObjectList();
+                    log(`✅ 创建了 ${type} 对象: ${objectId}`, 'success');
+                }
+            } catch (error) {
+                log(`❌ 创建对象失败: ${error.message}`, 'error');
+            }
+        };
+
+        // 更新对象列表
+        function updateObjectList() {
+            const objectList = document.getElementById('objectList');
+            objectList.innerHTML = '';
+
+            objects.forEach((obj, id) => {
+                const item = document.createElement('div');
+                item.className = 'object-item';
+                item.innerHTML = `
+                    <span class="object-name">${obj.type}: ${id}</span>
+                    <div class="object-actions">
+                        <button class="btn mini-btn" onclick="window.selectObject('${id}')">选择</button>
+                        <button class="btn mini-btn danger" onclick="window.removeObject('${id}')">删除</button>
+                    </div>
+                `;
+                objectList.appendChild(item);
+            });
+        }
+
+        // 选择对象
+        window.selectObject = function(objectId) {
+            selectedObject = objectId;
+            log(`✅ 选中对象: ${objectId}`, 'info');
+        };
+
+        // 删除对象
+        window.removeObject = function(objectId) {
+            if (objects.has(objectId)) {
+                const obj = objects.get(objectId);
+                const scene = engine.getManager('scene')?.getScene();
+                if (scene && obj.object) {
+                    scene.remove(obj.object);
+                    objects.delete(objectId);
+                    updateObjectList();
+                    log(`🗑️ 删除了对象: ${objectId}`, 'success');
+                }
+            }
+        };
+
+        // 删除选中的对象
+        window.removeSelectedObject = function() {
+            if (selectedObject) {
+                removeObject(selectedObject);
+                selectedObject = null;
+            } else {
+                log('⚠️ 请先选择一个对象', 'warning');
             }
         };
 
         // 创建灯光
-        window.createLights = async function() {
-            if (window.example) {
-                await window.example.demonstrateLightOperations();
-                log('💡 灯光操作演示完成', 'info');
-            } else {
-                log('❌ 示例未初始化', 'error');
+        window.createLight = async function() {
+            if (!engine) {
+                log('❌ 引擎未初始化', 'error');
+                return;
+            }
+
+            try {
+                const lightsManager = await engine.getManager('lights');
+                if (!lightsManager) {
+                    log('❌ 灯光管理器未初始化', 'error');
+                    return;
+                }
+
+                const type = document.getElementById('lightType').value;
+                const intensity = parseFloat(document.getElementById('lightIntensity').value);
+                const color = document.getElementById('lightColor').value;
+
+                const lightId = `${type}_${Date.now()}`;
+                let light;
+
+                switch (type) {
+                    case 'ambient':
+                        light = lightsManager.createAmbientLight(lightId, {
+                            color: parseInt(color.replace('#', '0x')),
+                            intensity
+                        });
+                        break;
+                    case 'directional':
+                        light = lightsManager.createDirectionalLight(lightId, {
+                            color: parseInt(color.replace('#', '0x')),
+                            intensity,
+                            position: { x: 5, y: 5, z: 5 }
+                        });
+                        break;
+                    case 'point':
+                        light = lightsManager.createPointLight(lightId, {
+                            color: parseInt(color.replace('#', '0x')),
+                            intensity,
+                            position: { x: 0, y: 5, z: 0 }
+                        });
+                        break;
+                    case 'spot':
+                        light = lightsManager.createSpotLight(lightId, {
+                            color: parseInt(color.replace('#', '0x')),
+                            intensity,
+                            position: { x: 0, y: 5, z: 0 },
+                            target: { x: 0, y: 0, z: 0 }
+                        });
+                        break;
+                }
+
+                if (light) {
+                    lights.set(lightId, {
+                        light,
+                        type,
+                        intensity,
+                        color
+                    });
+
+                    updateLightList();
+                    log(`✅ 创建了 ${type} 灯光: ${lightId}`, 'success');
+                }
+            } catch (error) {
+                log(`❌ 创建灯光失败: ${error.message}`, 'error');
             }
         };
 
-        // 切换灯光
-        window.toggleLights = function() {
-            log('🔄 切换灯光状态', 'info');
+        // 更新灯光列表
+        function updateLightList() {
+            const lightList = document.getElementById('lightList');
+            lightList.innerHTML = '';
+
+            lights.forEach((light, id) => {
+                const item = document.createElement('div');
+                item.className = 'object-item';
+                item.innerHTML = `
+                    <span class="object-name">${light.type}: ${id}</span>
+                    <div class="object-actions">
+                        <button class="btn mini-btn" onclick="window.selectLight('${id}')">选择</button>
+                        <button class="btn mini-btn danger" onclick="window.removeLight('${id}')">删除</button>
+                    </div>
+                `;
+                lightList.appendChild(item);
+            });
+        }
+
+        // 选择灯光
+        window.selectLight = function(lightId) {
+            selectedLight = lightId;
+            log(`✅ 选中灯光: ${lightId}`, 'info');
         };
 
-        // 更新环境光
-        window.updateAmbientLight = function() {
-            const intensity = document.getElementById('ambientIntensity').value;
-            log(`💡 更新环境光强度: ${intensity}`, 'info');
+        // 删除灯光
+        window.removeLight = function(lightId) {
+            if (lights.has(lightId)) {
+                const light = lights.get(lightId);
+                const scene = engine.getManager('scene')?.getScene();
+                if (scene && light.light) {
+                    scene.remove(light.light);
+                    lights.delete(lightId);
+                    updateLightList();
+                    log(`🗑️ 删除了灯光: ${lightId}`, 'success');
+                }
+            }
         };
 
-        // 更新方向光
-        window.updateDirectionalLight = function() {
-            const intensity = document.getElementById('directionalIntensity').value;
-            log(`💡 更新方向光强度: ${intensity}`, 'info');
+        // 删除选中的灯光
+        window.removeSelectedLight = function() {
+            if (selectedLight) {
+                removeLight(selectedLight);
+                selectedLight = null;
+            } else {
+                log('⚠️ 请先选择一个灯光', 'warning');
+            }
         };
 
         // 创建材质
-        window.createMaterials = async function() {
-            if (window.example) {
-                await window.example.demonstrateMaterialOperations();
-                log('🎨 材质操作演示完成', 'info');
-            } else {
-                log('❌ 示例未初始化', 'error');
-            }
-        };
-
-        // 更新材质
-        window.updateMaterials = function() {
-            log('🔄 更新材质属性', 'info');
-        };
-
-        // 更新粗糙度
-        window.updateRoughness = function() {
-            const roughness = document.getElementById('roughness').value;
-            log(`🎨 更新粗糙度: ${roughness}`, 'info');
-        };
-
-        // 更新金属度
-        window.updateMetalness = function() {
-            const metalness = document.getElementById('metalness').value;
-            log(`🎨 更新金属度: ${metalness}`, 'info');
-        };
-
-        // 创建对象
-        window.createObjects = async function() {
-            if (window.example) {
-                await window.example.demonstrateObjectOperations();
-                log('🎯 对象操作演示完成', 'info');
-            } else {
-                log('❌ 示例未初始化', 'error');
-            }
-        };
-
-        // 动画对象
-        window.animateObjects = function() {
-            log('🎬 开始对象动画', 'info');
-        };
-
-        // 选择对象
-        window.selectObjects = function() {
-            log('🎯 选择对象', 'info');
-        };
-
-        // 克隆对象
-        window.cloneObjects = function() {
-            log('🔄 克隆对象', 'info');
-        };
-
-        // 启用泛光
-        window.enableBloom = function() {
-            log('✨ 启用泛光效果', 'info');
-        };
-
-        // 禁用泛光
-        window.disableBloom = function() {
-            log('✨ 禁用泛光效果', 'info');
-        };
-
-        // 启用FXAA
-        window.enableFXAA = function() {
-            log('✨ 启用FXAA抗锯齿', 'info');
-        };
-
-        // 更新泛光强度
-        window.updateBloomStrength = function() {
-            const strength = document.getElementById('bloomStrength').value;
-            log(`✨ 更新泛光强度: ${strength}`, 'info');
-        };
-
-        // 保存场景
-        window.saveScene = async function() {
-            if (window.example) {
-                await window.example.demonstrateScenePersistence();
-                log('💾 场景持久化演示完成', 'info');
-            } else {
-                log('❌ 示例未初始化', 'error');
-            }
-        };
-
-        // 加载场景
-        window.loadScene = function() {
-            log('📂 加载场景', 'info');
-        };
-
-        // 列出场景
-        window.listScenes = function() {
-            log('📋 列出所有场景', 'info');
-        };
-
-        // 清空场景
-        window.clearScenes = function() {
-            log('🗑️ 清空所有场景', 'warning');
-        };
-
-        // 运行特效示例
-        window.runEffectsExample = async function() {
-            if (window.engine) {
-                try {
-                    log('🎆 启动特效示例...', 'info');
-                    
-                    // 清理现有示例
-                    if (window.example) {
-                        window.example.dispose();
-                    }
-                    if (window.advancedExample) {
-                        window.advancedExample.dispose();
-                    }
-                    
-                    // 创建特效示例
-                    window.effectsExample = createEffectsExample(container);
-                    await window.effectsExample.initialize();
-                    
-                    log('🎆 特效示例启动完成', 'info');
-                    updateStatus('特效示例运行中');
-                } catch (error) {
-                    log(`❌ 特效示例启动失败: ${error.message}`, 'error');
-                }
-            } else {
+        window.createMaterial = async function() {
+            if (!engine) {
                 log('❌ 引擎未初始化', 'error');
+                return;
             }
-        };
 
-        // 清理资源
-        window.cleanup = function() {
-            if (window.example) {
-                window.example.dispose();
-                window.example = null;
-            }
-            if (window.advancedExample) {
-                window.advancedExample.dispose();
-                window.advancedExample = null;
-            }
-            if (window.effectsExample) {
-                window.effectsExample.dispose();
-                window.effectsExample = null;
-            }
-            if (window.engine) {
-                window.engine.dispose();
-                window.engine = null;
-            }
-            log('🧹 资源清理完成', 'info');
-            updateStatus('已清理');
-        };
-
-        // 高级动画系统函数
-        window.createMorphAnimation = async function() {
-            if (window.engine) {
-                try {
-                    const morphManager = await window.engine.getManager('morph');
-                    if (morphManager) {
-                        // 创建变形目标
-                        const morphTarget = {
-                            name: 'smile',
-                            vertices: new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]),
-                            weight: 0.5
-                        };
-                        morphManager.addMorphTarget('smile', morphTarget);
-                        log('🎭 变形动画已创建', 'info');
-                    }
-                } catch (error) {
-                    log(`❌ 创建变形动画失败: ${error.message}`, 'error');
+            try {
+                const materialsManager = await engine.getManager('materials');
+                if (!materialsManager) {
+                    log('❌ 材质管理器未初始化', 'error');
+                    return;
                 }
-            } else {
-                log('❌ 引擎未初始化', 'error');
-            }
-        };
 
-        window.playMorphAnimation = async function() {
-            if (window.engine) {
-                try {
-                    const morphManager = await window.engine.getManager('morph');
-                    if (morphManager) {
-                        morphManager.playMorphAnimation('testObject', 'smileAnimation');
-                        log('🎬 变形动画播放中', 'info');
-                    }
-                } catch (error) {
-                    log(`❌ 播放变形动画失败: ${error.message}`, 'error');
-                }
-            } else {
-                log('❌ 引擎未初始化', 'error');
-            }
-        };
+                const type = document.getElementById('materialType').value;
+                const color = document.getElementById('materialColor').value;
+                const opacity = parseFloat(document.getElementById('materialOpacity').value);
 
-        window.createProceduralAnimation = async function() {
-            if (window.engine) {
-                try {
-                    const proceduralManager = await window.engine.getManager('procedural');
-                    if (proceduralManager) {
-                        // 创建程序化动画
-                        const animation = {
-                            name: 'bounce',
-                            duration: 2.0,
-                            target: 'testObject',
-                            property: 'position.y',
-                            curve: { name: 'easeInOut' },
-                            startValue: 0,
-                            endValue: 5
-                        };
-                        proceduralManager.addAnimation('bounce', animation);
-                        log('🎬 程序化动画已创建', 'info');
-                    }
-                } catch (error) {
-                    log(`❌ 创建程序化动画失败: ${error.message}`, 'error');
-                }
-            } else {
-                log('❌ 引擎未初始化', 'error');
-            }
-        };
+                const materialId = `${type}_${Date.now()}`;
+                let material;
 
-        window.playProceduralAnimation = async function() {
-            if (window.engine) {
-                try {
-                    const proceduralManager = await window.engine.getManager('procedural');
-                    if (proceduralManager) {
-                        proceduralManager.playAnimation('testObject', 'bounce');
-                        log('🎬 程序化动画播放中', 'info');
-                    }
-                } catch (error) {
-                    log(`❌ 播放程序化动画失败: ${error.message}`, 'error');
-                }
-            } else {
-                log('❌ 引擎未初始化', 'error');
-            }
-        };
-
-        window.stopAllAnimations = async function() {
-            if (window.engine) {
-                try {
-                    const morphManager = await window.engine.getManager('morph');
-                    const proceduralManager = await window.engine.getManager('procedural');
-                    
-                    if (morphManager) morphManager.stopAllAnimations();
-                    if (proceduralManager) proceduralManager.stopAllAnimations();
-                    
-                    log('⏹️ 所有动画已停止', 'info');
-                } catch (error) {
-                    log(`❌ 停止动画失败: ${error.message}`, 'error');
-                }
-            } else {
-                log('❌ 引擎未初始化', 'error');
-            }
-        };
-
-        // 物理模拟系统函数
-        window.createCloth = async function() {
-            if (window.engine) {
-                try {
-                    const clothManager = await window.engine.getManager('cloth');
-                    if (clothManager) {
-                        const clothConfig = {
-                            width: 20,
-                            height: 20,
-                            particleSpacing: 0.5,
-                            stiffness: 100,
-                            damping: 0.1,
-                            gravity: new THREE.Vector3(0, -9.81, 0),
-                            wind: new THREE.Vector3(0, 0, 0),
-                            airResistance: 0.01
-                        };
-                        clothManager.createCloth('testCloth', clothConfig);
-                        log('👕 布料已创建', 'info');
-                    }
-                } catch (error) {
-                    log(`❌ 创建布料失败: ${error.message}`, 'error');
-                }
-            } else {
-                log('❌ 引擎未初始化', 'error');
-            }
-        };
-
-        window.createSoftBody = async function() {
-            if (window.engine) {
-                try {
-                    const softBodyManager = await window.engine.getManager('softBody');
-                    if (softBodyManager) {
-                        const geometry = new THREE.SphereGeometry(2, 8, 6);
-                        const softBodyConfig = {
-                            density: 1.0,
-                            stiffness: 50,
-                            damping: 0.1,
-                            pressure: 1.0,
-                            gravity: new THREE.Vector3(0, -9.81, 0),
-                            collisionMargin: 0.1
-                        };
-                        softBodyManager.createSoftBodyFromGeometry('testSoftBody', geometry, softBodyConfig);
-                        log('🫧 软体已创建', 'info');
-                    }
-                } catch (error) {
-                    log(`❌ 创建软体失败: ${error.message}`, 'error');
-                }
-            } else {
-                log('❌ 引擎未初始化', 'error');
-            }
-        };
-
-        window.addObstacle = async function() {
-            if (window.engine) {
-                try {
-                    const clothManager = await window.engine.getManager('cloth');
-                    const softBodyManager = await window.engine.getManager('softBody');
-                    
-                    const obstacle = new THREE.Mesh(
-                        new THREE.SphereGeometry(1, 8, 6),
-                        new THREE.MeshBasicMaterial({ color: 0xff0000 })
-                    );
-                    obstacle.position.set(0, -2, 0);
-                    
-                    if (clothManager) clothManager.addObstacle('sphere', obstacle);
-                    if (softBodyManager) softBodyManager.addObstacle('sphere', obstacle);
-                    
-                    log('🚫 障碍物已添加', 'info');
-                } catch (error) {
-                    log(`❌ 添加障碍物失败: ${error.message}`, 'error');
-                }
-            } else {
-                log('❌ 引擎未初始化', 'error');
-            }
-        };
-
-        window.applyWind = async function() {
-            if (window.engine) {
-                try {
-                    const clothManager = await window.engine.getManager('cloth');
-                    if (clothManager) {
-                        const windForce = new THREE.Vector3(5, 0, 0);
-                        clothManager.applyWind('testCloth', windForce);
-                        log('💨 风力已应用', 'info');
-                    }
-                } catch (error) {
-                    log(`❌ 应用风力失败: ${error.message}`, 'error');
-                }
-            } else {
-                log('❌ 引擎未初始化', 'error');
-            }
-        };
-
-        window.togglePhysics = function() {
-            log('⚡ 切换物理模拟状态', 'info');
-        };
-
-        // 高级渲染功能函数
-        window.enableRayTracing = async function() {
-            if (window.engine) {
-                try {
-                    const rayTracingManager = await window.engine.getManager('rayTracing');
-                    if (rayTracingManager) {
-                        rayTracingManager.enableRayTracing();
-                        log('🔍 光线追踪已启用', 'info');
-                    }
-                } catch (error) {
-                    log(`❌ 启用光线追踪失败: ${error.message}`, 'error');
-                }
-            } else {
-                log('❌ 引擎未初始化', 'error');
-            }
-        };
-
-        window.enableDeferredRendering = async function() {
-            if (window.engine) {
-                try {
-                    const deferredManager = await window.engine.getManager('deferred');
-                    if (deferredManager) {
-                        deferredManager.enableDeferredRendering();
-                        log('🎨 延迟渲染已启用', 'info');
-                    }
-                } catch (error) {
-                    log(`❌ 启用延迟渲染失败: ${error.message}`, 'error');
-                }
-            } else {
-                log('❌ 引擎未初始化', 'error');
-            }
-        };
-
-        window.enableFluidSimulation = async function() {
-            if (window.engine) {
-                try {
-                    const fluidManager = await window.engine.getManager('fluid');
-                    if (fluidManager) {
-                        fluidManager.createFluidSimulation('testFluid', {
-                            particleCount: 1000,
-                            containerSize: new THREE.Vector3(10, 10, 10),
-                            gravity: new THREE.Vector3(0, -9.81, 0),
-                            viscosity: 0.1,
-                            surfaceTension: 0.01
+                switch (type) {
+                    case 'basic':
+                        material = new THREE.MeshBasicMaterial({
+                            color: parseInt(color.replace('#', '0x')),
+                            transparent: opacity < 1,
+                            opacity
                         });
-                        log('💧 流体模拟已启用', 'info');
-                    }
-                } catch (error) {
-                    log(`❌ 启用流体模拟失败: ${error.message}`, 'error');
+                        break;
+                    case 'phong':
+                        material = new THREE.MeshPhongMaterial({
+                            color: parseInt(color.replace('#', '0x')),
+                            transparent: opacity < 1,
+                            opacity
+                        });
+                        break;
+                    case 'standard':
+                        material = new THREE.MeshStandardMaterial({
+                            color: parseInt(color.replace('#', '0x')),
+                            transparent: opacity < 1,
+                            opacity
+                        });
+                        break;
+                    case 'physical':
+                        material = new THREE.MeshPhysicalMaterial({
+                            color: parseInt(color.replace('#', '0x')),
+                            transparent: opacity < 1,
+                            opacity
+                        });
+                        break;
                 }
-            } else {
-                log('❌ 引擎未初始化', 'error');
+
+                if (material) {
+                    materialsManager.add(materialId, material);
+                    materials.set(materialId, {
+                        material,
+                        type,
+                        color,
+                        opacity
+                    });
+
+                    updateMaterialList();
+                    log(`✅ 创建了 ${type} 材质: ${materialId}`, 'success');
+                }
+            } catch (error) {
+                log(`❌ 创建材质失败: ${error.message}`, 'error');
             }
         };
 
-        window.updateRenderQuality = function() {
-            log('🎨 更新渲染质量', 'info');
+        // 更新材质列表
+        function updateMaterialList() {
+            const materialList = document.getElementById('materialList');
+            materialList.innerHTML = '';
+
+            materials.forEach((mat, id) => {
+                const item = document.createElement('div');
+                item.className = 'object-item';
+                item.innerHTML = `
+                    <span class="object-name">${mat.type}: ${id}</span>
+                    <div class="object-actions">
+                        <button class="btn mini-btn" onclick="window.selectMaterial('${id}')">选择</button>
+                        <button class="btn mini-btn danger" onclick="window.removeMaterial('${id}')">删除</button>
+                    </div>
+                `;
+                materialList.appendChild(item);
+            });
+        }
+
+        // 选择材质
+        window.selectMaterial = function(materialId) {
+            log(`✅ 选中材质: ${materialId}`, 'info');
         };
 
-        // 页面加载完成后的初始化
-        document.addEventListener('DOMContentLoaded', function() {
-            log('📄 页面加载完成', 'info');
-            log('点击"初始化引擎"开始演示', 'info');
-        });
+        // 删除材质
+        window.removeMaterial = function(materialId) {
+            if (materials.has(materialId)) {
+                materials.delete(materialId);
+                updateMaterialList();
+                log(`🗑️ 删除了材质: ${materialId}`, 'success');
+            }
+        };
+
+        // 应用材质到选中对象
+        window.applyMaterialToSelected = function() {
+            if (!selectedObject || !objects.has(selectedObject)) {
+                log('⚠️ 请先选择一个对象', 'warning');
+                return;
+            }
+
+            // 这里可以实现材质应用到对象的逻辑
+            log('🔄 材质应用功能待实现', 'info');
+        };
+
+        // 创建动画
+        window.createAnimation = function() {
+            const type = document.getElementById('animationType').value;
+            const duration = parseFloat(document.getElementById('animationDuration').value);
+            
+            log(`🎬 创建 ${type} 动画，持续时间: ${duration}秒`, 'info');
+        };
+
+        // 播放动画
+        window.playAnimation = function() {
+            log('▶️ 播放动画', 'info');
+        };
+
+        // 停止动画
+        window.stopAnimation = function() {
+            log('⏹️ 停止动画', 'info');
+        };
+
+        // 高级功能
+        window.createParticles = async function() {
+            if (!engine) {
+                log('❌ 引擎未初始化', 'error');
+                return;
+            }
+
+            try {
+                const particlesManager = await engine.getManager('particles');
+                if (particlesManager) {
+                    const scene = engine.getManager('scene')?.getScene();
+                    if (scene) {
+                        const particleSystem = particlesManager.createParticleSystem('particles', 500, {
+                            size: 2,
+                            color: 0x00ffff,
+                            sizeAttenuation: true,
+                            transparent: true,
+                            opacity: 0.8,
+                            blending: THREE.AdditiveBlending
+                        });
+
+                        scene.add(particleSystem.system);
+                        log('✨ 粒子系统已创建', 'success');
+                    }
+                }
+            } catch (error) {
+                log(`❌ 创建粒子失败: ${error.message}`, 'error');
+            }
+        };
+
+        window.createShaders = async function() {
+            if (!engine) {
+                log('❌ 引擎未初始化', 'error');
+                return;
+            }
+
+            try {
+                const scene = engine.getManager('scene')?.getScene();
+                if (scene) {
+                    const vertexShader = `
+                        varying vec2 vUv;
+                        void main() {
+                            vUv = uv;
+                            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                        }
+                    `;
+
+                    const fragmentShader = `
+                        uniform float time;
+                        varying vec2 vUv;
+                        void main() {
+                            vec2 uv = vUv;
+                            float wave = sin(uv.x * 10.0 + time) * 0.5 + 0.5;
+                            vec3 color = mix(vec3(0.0, 0.5, 1.0), vec3(1.0, 0.0, 0.5), wave);
+                            gl_FragColor = vec4(color, 1.0);
+                        }
+                    `;
+
+                    const material = new THREE.ShaderMaterial({
+                        uniforms: { time: { value: 0.0 } },
+                        vertexShader,
+                        fragmentShader
+                    });
+
+                    const geometry = new THREE.PlaneGeometry(4, 4);
+                    const mesh = new THREE.Mesh(geometry, material);
+                    mesh.position.set(0, 3, 0);
+                    scene.add(mesh);
+
+                    const updateShader = () => {
+                        material.uniforms.time.value += 0.01;
+                        requestAnimationFrame(updateShader);
+                    };
+                    updateShader();
+
+                    log('🎨 自定义着色器已创建', 'success');
+                }
+            } catch (error) {
+                log(`❌ 创建着色器失败: ${error.message}`, 'error');
+            }
+        };
+
+        window.createPhysics = async function() {
+            if (!engine) {
+                log('❌ 引擎未初始化', 'error');
+                return;
+            }
+
+            try {
+                const objectsManager = await engine.getManager('objects');
+                if (objectsManager) {
+                    const physicsSphere = objectsManager.createSphere('physicsSphere', {
+                        position: { x: 0, y: 10, z: 0 },
+                        radius: 1
+                    });
+
+                    if (physicsSphere) {
+                        let velocity = new THREE.Vector3(0, 0, 0);
+                        const gravity = -9.8;
+                        const groundY = 0;
+
+                        const updatePhysics = () => {
+                            if (physicsSphere.position.y > groundY + 1) {
+                                velocity.y += gravity * 0.016;
+                                physicsSphere.position.add(velocity.clone().multiplyScalar(0.016));
+                            } else {
+                                physicsSphere.position.y = groundY + 1;
+                                velocity.y = -velocity.y * 0.8;
+                                
+                                if (Math.abs(velocity.y) < 0.1) {
+                                    velocity.y = 0;
+                                }
+                            }
+                            requestAnimationFrame(updatePhysics);
+                        };
+                        updatePhysics();
+
+                        log('⚡ 物理球体已创建', 'success');
+                    }
+                }
+            } catch (error) {
+                log(`❌ 创建物理失败: ${error.message}`, 'error');
+            }
+        };
+
+        window.createAudio = async function() {
+            if (!engine) {
+                log('❌ 引擎未初始化', 'error');
+                return;
+            }
+
+            try {
+                const audioManager = await engine.getManager('audio');
+                if (audioManager) {
+                    const camera = engine.getManager('camera')?.getCamera();
+                    if (camera) {
+                        camera.add(audioManager.listener);
+                        log('🔊 音频系统已初始化', 'success');
+                    }
+                }
+            } catch (error) {
+                log(`❌ 创建音频失败: ${error.message}`, 'error');
+            }
+        };
+
+        window.createPostProcessing = async function() {
+            if (!engine) {
+                log('❌ 引擎未初始化', 'error');
+                return;
+            }
+
+            try {
+                const composerManager = await engine.getManager('composer');
+                if (composerManager) {
+                    log('🎨 后处理系统已初始化', 'success');
+                }
+            } catch (error) {
+                log(`❌ 创建后处理失败: ${error.message}`, 'error');
+            }
+        };
+
+        // 初始化页面
+        log('📋 Three-Core 引擎演示已加载', 'info');
+        log('💡 功能说明:', 'info');
+        log('   - 支持对象、灯光、材质的创建和删除', 'info');
+        log('   - 实时属性修改和场景交互', 'info');
+        log('   - 面板可收起，日志可切换显示', 'info');
     </script>
 </body>
 </html> 

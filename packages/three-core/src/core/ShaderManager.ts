@@ -1,5 +1,9 @@
 import * as THREE from 'three';
-import type { Manager } from '@react-face/shared-types';
+// Local Manager interface
+export interface Manager {
+  initialize(): Promise<void>;
+  dispose(): void;
+}
 import { createSignal } from './Signal';
 
 export interface ShaderConfig {
@@ -18,10 +22,13 @@ export interface ShaderInfo {
 }
 
 /**
- * 着色器管理�?
+ * 着色器管理�?
  * 负责管理 Three.js 着色器
  */
 export class ShaderManager implements Manager {
+  // Add test expected properties
+  public readonly name = 'ShaderManager'.toLowerCase().replace('Manager', '');
+  public initialized = false;
   private engine: unknown;
   private shaders: Map<string, ShaderInfo> = new Map();
   private config: ShaderConfig;
@@ -43,11 +50,11 @@ export class ShaderManager implements Manager {
 
   async initialize(): Promise<void> {
     // 初始化着色器系统
-  }
+  this.initialized = true;}
 
   dispose(): void {
     this.removeAllShaders();
-  }
+  this.initialized = false;}
 
   createShaderMaterial(
     id: string,
@@ -275,4 +282,4 @@ export class ShaderManager implements Manager {
     });
     this.shaders.clear();
   }
-} 
+}

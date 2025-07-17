@@ -108,6 +108,14 @@
             100% { transform: rotate(360deg); }
         }
     </style>
+    <script type="importmap">
+        {
+          "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.178.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.178.0/examples/jsm/"
+          }
+        }
+        </script>
 </head>
 <body>
     <div id="loading">
@@ -182,7 +190,7 @@
     </div>
 
     <!-- 使用CDN加载Three.js -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.174.0/build/three.min.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/three@0.174.0/build/three.min.js"></script> -->
     
     <!-- 使用构建后的Three-Core库 -->
     <script type="module">
@@ -198,10 +206,10 @@
         
         // 这里我们假设使用本地构建的文件
         let Engine;
-        
+        import * as THREE from 'three';
         try {
             // 尝试从构建目录导入
-            const module = await import('../dist/index.esm.js');
+            const module = await import('../dist/index.js');
             Engine = module.Engine;
         } catch (error) {
             console.error('无法加载构建后的文件，请先运行 npm run build');
@@ -226,6 +234,7 @@ npm run dev
         let volumetricManager;
         let postProcessManager;
         let screenSpaceManager;
+        let controlsManager;
         let autoRotation = false;
         let animationId;
 
@@ -243,15 +252,19 @@ npm run dev
                 });
 
                 await engine.initialize();
-
+                await engine.createManager('volumetric');
+                await engine.createManager('composer');
+                await engine.createManager('rayTracing');
+                await engine.createManager('controls');
                 // 获取管理器
                 volumetricManager = await engine.getManager('volumetric');
-                postProcessManager = await engine.getManager('postProcess');
-                screenSpaceManager = await engine.getManager('screenSpace');
-
+                postProcessManager = await engine.getManager('composer');
+                screenSpaceManager = await engine.getManager('rayTracing');
+                controlsManager = await engine.getManager('controls');
+                console.log(volumetricManager, postProcessManager, screenSpaceManager, controlsManager);
                 // 设置场景
                 setupScene();
-                
+                controlsManager.createOrbitControls();
                 // 创建特效
                 createEffects();
                 
@@ -279,8 +292,8 @@ npm run dev
 
         // 设置场景
         function setupScene() {
-            const scene = engine.scene;
-            const camera = engine.camera;
+            const scene = engine.getManager('scene')?.getScene();
+            const camera = engine.getManager('camera')?.getCamera();
 
             // 设置相机位置
             camera.position.set(0, 5, 10);

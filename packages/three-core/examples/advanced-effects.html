@@ -177,8 +177,8 @@
 
                 // 获取管理器
                 volumetricManager = await engine.getManager('volumetric');
-                postProcessManager = await engine.getManager('postProcess');
-                screenSpaceManager = await engine.getManager('screenSpace');
+                postProcessManager = await engine.getManager('composer');
+                screenSpaceManager = await engine.getManager('rayTracing');
 
                 // 设置场景
                 setupScene();

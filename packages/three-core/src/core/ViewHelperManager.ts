@@ -1,5 +1,9 @@
 import * as THREE from 'three';
-import type { Manager } from '@react-face/shared-types';
+// Local Manager interface
+export interface Manager {
+  initialize(): Promise<void>;
+  dispose(): void;
+}
 import { createSignal } from './Signal';
 
 export interface ViewHelperConfig {
@@ -17,10 +21,13 @@ export interface ViewHelperInfo {
 }
 
 /**
- * 视图辅助管理�?
+ * 视图辅助管理�?
  * 负责管理 Three.js 视图辅助工具
  */
 export class ViewHelperManager implements Manager {
+  // Add test expected properties
+  public readonly name = 'ViewHelperManager'.toLowerCase().replace('Manager', '');
+  public initialized = false;
   private engine: unknown;
   private helpers: Map<string, ViewHelperInfo> = new Map();
   private config: ViewHelperConfig;
@@ -42,12 +49,12 @@ export class ViewHelperManager implements Manager {
   }
 
   async initialize(): Promise<void> {
-    // 初始化视图辅助系�?
-  }
+    // 初始化视图辅助系�?
+  this.initialized = true;}
 
   dispose(): void {
     this.removeAllHelpers();
-  }
+  this.initialized = false;}
 
   createAxesHelper(
     id: string,
