@@ -1,135 +1,132 @@
 <template>
-  <slot></slot>
+  <div class="three-bloom-effect"></div>
 </template>
 
-<script setup lang="ts">
-import { ref, inject, onMounted, onBeforeUnmount, watch } from 'vue';
-import * as THREE from 'three';
-import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
-import { POST_PROCESSING_CONTEXT_KEY } from '../../constants';
-import { useThree } from '../../composables/useThree';
+<script>
+import { ref, onMounted, onBeforeUnmount, watch, inject } from 'vue';
+import { CANVAS_INJECTION_KEY, POSTPROCESSING_INJECTION_KEY } from '../../constants';
 
-const props = withDefaults(defineProps<{
-  /**
-   * 辉光强度。默认为1。
-   */
-  strength?: number;
-  /**
-   * 辉光半径。默认为0.7。
-   */
-  radius?: number;
-  /**
-   * 辉光阈值，低于此值的亮度不会产生辉光。默认为0.8。
-   */
-  threshold?: number;
-  /**
-   * 辉光分辨率，影响性能和质量。默认为256。
-   */
-  resolution?: number;
-  /**
-   * 是否启用。默认为true。
-   */
-  enabled?: boolean;
-}>(), {
-  strength: 1,
-  radius: 0.7,
-  threshold: 0.8,
-  resolution: 256,
-  enabled: true
-});
-
-// 使用three组合式函数
-const { size } = useThree();
-
-// 获取后处理上下文
-const postProcessingContext = inject(POST_PROCESSING_CONTEXT_KEY, null);
-
-// 创建辉光通道
-const bloomPass = ref<UnrealBloomPass | null>(null);
-
-// 创建辉光通道
-const createBloomPass = () => {
-  if (!size.value) {
-    return;
-  }
-
-  // 创建辉光通道
-  const resolution = new THREE.Vector2(props.resolution, props.resolution);
-  bloomPass.value = new UnrealBloomPass(resolution, props.strength, props.radius, props.threshold);
-  
-  // 设置启用状态
-  if (bloomPass.value) {
-    bloomPass.value.enabled = props.enabled;
-  }
-  
-  // 添加到效果合成器
-  if (postProcessingContext && bloomPass.value) {
-    postProcessingContext.addEffectPass(bloomPass.value);
-  }
-};
-
-// 更新辉光通道配置
-const updateBloomPassConfig = () => {
-  if (!bloomPass.value) {
-    return;
-  }
-  
-  bloomPass.value.strength = props.strength;
-  bloomPass.value.radius = props.radius;
-  bloomPass.value.threshold = props.threshold;
-  bloomPass.value.enabled = props.enabled;
-  
-  // 更新分辨率
-  if (props.resolution !== bloomPass.value.resolution.x) {
-    bloomPass.value.resolution.set(props.resolution, props.resolution);
-  }
-};
-
-// 监听属性变化
-watch(
-  () => ({
-    strength: props.strength,
-    radius: props.radius,
-    threshold: props.threshold,
-    resolution: props.resolution,
-    enabled: props.enabled
-  }),
-  () => {
-    updateBloomPassConfig();
-  },
-  { deep: true }
-);
-
-// 监听尺寸变化
-watch(
-  size,
-  () => {
-    if (bloomPass.value) {
-      // 可以根据尺寸调整分辨率
+export default {
+  props: {
+    strength: {
+      type: Number,
+      default: 1.5
+    },
+    radius: {
+      type: Number,
+      default: 0.4
+    },
+    threshold: {
+      type: Number,
+      default: 0.85
+    },
+    enabled: {
+      type: Boolean,
+      default: true
     }
+  },
+  emits: ['ready', 'update'],
+  setup(props, { emit }) {
+    // 获取画布上下文
+    const canvasContext = inject(CANVAS_INJECTION_KEY, null);
+    
+    // 获取后处理上下文
+    const postprocessingContext = inject(POSTPROCESSING_INJECTION_KEY, null);
+    
+    // 效果通道引用
+    const bloomPass = ref(null);
+    
+    // 创建效果通道
+    const createBloomPass = async () => {
+      if (!canvasContext || !canvasContext.engine.value || !postprocessingContext) return;
+      
+      try {
+        // 动态导入后处理模块
+        const { UnrealBloomPass } = await import('three/examples/jsm/postprocessing/UnrealBloomPass.js');
+        
+        // 获取Three.js
+        const THREE = canvasContext.engine.value.constructor.THREE;
+        
+        // 获取渲染器尺寸
+        const renderer = canvasContext.engine.value.renderer;
+        const size = renderer.getSize(new THREE.Vector2());
+        
+        // 创建辉光通道
+        bloomPass.value = new UnrealBloomPass(
+          new THREE.Vector2(size.width, size.height),
+          props.strength,
+          props.radius,
+          props.threshold
+        );
+        
+        // 设置启用状态
+        bloomPass.value.enabled = props.enabled;
+        
+        // 添加到后处理效果链
+        postprocessingContext.addEffect({
+          pass: bloomPass.value,
+          type: 'bloom'
+        });
+        
+        // 触发就绪事件
+        emit('ready', { pass: bloomPass.value });
+      } catch (error) {
+        console.error('Failed to create bloom pass:', error);
+      }
+    };
+    
+    // 更新效果通道
+    const updateBloomPass = () => {
+      if (!bloomPass.value) return;
+      
+      // 更新参数
+      bloomPass.value.strength = props.strength;
+      bloomPass.value.radius = props.radius;
+      bloomPass.value.threshold = props.threshold;
+      bloomPass.value.enabled = props.enabled;
+      
+      // 触发更新事件
+      emit('update', { pass: bloomPass.value });
+    };
+    
+    // 监听属性变化
+    watch(() => props.strength, updateBloomPass);
+    watch(() => props.radius, updateBloomPass);
+    watch(() => props.threshold, updateBloomPass);
+    watch(() => props.enabled, updateBloomPass);
+    
+    // 组件挂载和卸载
+    onMounted(async () => {
+      // 创建效果通道
+      await createBloomPass();
+    });
+    
+    onBeforeUnmount(() => {
+      if (bloomPass.value && postprocessingContext) {
+        // 从后处理效果链中移除
+        postprocessingContext.removeEffect({
+          pass: bloomPass.value,
+          type: 'bloom'
+        });
+        
+        // 释放资源
+        if (bloomPass.value.dispose) {
+          bloomPass.value.dispose();
+        }
+        
+        bloomPass.value = null;
+      }
+    });
+    
+    return {
+      bloomPass
+    };
   }
-);
+};
+</script>
 
-// 组件挂载时创建辉光通道
-onMounted(() => {
-  createBloomPass();
-});
-
-// 组件卸载时移除辉光通道
-onBeforeUnmount(() => {
-  if (postProcessingContext && bloomPass.value) {
-    postProcessingContext.removeEffectPass(bloomPass.value);
-  }
-  
-  if (bloomPass.value && bloomPass.value.dispose) {
-    bloomPass.value.dispose();
-  }
-  
-  bloomPass.value = null;
-});
-
-// 暴露API
-defineExpose({
-  bloomPass
-});
-</script> 
+<style scoped>
+.three-bloom-effect {
+  display: none;
+}
+</style> 

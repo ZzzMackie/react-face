@@ -1,118 +1,64 @@
 # Three-Render 开发路线图
 
-## 已完成的组件和功能
+本文档描述了 Three-Render 库的开发计划和未来方向。
 
-### 核心组件
-- [x] ThreeCanvas - 核心渲染容器组件
-- [x] ThreeScene - 场景管理组件
-- [x] ThreeCamera - 相机组件
-- [x] ThreeMesh - 网格对象组件
-- [x] ThreeObject - 通用对象组件
+## 已完成
 
-### 几何体组件
-- [x] ThreeGeometry - 通用几何体基类组件
-- [x] ThreeBox - 立方体组件
+### v0.1.0
+- 核心组件系统
+- 几何体、材质、灯光组件
+- 控制器组件
+- 后处理系统
+- 高级组件（模型加载器、文本、精灵、粒子系统）
+- 组合式API
 
-### 材质组件
-- [x] ThreeMeshStandardMaterial - 标准 PBR 材质组件
+### v0.2.0
+- 物理系统（集成 cannon-es）
+- 交互系统优化
+- 工具函数和类型定义完善
+- 性能优化和资源管理
+- 文档更新
 
-### 组合式 API
-- [x] useThree - 访问渲染上下文和场景对象
-- [x] useFrame - 添加帧动画回调函数
+## 短期计划（v0.3.0）
 
-### 后处理
-- [x] ThreePostProcessing - 后处理容器组件
+- **WebGPU 支持**：添加 WebGPU 渲染器支持，提供更好的性能
+- **性能监控**：添加内置性能监控工具，帮助开发者优化应用
+- **调试工具**：添加调试工具，如场景图查看器、性能分析器等
+- **动画系统增强**：添加关键帧动画、骨骼动画等支持
+- **着色器组件**：添加自定义着色器支持，使开发者可以更容易地创建自定义材质
+- **测试覆盖**：增加单元测试和集成测试覆盖率
 
-### 基础设施
-- [x] 核心常量和上下文定义
-- [x] 插件安装机制
+## 中期计划（v0.4.0 - v0.5.0）
 
-## 正在开发中
+- **VR/AR 支持**：添加 WebXR 支持，使开发者可以创建 VR/AR 应用
+- **高级物理系统**：添加流体模拟、布料模拟等高级物理功能
+- **声音系统**：添加 3D 音频支持
+- **LOD 系统**：添加细节层次（Level of Detail）系统，优化大场景性能
+- **实例化渲染**：添加实例化渲染支持，优化大量相同对象的渲染性能
+- **后处理效果库**：扩展后处理效果库，添加更多效果
+- **编辑器集成**：提供与流行编辑器（如 Three.js Editor）的集成
 
-### 几何体组件
-- [ ] ThreeSphere - 球体组件
-- [ ] ThreePlane - 平面组件
-- [ ] ThreeCylinder - 圆柱体组件
-- [ ] ThreeTorus - 圆环组件
-- [ ] ThreeCone - 圆锥体组件
-- [ ] ThreeTorusKnot - 环形结组件
+## 长期计划（v1.0.0 及以后）
 
-### 材质组件
-- [ ] ThreeMeshBasicMaterial - 基础材质组件
-- [ ] ThreeMeshPhysicalMaterial - 物理 PBR 材质组件
-- [ ] ThreeMeshLambertMaterial - Lambert 材质组件
-- [ ] ThreeMeshPhongMaterial - Phong 材质组件
-- [ ] ThreeMeshToonMaterial - 卡通材质组件
-- [ ] ThreeMeshNormalMaterial - 法线材质组件
+- **节点图编辑器**：添加可视化节点图编辑器，使开发者可以通过可视化方式创建材质和效果
+- **场景导出/导入**：支持场景导出为标准格式（如 glTF）和导入
+- **AI 辅助功能**：集成 AI 功能，如自动 LOD 生成、纹理生成等
+- **云渲染支持**：添加云渲染支持，使应用可以在低端设备上运行复杂场景
+- **跨平台支持**：通过 WebAssembly 和原生插件，支持在更多平台上运行
+- **生态系统扩展**：构建插件生态系统，使社区可以贡献组件和功能
 
-### 灯光组件
-- [ ] ThreeAmbientLight - 环境光组件
-- [ ] ThreeDirectionalLight - 方向光组件
-- [ ] ThreePointLight - 点光源组件
-- [ ] ThreeSpotLight - 聚光灯组件
-- [ ] ThreeHemisphereLight - 半球光组件
+## 持续改进
 
-### 控制器
-- [ ] ThreeOrbitControls - 轨道控制器
-- [ ] ThreeTransformControls - 变换控制器
-- [ ] ThreeFlyControls - 飞行控制器
+- **性能优化**：持续优化渲染性能和内存使用
+- **文档完善**：持续完善文档和示例
+- **TypeScript 支持**：持续改进 TypeScript 类型定义
+- **浏览器兼容性**：确保在所有主流浏览器上的兼容性
+- **无障碍支持**：改进无障碍支持，使 3D 内容对所有用户可访问
 
-### 后处理效果
-- [ ] ThreeBloomEffect - 辉光效果
-- [ ] ThreeDepthOfFieldEffect - 景深效果
-- [ ] ThreeFilmEffect - 胶片效果
-- [ ] ThreeGlitchEffect - 故障效果
-- [ ] ThreeOutlineEffect - 描边效果
-- [ ] ThreePixelationEffect - 像素化效果
+## 贡献
 
-### 物理模拟
-- [ ] ThreePhysicsWorld - 物理世界组件
-- [ ] ThreeRigidBody - 刚体组件
-- [ ] ThreeBoxCollider - 盒体碰撞器
-- [ ] ThreeSphereCollider - 球体碰撞器
+我们欢迎社区贡献！如果您有兴趣参与开发，请查看 [CONTRIBUTING.md](./CONTRIBUTING.md) 了解如何贡献。
 
-### 粒子系统
-- [ ] ThreeParticleSystem - 粒子系统组件
+## 反馈
 
-### 高级功能
-- [ ] 实例化渲染 (Instancing)
-- [ ] LOD (Level of Detail)
-- [ ] WebGPU 支持
-- [ ] 高级着色器支持
-- [ ] 骨骼动画系统
-- [ ] 性能监控和调试工具
-
-### 文档和示例
-- [ ] 详细 API 文档
-- [ ] 示例集合
-- [ ] 性能优化指南
-- [ ] 最佳实践指南
-
-## 未来规划
-
-### 版本 1.0.0 目标
-- 完善核心组件系统
-- 提供稳定的 API
-- 完善文档和示例
-- 性能优化
-
-### 版本 2.0.0 目标
-- WebGPU 支持
-- 高级渲染功能
-- 物理模拟集成
-- 动画系统增强
-- VR/AR 支持
-
-## 参与贡献
-
-欢迎参与贡献！如果你想参与开发，请参考以下步骤：
-
-1. Fork 仓库
-2. 创建你的特性分支 (`git checkout -b feature/amazing-feature`)
-3. 提交你的更改 (`git commit -m 'Add some amazing feature'`)
-4. 推送到分支 (`git push origin feature/amazing-feature`)
-5. 打开一个 Pull Request
-
-## 许可证
-
-MIT 
+如果您有任何建议或反馈，请在 GitHub 上提交 issue 或 pull request。 

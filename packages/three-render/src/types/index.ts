@@ -1,229 +1,236 @@
-// 重新导出 three-core 的类型
-export * from 'three-core';
+import { Object3D, Camera, Scene, WebGLRenderer, Clock, Vector2, Raycaster, Intersection } from 'three';
+import { World, Body, Shape, Constraint } from 'cannon-es';
+import { Ref } from 'vue';
 
-// 组件属性类型
-export * from './props';
+// 基本类型
+export type Vector3Tuple = [number, number, number];
+export type ColorValue = string | number;
+
+// 物理世界类型
+export interface PhysicsWorldOptions {
+  gravity?: Vector3Tuple;
+  iterations?: number;
+  tolerance?: number;
+  broadphase?: 'naive' | 'sap' | 'grid';
+  allowSleep?: boolean;
+  timeStep?: number;
+  maxSubSteps?: number;
+  paused?: boolean;
+  debug?: boolean;
+}
+
+export interface PhysicsWorldAPI {
+  world: World;
+  addBody: (body: Body) => void;
+  removeBody: (body: Body) => void;
+}
+
+// 刚体类型
+export type BodyType = 'dynamic' | 'static' | 'kinematic';
+
+export interface RigidBodyOptions {
+  type?: BodyType;
+  mass?: number;
+  position?: Vector3Tuple;
+  rotation?: Vector3Tuple;
+  linearDamping?: number;
+  angularDamping?: number;
+  linearFactor?: Vector3Tuple;
+  angularFactor?: Vector3Tuple;
+  fixedRotation?: boolean;
+  allowSleep?: boolean;
+  sleepSpeedLimit?: number;
+  sleepTimeLimit?: number;
+  collisionFilterGroup?: number;
+  collisionFilterMask?: number;
+  shape?: 'auto' | 'box' | 'sphere' | 'cylinder' | 'plane';
+  shapeOptions?: Record<string, any>;
+  autoFit?: boolean;
+  offset?: Vector3Tuple;
+}
+
+// 碰撞器类型
+export interface ColliderOptions {
+  position?: Vector3Tuple;
+  rotation?: Vector3Tuple;
+  offset?: Vector3Tuple;
+  isTrigger?: boolean;
+  collisionFilterGroup?: number;
+  collisionFilterMask?: number;
+}
+
+export interface BoxColliderOptions extends ColliderOptions {
+  size: Vector3Tuple;
+}
+
+export interface SphereColliderOptions extends ColliderOptions {
+  radius: number;
+}
+
+// 约束类型
+export type ConstraintType = 'point' | 'distance' | 'hinge' | 'lock' | 'spring';
+
+export interface ConstraintOptions {
+  type: ConstraintType;
+  bodyA: Body;
+  bodyB?: Body | null;
+  pivotA?: Vector3Tuple;
+  pivotB?: Vector3Tuple;
+  axisA?: Vector3Tuple;
+  axisB?: Vector3Tuple;
+  distance?: number;
+  maxForce?: number;
+  collideConnected?: boolean;
+  stiffness?: number;
+  damping?: number;
+  restLength?: number;
+  motorEnabled?: boolean;
+  motorSpeed?: number;
+  motorMaxForce?: number;
+}
+
+// 射线交互类型
+export interface RaycasterOptions {
+  enabled?: boolean;
+  recursive?: boolean;
+  usePointer?: boolean;
+  pointerDownOnly?: boolean;
+  camera?: Camera | null;
+  objects?: Object3D[];
+  near?: number;
+  far?: number;
+  updateOnFrame?: boolean;
+}
+
+export interface RaycasterAPI {
+  raycaster: Raycaster;
+  intersections: Intersection[];
+  pointer: Vector2;
+  addInteractiveObject: (object: Object3D) => void;
+  removeInteractiveObject: (object: Object3D) => void;
+}
+
+export interface RaycasterEvent {
+  object: Object3D;
+  intersection: Intersection;
+  pointer: Vector2;
+  event?: MouseEvent | TouchEvent;
+}
+
+// 交互对象类型
+export interface InteractiveOptions {
+  enabled?: boolean;
+  cursor?: string;
+  hoverColor?: ColorValue;
+  activeColor?: ColorValue;
+  hoverScale?: number;
+  activeScale?: number;
+  hoverOpacity?: number;
+  activeOpacity?: number;
+}
+
+// Three.js 核心对象类型
+export interface ThreeContext {
+  scene: Ref<Scene | null>;
+  camera: Ref<Camera | null>;
+  renderer: Ref<WebGLRenderer | null>;
+  canvas: Ref<HTMLCanvasElement | null>;
+  clock: Ref<Clock | null>;
+  size: Ref<{ width: number; height: number }>;
+}
+
+// 动画帧回调类型
+export type FrameCallback = (time: number, delta: number) => void;
 
 // 事件类型
-export * from './events';
-
-// 渲染器类型
-export * from './renderer';
-
-// 上下文类型
-export * from './context';
-
-// 工具类型
-export * from './utils';
-
-/**
- * 向量类型
- */
-export type ThreeVector2 = [number, number];
-export type ThreeVector3 = [number, number, number];
-export type ThreeVector4 = [number, number, number, number];
-export type ThreeEuler = [number, number, number] | [number, number, number, string];
-export type ThreeColor = string | number;
-export type ThreeMatrix3 = [
-  number, number, number,
-  number, number, number,
-  number, number, number
-];
-export type ThreeMatrix4 = [
-  number, number, number, number,
-  number, number, number, number,
-  number, number, number, number,
-  number, number, number, number
-];
-
-/**
- * 几何体参数类型
- */
-export interface ThreeBoxGeometryProps {
-  width?: number;
-  height?: number;
-  depth?: number;
-  widthSegments?: number;
-  heightSegments?: number;
-  depthSegments?: number;
-  args?: [number?, number?, number?, number?, number?, number?];
+export interface ThreeEventMap {
+  click: RaycasterEvent;
+  hover: RaycasterEvent;
+  pointerdown: RaycasterEvent;
+  pointerup: RaycasterEvent;
+  pointermove: RaycasterEvent;
+  pointerenter: RaycasterEvent;
+  pointerleave: RaycasterEvent;
+  collide: { body: Body; contact: any };
+  step: { time: number; deltaTime: number; bodies: Body[] };
 }
 
-export interface ThreeSphereGeometryProps {
-  radius?: number;
-  widthSegments?: number;
-  heightSegments?: number;
-  phiStart?: number;
-  phiLength?: number;
-  thetaStart?: number;
-  thetaLength?: number;
-  args?: [number?, number?, number?, number?, number?, number?, number?];
+// 组件类型
+export type ThreeComponent = {
+  name: string;
+  props: Record<string, any>;
+  emits: string[];
+  setup: (props: any, context: any) => any;
+};
+
+// 组件属性类型
+export interface ThreeCanvasProps {
+  width?: number | string;
+  height?: number | string;
+  antialias?: boolean;
+  alpha?: boolean;
+  shadows?: boolean;
+  toneMapping?: number;
+  toneMappingExposure?: number;
+  outputEncoding?: number;
+  physicallyCorrectLights?: boolean;
+  pixelRatio?: number;
+  frameloop?: 'always' | 'demand' | 'never';
 }
 
-export interface ThreePlaneGeometryProps {
-  width?: number;
-  height?: number;
-  widthSegments?: number;
-  heightSegments?: number;
-  args?: [number?, number?, number?, number?];
+export interface ThreeSceneProps {
+  background?: ColorValue;
+  environment?: string;
+  fog?: any;
 }
 
-export interface ThreeCylinderGeometryProps {
-  radiusTop?: number;
-  radiusBottom?: number;
-  height?: number;
-  radialSegments?: number;
-  heightSegments?: number;
-  openEnded?: boolean;
-  thetaStart?: number;
-  thetaLength?: number;
-  args?: [number?, number?, number?, number?, number?, boolean?, number?, number?];
+export interface ThreeCameraProps {
+  position?: Vector3Tuple;
+  rotation?: Vector3Tuple;
+  fov?: number;
+  aspect?: number;
+  near?: number;
+  far?: number;
+  lookAt?: Vector3Tuple | Object3D;
+  makeDefault?: boolean;
+  zoom?: number;
+  orthographic?: boolean;
+  orthographicSize?: number;
 }
 
-/**
- * 材质参数类型
- */
-export interface ThreeMaterialBaseProps {
-  transparent?: boolean;
-  opacity?: number;
-  side?: 'front' | 'back' | 'double';
-  depthTest?: boolean;
-  depthWrite?: boolean;
-  alphaTest?: number;
-  visible?: boolean;
-  toneMapped?: boolean;
-  vertexColors?: boolean;
-  blending?: string;
-  dithering?: boolean;
-  flatShading?: boolean;
-  fog?: boolean;
-  precision?: 'highp' | 'mediump' | 'lowp';
-}
-
-export interface ThreeMeshBasicMaterialProps extends ThreeMaterialBaseProps {
-  color?: ThreeColor;
-  wireframe?: boolean;
-  map?: any;
-  alphaMap?: any;
-  aoMap?: any;
-  aoMapIntensity?: number;
-  envMap?: any;
-  reflectivity?: number;
-  refractionRatio?: number;
-  combine?: string;
-}
-
-export interface ThreeMeshStandardMaterialProps extends ThreeMaterialBaseProps {
-  color?: ThreeColor;
-  roughness?: number;
-  metalness?: number;
-  map?: any;
-  normalMap?: any;
-  normalScale?: ThreeVector2;
-  roughnessMap?: any;
-  metalnessMap?: any;
-  alphaMap?: any;
-  aoMap?: any;
-  aoMapIntensity?: number;
-  emissive?: ThreeColor;
-  emissiveIntensity?: number;
-  emissiveMap?: any;
-  bumpMap?: any;
-  bumpScale?: number;
-  displacementMap?: any;
-  displacementScale?: number;
-  displacementBias?: number;
-  envMap?: any;
-  envMapIntensity?: number;
-  wireframe?: boolean;
-  flatShading?: boolean;
-}
-
-/**
- * 光源参数类型
- */
-export interface ThreeLightBaseProps {
-  color?: ThreeColor;
-  intensity?: number;
+export interface ThreeMeshProps {
+  position?: Vector3Tuple;
+  rotation?: Vector3Tuple;
+  scale?: number | Vector3Tuple;
   castShadow?: boolean;
-  shadow?: {
-    mapSize?: ThreeVector2;
-    camera?: {
-      near?: number;
-      far?: number;
+  receiveShadow?: boolean;
+  visible?: boolean;
+  renderOrder?: number;
+  frustumCulled?: boolean;
+}
+
+export interface ThreeObjectProps {
+  position?: Vector3Tuple;
+  rotation?: Vector3Tuple;
+  scale?: number | Vector3Tuple;
+  visible?: boolean;
+  renderOrder?: number;
+  frustumCulled?: boolean;
+} 
+
+// WebGPU相关类型扩展
+declare global {
+  interface Navigator {
+    gpu?: {
+      requestAdapter(): Promise<GPUAdapter | null>;
     };
-    bias?: number;
-    radius?: number;
-    blurSamples?: number;
-  };
-}
-
-export interface ThreeDirectionalLightProps extends ThreeLightBaseProps {
-  position?: ThreeVector3;
-  target?: any;
-}
-
-export interface ThreePointLightProps extends ThreeLightBaseProps {
-  position?: ThreeVector3;
-  distance?: number;
-  decay?: number;
-}
-
-export interface ThreeSpotLightProps extends ThreeLightBaseProps {
-  position?: ThreeVector3;
-  target?: any;
-  distance?: number;
-  angle?: number;
-  penumbra?: number;
-  decay?: number;
-}
-
-/**
- * 控制器参数类型
- */
-export interface ThreeOrbitControlsProps {
-  enableRotate?: boolean;
-  enablePan?: boolean;
-  enableZoom?: boolean;
-  enableDamping?: boolean;
-  dampingFactor?: number;
-  autoRotate?: boolean;
-  autoRotateSpeed?: number;
-  minDistance?: number;
-  maxDistance?: number;
-  minPolarAngle?: number;
-  maxPolarAngle?: number;
-  minAzimuthAngle?: number;
-  maxAzimuthAngle?: number;
-  target?: ThreeVector3;
-}
-
-export interface ThreeTransformControlsProps {
-  mode?: 'translate' | 'rotate' | 'scale';
-  size?: number;
-  showX?: boolean;
-  showY?: boolean;
-  showZ?: boolean;
-  enabled?: boolean;
-  translationSnap?: number;
-  rotationSnap?: number;
-  scaleSnap?: number;
-  space?: 'world' | 'local';
-  axis?: 'X' | 'Y' | 'Z' | 'XY' | 'YZ' | 'XZ' | 'XYZ';
-}
-
-/**
- * 插件配置类型
- */
-export interface ThreeRenderPluginOptions {
-  registerComponents?: boolean;
-  usePrefix?: boolean;
-  prefix?: string;
-  config?: {
-    antialias?: boolean;
-    shadows?: boolean;
-    autoRender?: boolean;
-    stats?: boolean;
-    pixelRatio?: number;
-  };
+  }
+  
+  interface GPUAdapter {
+    requestDevice(): Promise<GPUDevice | null>;
+  }
+  
+  interface GPUDevice {
+    // 基本GPU设备接口
+  }
 } 

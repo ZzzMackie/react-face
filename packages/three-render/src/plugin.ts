@@ -1,112 +1,63 @@
-import type { App } from 'vue';
-import * as components from './components';
+import { App } from 'vue';
 
-export interface ThreeRenderOptions {
-  /**
-   * 是否自动注册所有组件
-   * @default true
-   */
-  registerComponents?: boolean;
-  
-  /**
-   * 是否使用前缀注册组件
-   * @default true
-   */
-  usePrefix?: boolean;
-  
-  /**
-   * 组件前缀
-   * @default 'Three'
-   */
-  prefix?: string;
-  
-  /**
-   * 全局配置选项
-   */
-  config?: {
-    /**
-     * 是否启用抗锯齿
-     * @default true
-     */
-    antialias?: boolean;
-    
-    /**
-     * 是否启用阴影
-     * @default true
-     */
-    shadows?: boolean;
-    
-    /**
-     * 是否启用自动渲染
-     * @default true
-     */
-    autoRender?: boolean;
-    
-    /**
-     * 是否启用性能监控
-     * @default false
-     */
-    stats?: boolean;
-    
-    /**
-     * 默认像素比
-     * @default window.devicePixelRatio
-     */
-    pixelRatio?: number;
-  }
-}
+// 核心组件
+import ThreeCanvas from './components/core/ThreeCanvas.vue';
+import ThreeScene from './components/core/ThreeScene.vue';
+import ThreeCamera from './components/core/ThreeCamera.vue';
+import ThreeMesh from './components/core/ThreeMesh.vue';
+import ThreeObject from './components/core/ThreeObject.vue';
+import ThreeResourceManager from './components/core/ThreeResourceManager.vue';
+import ThreeWebGPURenderer from './components/core/ThreeWebGPURenderer.vue';
 
-/**
- * Three-Render Vue 插件
- */
-export const ThreeRenderPlugin = {
-  install(app: App, options: ThreeRenderOptions = {}) {
-    // 默认选项
-    const defaultOptions: ThreeRenderOptions = {
-      registerComponents: true,
-      usePrefix: true,
-      prefix: 'Three',
-      config: {
-        antialias: true,
-        shadows: true,
-        autoRender: true,
-        stats: false,
-        pixelRatio: typeof window !== 'undefined' ? window.devicePixelRatio : 1
-      }
-    };
+// 物理组件
+import ThreePhysicsWorld from './components/physics/ThreePhysicsWorld.vue';
+import ThreeRigidBody from './components/physics/ThreeRigidBody.vue';
+import ThreeBoxCollider from './components/physics/ThreeBoxCollider.vue';
+import ThreeSphereCollider from './components/physics/ThreeSphereCollider.vue';
+import ThreeConstraint from './components/physics/ThreeConstraint.vue';
+
+// 后处理组件
+import ThreePostProcessing from './components/postprocessing/ThreePostProcessing.vue';
+import ThreeBloomEffect from './components/postprocessing/ThreeBloomEffect.vue';
+import ThreeFXAAEffect from './components/postprocessing/ThreeFXAAEffect.vue';
+import ThreeDepthOfFieldEffect from './components/postprocessing/ThreeDepthOfFieldEffect.vue';
+
+// 调试组件
+import ThreeStats from './components/debug/ThreeStats.vue';
+
+// 交互组件
+import ThreeRaycaster from './components/interaction/ThreeRaycaster.vue';
+import ThreeInteractive from './components/interaction/ThreeInteractive.vue';
+
+export default {
+  install(app: App) {
+    // 注册核心组件
+    app.component('ThreeCanvas', ThreeCanvas);
+    app.component('ThreeScene', ThreeScene);
+    app.component('ThreeCamera', ThreeCamera);
+    app.component('ThreeMesh', ThreeMesh);
+    app.component('ThreeObject', ThreeObject);
+    app.component('ThreeResourceManager', ThreeResourceManager);
+    app.component('ThreeWebGPURenderer', ThreeWebGPURenderer);
     
-    // 合并选项
-    const mergedOptions = {
-      ...defaultOptions,
-      ...options,
-      config: {
-        ...defaultOptions.config,
-        ...options.config
-      }
-    };
+    // 注册物理组件
+    app.component('ThreePhysicsWorld', ThreePhysicsWorld);
+    app.component('ThreeRigidBody', ThreeRigidBody);
+    app.component('ThreeBoxCollider', ThreeBoxCollider);
+    app.component('ThreeSphereCollider', ThreeSphereCollider);
+    app.component('ThreeConstraint', ThreeConstraint);
     
-    // 注册全局配置
-    app.provide('threeRenderConfig', mergedOptions.config);
+    // 注册后处理组件
+    app.component('ThreePostProcessing', ThreePostProcessing);
+    app.component('ThreeBloomEffect', ThreeBloomEffect);
+    app.component('ThreeFXAAEffect', ThreeFXAAEffect);
+    app.component('ThreeDepthOfFieldEffect', ThreeDepthOfFieldEffect);
     
-    // 注册所有组件
-    if (mergedOptions.registerComponents) {
-      Object.entries(components).forEach(([componentName, component]) => {
-        if (mergedOptions.usePrefix && !componentName.startsWith(mergedOptions.prefix!)) {
-          // 如果使用前缀且组件名不以前缀开头，则添加前缀
-          app.component(`${mergedOptions.prefix}${componentName}`, component);
-        } else {
-          // 否则直接注册组件
-          app.component(componentName, component);
-        }
-      });
-    }
+    // 注册调试组件
+    app.component('ThreeStats', ThreeStats);
     
-    // 注册全局属性
-    app.config.globalProperties.$threeRender = {
-      version: '0.1.0',
-      config: mergedOptions.config
-    };
-    
-    console.log('🎮 Three-Render 插件已安装');
+    // 注册交互组件
+    app.component('ThreeRaycaster', ThreeRaycaster);
+    app.component('ThreeInteractive', ThreeInteractive);
   }
 }; 

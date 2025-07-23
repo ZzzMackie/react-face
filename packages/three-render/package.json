@@ -8,8 +8,7 @@
   "types": "dist/types/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/three-render.es.js",
-      "require": "./dist/three-render.umd.js",
+      "import": "./dist/three-render.esm.js",
       "types": "./dist/types/index.d.ts"
     },
     "./style": "./dist/style.css"
@@ -20,7 +19,9 @@
   ],
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc --noEmit && vite build",
+    "build": "vite build",
+    "build:no-check": "vite build",
+    "type-check": "vue-tsc --noEmit",
     "preview": "vite preview",
     "lint": "eslint --ext .js,.ts,.vue --ignore-path .gitignore .",
     "test": "vitest run",
@@ -28,14 +29,18 @@
     "test:coverage": "vitest run --coverage",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
-    "docs:serve": "vitepress serve docs"
+    "docs:serve": "vitepress serve docs",
+    "build:simple": "vite build --mode production",
+    "build:esbuild": "node build-esbuild.js"
   },
   "dependencies": {
+    "cannon-es": "^0.20.0",
     "three": "^0.158.0",
     "three-core": "workspace:*",
     "vue": "^3.3.8"
   },
   "peerDependencies": {
+    "cannon-es": ">=0.20.0",
     "three": ">=0.150.0",
     "three-core": ">=1.0.0",
     "vue": ">=3.3.0"
@@ -67,7 +72,10 @@
     "3d",
     "webgl",
     "renderer",
-    "components"
+    "components",
+    "physics",
+    "interaction",
+    "cannon-es"
   ],
   "author": "",
   "license": "MIT",

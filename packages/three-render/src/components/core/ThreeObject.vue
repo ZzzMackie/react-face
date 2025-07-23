@@ -82,24 +82,36 @@ const props = withDefaults(defineProps<{
   name: ''
 });
 
-const emit = defineEmits<{
-  [key in keyof typeof OBJECT_EVENTS]: (event: any) => void;
-} & {
-  /**
-   * 对象添加到场景
-   */
-  (e: 'mounted', object: THREE.Object3D): void;
-
-  /**
-   * 对象从场景移除
-   */
-  (e: 'unmounted', object: THREE.Object3D): void;
-
-  /**
-   * 对象更新
-   */
-  (e: 'update', object: THREE.Object3D): void;
-}>();
+// 修改defineEmits部分，避免使用映射类型
+const emit = defineEmits([
+  // 基础事件
+  'created',
+  'mounted',
+  'beforeUnmount',
+  'unmounted',
+  'updated',
+  
+  // Three.js对象事件
+  'click',
+  'dblclick',
+  'contextmenu',
+  'pointerdown',
+  'pointerup',
+  'pointermove',
+  'pointerenter',
+  'pointerleave',
+  'pointerover',
+  'pointerout',
+  'wheel',
+  'keydown',
+  'keyup',
+  'focus',
+  'blur',
+  'drag',
+  'dragstart',
+  'dragend',
+  'drop'
+]);
 
 // 获取场景上下文
 const sceneContext = inject(SCENE_CONTEXT_KEY);

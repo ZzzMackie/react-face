@@ -19,6 +19,7 @@
   "devDependencies": {
     "@types/node": "^20.0.0",
     "@types/three": "^0.174.0",
+    "esbuild": "^0.25.7",
     "husky": "^9.1.7",
     "prettier": "^3.0.0",
     "turbo": "^1.10.0",

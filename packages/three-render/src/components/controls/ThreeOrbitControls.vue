@@ -1,195 +1,221 @@
 <template>
-  <slot></slot>
+  <div class="three-orbit-controls"></div>
 </template>
 
-<script setup lang="ts">
-import { ref, onBeforeUnmount, watch, onMounted } from 'vue';
-import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { useThree } from '../../composables/useThree';
+<script>
+import { ref, onMounted, onBeforeUnmount, watch, inject } from 'vue';
+import { CANVAS_INJECTION_KEY, CAMERA_INJECTION_KEY } from '../../constants';
 
-const props = withDefaults(defineProps<{
-  /**
-   * 是否启用旋转
-   */
-  enableRotate?: boolean;
-  /**
-   * 是否启用平移
-   */
-  enablePan?: boolean;
-  /**
-   * 是否启用缩放
-   */
-  enableZoom?: boolean;
-  /**
-   * 是否启用阻尼效果
-   */
-  enableDamping?: boolean;
-  /**
-   * 阻尼系数
-   */
-  dampingFactor?: number;
-  /**
-   * 最小距离
-   */
-  minDistance?: number;
-  /**
-   * 最大距离
-   */
-  maxDistance?: number;
-  /**
-   * 最小极角（仰角）
-   */
-  minPolarAngle?: number;
-  /**
-   * 最大极角（仰角）
-   */
-  maxPolarAngle?: number;
-  /**
-   * 最小方位角
-   */
-  minAzimuthAngle?: number;
-  /**
-   * 最大方位角
-   */
-  maxAzimuthAngle?: number;
-  /**
-   * 自动旋转
-   */
-  autoRotate?: boolean;
-  /**
-   * 自动旋转速度
-   */
-  autoRotateSpeed?: number;
-}>(), {
-  enableRotate: true,
-  enablePan: true,
-  enableZoom: true,
-  enableDamping: true,
-  dampingFactor: 0.05,
-  minDistance: 0,
-  maxDistance: Infinity,
-  minPolarAngle: 0,
-  maxPolarAngle: Math.PI,
-  minAzimuthAngle: -Infinity,
-  maxAzimuthAngle: Infinity,
-  autoRotate: false,
-  autoRotateSpeed: 2.0
-});
-
-// 控制器实例
-const controls = ref<OrbitControls | null>(null);
-
-// 使用 three 组合式函数获取场景、相机等
-const { camera, renderer } = useThree();
-
-// 创建控制器
-const createControls = () => {
-  // 确保相机和渲染器存在
-  if (!camera.value || !renderer.value) {
-    return;
-  }
-
-  // 清理旧控制器
-  disposeControls();
-
-  // 创建新的控制器
-  controls.value = new OrbitControls(camera.value, renderer.value.domElement);
-
-  // 配置控制器
-  updateControlsConfig();
-
-  // 添加变化事件监听
-  controls.value.addEventListener('change', () => {
-    emit('change', controls.value);
-  });
-};
-
-// 更新控制器配置
-const updateControlsConfig = () => {
-  if (!controls.value) {
-    return;
-  }
-
-  controls.value.enableRotate = props.enableRotate;
-  controls.value.enablePan = props.enablePan;
-  controls.value.enableZoom = props.enableZoom;
-  controls.value.enableDamping = props.enableDamping;
-  controls.value.dampingFactor = props.dampingFactor;
-  controls.value.minDistance = props.minDistance;
-  controls.value.maxDistance = props.maxDistance;
-  controls.value.minPolarAngle = props.minPolarAngle;
-  controls.value.maxPolarAngle = props.maxPolarAngle;
-  controls.value.minAzimuthAngle = props.minAzimuthAngle;
-  controls.value.maxAzimuthAngle = props.maxAzimuthAngle;
-  controls.value.autoRotate = props.autoRotate;
-  controls.value.autoRotateSpeed = props.autoRotateSpeed;
-
-  // 更新控制器
-  controls.value.update();
-};
-
-// 清理控制器
-const disposeControls = () => {
-  if (controls.value) {
-    controls.value.dispose();
-    controls.value = null;
-  }
-};
-
-// 定义事件
-const emit = defineEmits<{
-  (e: 'change', controls: OrbitControls | null): void;
-}>();
-
-// 监听属性变化
-watch(
-  () => ({
-    enableRotate: props.enableRotate,
-    enablePan: props.enablePan,
-    enableZoom: props.enableZoom,
-    enableDamping: props.enableDamping,
-    dampingFactor: props.dampingFactor,
-    minDistance: props.minDistance,
-    maxDistance: props.maxDistance,
-    minPolarAngle: props.minPolarAngle,
-    maxPolarAngle: props.maxPolarAngle,
-    minAzimuthAngle: props.minAzimuthAngle,
-    maxAzimuthAngle: props.maxAzimuthAngle,
-    autoRotate: props.autoRotate,
-    autoRotateSpeed: props.autoRotateSpeed
-  }),
-  () => {
-    updateControlsConfig();
-  },
-  { deep: true }
-);
-
-// 监听相机和渲染器变化
-watch(
-  [camera, renderer],
-  ([newCamera, newRenderer]) => {
-    if (newCamera && newRenderer) {
-      createControls();
+export default {
+  props: {
+    enableRotate: {
+      type: Boolean,
+      default: true
+    },
+    enableZoom: {
+      type: Boolean,
+      default: true
+    },
+    enablePan: {
+      type: Boolean,
+      default: true
+    },
+    enableDamping: {
+      type: Boolean,
+      default: true
+    },
+    dampingFactor: {
+      type: Number,
+      default: 0.05
+    },
+    autoRotate: {
+      type: Boolean,
+      default: false
+    },
+    autoRotateSpeed: {
+      type: Number,
+      default: 2.0
+    },
+    minDistance: {
+      type: Number,
+      default: 0
+    },
+    maxDistance: {
+      type: Number,
+      default: Infinity
+    },
+    minPolarAngle: {
+      type: Number,
+      default: 0
+    },
+    maxPolarAngle: {
+      type: Number,
+      default: Math.PI
+    },
+    minAzimuthAngle: {
+      type: Number,
+      default: -Infinity
+    },
+    maxAzimuthAngle: {
+      type: Number,
+      default: Infinity
+    },
+    target: {
+      type: Array,
+      default: () => [0, 0, 0]
     }
   },
-  { immediate: true }
-);
-
-// 在组件挂载时初始化
-onMounted(() => {
-  if (camera.value && renderer.value) {
-    createControls();
+  emits: ['ready', 'start', 'change', 'end', 'update'],
+  setup(props, { emit }) {
+    // 获取画布上下文
+    const canvasContext = inject(CANVAS_INJECTION_KEY, null);
+    
+    // 获取相机上下文
+    const cameraContext = inject(CAMERA_INJECTION_KEY, null);
+    
+    // 控制器引用
+    const controls = ref(null);
+    
+    // 创建控制器
+    const createControls = async () => {
+      if (!canvasContext || !canvasContext.engine.value) return;
+      if (!cameraContext || !cameraContext.camera.value) return;
+      
+      try {
+        // 获取控制器管理器
+        const controlsManager = await canvasContext.engine.value.getOrCreateManager('controls');
+        
+        // 获取Three.js
+        const THREE = canvasContext.engine.value.constructor.THREE;
+        
+        // 动态导入OrbitControls
+        const OrbitControls = await import('three/examples/jsm/controls/OrbitControls.js')
+          .then(module => module.OrbitControls);
+        
+        // 创建控制器
+        controls.value = new OrbitControls(
+          cameraContext.camera.value,
+          canvasContext.container.value
+        );
+        
+        // 设置控制器属性
+        updateControls();
+        
+        // 添加事件监听器
+        controls.value.addEventListener('start', () => {
+          emit('start', { controls: controls.value });
+        });
+        
+        controls.value.addEventListener('change', () => {
+          emit('change', { controls: controls.value });
+        });
+        
+        controls.value.addEventListener('end', () => {
+          emit('end', { controls: controls.value });
+        });
+        
+        // 添加到引擎的动画循环
+        const animate = () => {
+          if (controls.value) {
+            controls.value.update();
+          }
+        };
+        
+        canvasContext.engine.value.onBeforeRender(animate);
+        
+        // 触发就绪事件
+        emit('ready', { controls: controls.value });
+      } catch (error) {
+        console.error('Failed to create orbit controls:', error);
+      }
+    };
+    
+    // 更新控制器
+    const updateControls = () => {
+      if (!controls.value) return;
+      
+      // 更新基本属性
+      controls.value.enableRotate = props.enableRotate;
+      controls.value.enableZoom = props.enableZoom;
+      controls.value.enablePan = props.enablePan;
+      controls.value.enableDamping = props.enableDamping;
+      controls.value.dampingFactor = props.dampingFactor;
+      controls.value.autoRotate = props.autoRotate;
+      controls.value.autoRotateSpeed = props.autoRotateSpeed;
+      controls.value.minDistance = props.minDistance;
+      controls.value.maxDistance = props.maxDistance;
+      controls.value.minPolarAngle = props.minPolarAngle;
+      controls.value.maxPolarAngle = props.maxPolarAngle;
+      controls.value.minAzimuthAngle = props.minAzimuthAngle;
+      controls.value.maxAzimuthAngle = props.maxAzimuthAngle;
+      
+      // 更新目标点
+      if (props.target && props.target.length === 3) {
+        controls.value.target.set(
+          props.target[0],
+          props.target[1],
+          props.target[2]
+        );
+      }
+      
+      // 更新控制器
+      controls.value.update();
+      
+      // 触发更新事件
+      emit('update', { controls: controls.value });
+    };
+    
+    // 监听属性变化
+    watch(() => props.enableRotate, updateControls);
+    watch(() => props.enableZoom, updateControls);
+    watch(() => props.enablePan, updateControls);
+    watch(() => props.enableDamping, updateControls);
+    watch(() => props.dampingFactor, updateControls);
+    watch(() => props.autoRotate, updateControls);
+    watch(() => props.autoRotateSpeed, updateControls);
+    watch(() => props.minDistance, updateControls);
+    watch(() => props.maxDistance, updateControls);
+    watch(() => props.minPolarAngle, updateControls);
+    watch(() => props.maxPolarAngle, updateControls);
+    watch(() => props.minAzimuthAngle, updateControls);
+    watch(() => props.maxAzimuthAngle, updateControls);
+    watch(() => props.target, updateControls, { deep: true });
+    
+    // 组件挂载和卸载
+    onMounted(() => {
+      createControls();
+    });
+    
+    onBeforeUnmount(() => {
+      if (controls.value) {
+        // 移除事件监听器
+        controls.value.removeEventListener('start', () => {
+          emit('start', { controls: controls.value });
+        });
+        
+        controls.value.removeEventListener('change', () => {
+          emit('change', { controls: controls.value });
+        });
+        
+        controls.value.removeEventListener('end', () => {
+          emit('end', { controls: controls.value });
+        });
+        
+        // 释放资源
+        controls.value.dispose();
+        controls.value = null;
+      }
+    });
+    
+    return {
+      controls
+    };
   }
-});
+};
+</script>
 
-// 在组件卸载前清理
-onBeforeUnmount(() => {
-  disposeControls();
-});
-
-// 暴露控制器实例
-defineExpose({
-  controls
-});
-</script> 
+<style scoped>
+.three-orbit-controls {
+  display: none;
+}
+</style> 

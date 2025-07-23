@@ -1,312 +1,268 @@
 # Three-Render
 
-基于 Vue 3 的声明式 Three.js 渲染库，类似于 React 的 react-three-fiber，但专为 Vue 3 设计。使用 three-core 作为底层渲染引擎。
+Three-Render是一个Vue 3组件库，用于简化Three.js的使用和开发。它提供了一组声明式组件，使您能够以Vue组件的方式构建3D应用程序。
 
 ## 特性
 
-- **声明式 3D 渲染**：使用 Vue 组件和模板语法创建和管理 Three.js 场景
-- **响应式**：充分利用 Vue 3 的响应式系统自动更新 Three.js 对象
-- **组合式 API**：提供类似 react-three-fiber 的钩子函数，如 `useThree` 和 `useFrame`
-- **高性能**：优化的渲染循环，支持实例化渲染和 LOD
-- **高级功能**：内置后处理效果、WebGPU 支持、物理模拟等
-- **易于集成**：与 Vue 生态系统无缝集成
+- **声明式API**：使用Vue组件语法构建3D场景
+- **响应式**：自动响应数据变化，更新3D场景
+- **组件化**：将3D场景拆分为可重用的组件
+- **类型安全**：完整的TypeScript类型定义
+- **物理引擎**：内置cannon-es物理引擎支持
+- **后处理效果**：支持多种后处理效果
+- **WebGPU支持**：可选的WebGPU渲染器
+- **资源管理**：智能资源管理和优化
+- **性能监控**：内置性能监控工具
 
 ## 安装
 
 ```bash
-# 使用 npm
-npm install three-render three
-
-# 使用 yarn
-yarn add three-render three
-
-# 使用 pnpm
-pnpm add three-render three
+npm install three-render three @types/three
 ```
 
-## 快速开始
+## 基本用法
 
 ```vue
 <template>
-  <three-canvas>
-    <three-scene :background="0x87ceeb">
-      <three-camera :position="[0, 2, 5]" :lookAt="[0, 0, 0]" :makeDefault="true" />
-      <three-mesh :position="[0, 0, 0]">
-        <three-box :width="1" :height="1" :depth="1" :center="true" />
-        <three-mesh-standard-material color="red" :metalness="0.5" :roughness="0.5" />
-      </three-mesh>
-      <!-- 添加灯光 -->
-      <three-object :object="ambientLight" />
-      <three-object :object="directionalLight" :position="[5, 5, 5]" />
-    </three-scene>
-  </three-canvas>
+  <ThreeCanvas>
+    <ThreeScene>
+      <ThreeCamera :position="[0, 0, 5]" />
+      <ThreeAmbientLight />
+      <ThreeDirectionalLight :position="[0, 1, 0]" />
+      <ThreeMesh>
+        <ThreeBoxGeometry />
+        <ThreeMeshStandardMaterial :color="0x3366cc" />
+      </ThreeMesh>
+    </ThreeScene>
+  </ThreeCanvas>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import * as THREE from 'three'
-import { 
-  ThreeCanvas, 
-  ThreeScene, 
-  ThreeCamera, 
-  ThreeMesh, 
-  ThreeBox, 
-  ThreeObject, 
-  ThreeMeshStandardMaterial 
-} from 'three-render'
-
-// 创建灯光
-const ambientLight = ref(new THREE.AmbientLight(0xffffff, 0.5))
-const directionalLight = ref(new THREE.DirectionalLight(0xffffff, 0.8))
+import { ThreeCanvas, ThreeScene, ThreeCamera, ThreeMesh, ThreeBoxGeometry, ThreeMeshStandardMaterial, ThreeAmbientLight, ThreeDirectionalLight } from 'three-render';
 </script>
 ```
 
-## 全局注册组件
+## 组件
 
-```js
-// main.js
-import { createApp } from 'vue'
-import App from './App.vue'
-import ThreeRender from 'three-render'
+### 核心组件
 
-const app = createApp(App)
-app.use(ThreeRender)
-app.mount('#app')
-```
+- `ThreeCanvas` - 创建Three.js画布
+- `ThreeScene` - 创建3D场景
+- `ThreeCamera` - 创建相机
+- `ThreeMesh` - 创建网格对象
+- `ThreeObject` - 创建通用3D对象
+- `ThreeResourceManager` - 管理和优化资源
+- `ThreeWebGPURenderer` - WebGPU渲染器
 
-## 组件 API
+### 几何体组件
 
-### ThreeCanvas
+- `ThreeBoxGeometry` - 立方体
+- `ThreeSphereGeometry` - 球体
+- `ThreePlaneGeometry` - 平面
+- `ThreeCylinderGeometry` - 圆柱体
+- `ThreeConeGeometry` - 圆锥体
+- `ThreeTorusGeometry` - 圆环
+- `ThreeTorusKnotGeometry` - 环形结
+- `ThreeCircleGeometry` - 圆形
 
-创建 Three.js 渲染上下文和画布
+### 材质组件
 
-```vue
-<three-canvas
-  :width="800"
-  :height="600"
-  :antialias="true"
-  :alpha="true"
-  :shadows="true"
-  :physicallyCorrectLights="true"
-  :webGPU="false"
-  :pixelRatio="window.devicePixelRatio"
-  :frameloop="'demand'"
-  @created="onCanvasCreated"
-/>
-```
+- `ThreeMeshStandardMaterial` - 标准材质
+- `ThreeMeshBasicMaterial` - 基础材质
+- `ThreeMeshPhongMaterial` - Phong材质
 
-### ThreeScene
+### 灯光组件
 
-创建 Three.js 场景
+- `ThreeAmbientLight` - 环境光
+- `ThreeDirectionalLight` - 平行光
+- `ThreePointLight` - 点光源
+- `ThreeSpotLight` - 聚光灯
+- `ThreeHemisphereLight` - 半球光
 
-```vue
-<three-scene
-  :background="0x87ceeb"
-  :environment="environmentTexture"
-  :fog="{ type: 'exp2', color: 0xcccccc, density: 0.02 }"
-/>
-```
+### 控制器组件
 
-### ThreeCamera
+- `ThreeOrbitControls` - 轨道控制器
 
-创建相机对象
+### 交互组件
 
-```vue
-<three-camera
-  type="perspective"
-  :fov="75"
-  :aspect="16/9"
-  :near="0.1"
-  :far="1000"
-  :position="[0, 0, 5]"
-  :lookAt="[0, 0, 0]"
-  :makeDefault="true"
-/>
-```
+- `ThreeRaycaster` - 射线投射器
+- `ThreeInteractive` - 交互式对象
 
-### ThreeMesh
+### 后处理组件
 
-创建网格对象
+- `ThreePostProcessing` - 后处理系统
+- `ThreeBloomEffect` - 辉光效果
+- `ThreeAntialias` - 抗锯齿效果
+- `ThreeDepthOfFieldEffect` - 景深效果
 
-```vue
-<three-mesh
-  :position="[0, 0, 0]"
-  :rotation="[0, 0, 0]"
-  :scale="1"
-  :castShadow="true"
-  :receiveShadow="true"
-  @click="handleClick"
-  @pointerenter="handlePointerEnter"
-  @pointerleave="handlePointerLeave"
->
-  <!-- 几何体和材质作为子组件 -->
-</three-mesh>
-```
+### 高级组件
 
-### ThreeGeometry
+- `ThreeGLTFModel` - GLTF模型加载器
+- `ThreeText` - 3D文本
+- `ThreeSprite` - 精灵
+- `ThreeParticles` - 粒子系统
 
-创建各种几何体
+### 物理组件
 
-```vue
-<three-geometry 
-  type="box"
-  :width="1"
-  :height="1"
-  :depth="1"
-  :widthSegments="1"
-  :heightSegments="1"
-  :depthSegments="1"
-  :center="true"
-/>
+- `ThreePhysicsWorld` - 物理世界
+- `ThreeRigidBody` - 刚体
+- `ThreeBoxCollider` - 盒体碰撞器
+- `ThreeSphereCollider` - 球体碰撞器
+- `ThreeConstraint` - 物理约束
 
-<three-geometry 
-  type="sphere"
-  :radius="1"
-  :widthSegments="32"
-  :heightSegments="16"
-/>
+### 调试组件
 
-<three-geometry 
-  type="torus"
-  :radius="1"
-  :tube="0.4"
-  :radialSegments="16"
-  :tubularSegments="100"
-/>
-```
+- `ThreeStats` - 性能监控
 
-### ThreeMeshStandardMaterial
+## 组合式API
 
-创建标准 PBR 材质
+- `useThree` - 访问Three.js核心对象
+- `useFrame` - 添加帧更新回调
+- `useRaycaster` - 射线投射功能
+- `usePhysics` - 物理引擎功能
+- `useTexture` - 纹理加载功能
+- `useModel` - 模型加载功能
+
+## 高级功能
+
+### WebGPU支持
+
+Three-Render提供可选的WebGPU渲染器，可在支持的浏览器中启用：
 
 ```vue
-<three-mesh-standard-material
-  color="red"
-  :roughness="0.5"
-  :metalness="0.5"
-  :emissive="0x000000"
-  :transparent="false"
-  :opacity="1"
-  :side="'front'"
-  :wireframe="false"
-  :map="diffuseTexture"
-  :normalMap="normalTexture"
+<ThreeWebGPURenderer v-slot="{ isSupported, isInitialized }">
+  <ThreeScene v-if="isSupported && isInitialized">
+    <!-- 3D内容 -->
+  </ThreeScene>
+  <template #not-supported>
+    <div>WebGPU不受支持</div>
+  </template>
+</ThreeWebGPURenderer>
+```
+
+### 资源管理
+
+使用`ThreeResourceManager`组件优化资源使用：
+
+```vue
+<ThreeResourceManager :auto-dispose="true" :dispose-interval="30000">
+  <!-- 3D内容 -->
+</ThreeResourceManager>
+```
+
+### 性能监控
+
+使用`ThreeStats`组件监控性能：
+
+```vue
+<ThreeStats 
+  :show-fps="true" 
+  :show-ms="true" 
+  :show-mem="true"
+  :show-draw-calls="true"
+  :show-triangles="true"
 />
 ```
 
-## 组合式 API
+### 物理系统
 
-### useThree
+使用物理组件添加物理交互：
 
-访问 Three.js 核心对象和状态
-
-```js
-import { useThree } from 'three-render'
-
-// 在组件内部使用
-const { 
-  scene,
-  camera,
-  renderer,
-  gl,
-  size,
-  viewport
-} = useThree()
-
-// 使用这些对象
-console.log(scene.value)
-camera.value.position.z = 5
-```
-
-### useFrame
-
-添加帧动画回调
-
-```js
-import { useFrame } from 'three-render'
-
-// 在每一帧调用
-useFrame((state, delta) => {
-  // state 包含场景、相机等
-  // delta 是自上一帧以来经过的时间
+```vue
+<ThreePhysicsWorld :gravity="[0, -9.82, 0]">
+  <ThreeRigidBody :mass="1" :position="[0, 5, 0]">
+    <ThreeMesh>
+      <ThreeBoxGeometry />
+      <ThreeMeshStandardMaterial :color="0x3366cc" />
+    </ThreeMesh>
+    <ThreeBoxCollider />
+  </ThreeRigidBody>
   
-  // 旋转网格
-  mesh.value.rotation.x += 0.01
-})
-
-// 指定优先级（越低越先执行）
-useFrame((state, delta) => {
-  // 先执行的逻辑
-}, 1)
-
-// 指定特定的渲染目标
-useFrame((state, delta) => {
-  // 针对特定渲染器的逻辑
-}, 0, myRenderTarget)
+  <ThreeRigidBody :mass="0" :position="[0, -0.5, 0]">
+    <ThreeMesh :rotation="[-Math.PI / 2, 0, 0]">
+      <ThreePlaneGeometry :width="10" :height="10" />
+      <ThreeMeshStandardMaterial :color="0x999999" />
+    </ThreeMesh>
+    <ThreeBoxCollider :size="[10, 0.1, 10]" />
+  </ThreeRigidBody>
+</ThreePhysicsWorld>
 ```
 
-## 高级用法
+## 示例
 
-### 后处理效果
+- 基础场景
+- 物理系统
+- 后处理效果
+- 资源管理
+- WebGPU渲染
 
-```vue
-<template>
-  <three-canvas>
-    <three-scene>
-      <!-- 场景内容 -->
-    </three-scene>
-    <three-post-processing>
-      <three-bloom-effect :strength="1.5" />
-      <three-color-correction-effect :saturation="1.2" />
-    </three-post-processing>
-  </three-canvas>
-</template>
-```
+## 浏览器支持
 
-### 物理模拟
-
-```vue
-<template>
-  <three-canvas>
-    <three-physics-world :gravity="[0, -9.8, 0]">
-      <three-scene>
-        <!-- 刚体和碰撞体 -->
-        <three-rigid-body :mass="1" :position="[0, 10, 0]">
-          <three-box />
-          <three-box-collider />
-        </three-rigid-body>
-        
-        <!-- 地面 -->
-        <three-rigid-body :mass="0" :position="[0, 0, 0]">
-          <three-plane :width="20" :height="20" />
-          <three-plane-collider />
-        </three-rigid-body>
-      </three-scene>
-    </three-physics-world>
-  </three-canvas>
-</template>
-```
-
-## 兼容性
-
-- Vue >= 3.0.0
-- Three.js >= 0.125.0
-- 支持现代浏览器和 WebGL 2.0
-- WebGPU 支持（可选）
-
-## 与 React Three Fiber 的区别
-
-Three-Render 的设计灵感来源于 react-three-fiber，但针对 Vue 的组合式 API 和模板系统进行了重新设计。主要区别：
-
-1. **使用 Vue 模板**：而不是 JSX
-2. **组合式 API**：使用 Vue 3 的组合式 API，而不是 React 钩子
-3. **依赖注入**：利用 Vue 的依赖注入而不是 React 上下文
-4. **自动响应式**：充分利用 Vue 的响应式系统
-
-## 贡献指南
-
-欢迎贡献代码、报告问题或提出建议！请查看 [贡献指南](CONTRIBUTING.md) 了解详情。
+- 现代浏览器（Chrome、Firefox、Safari、Edge）
+- WebGPU功能需要支持WebGPU的浏览器（Chrome 113+、Edge 113+）
 
 ## 许可证
 
 MIT 
+
+## 构建
+
+Three-Render提供了几种不同的构建方式：
+
+1. **标准构建**：使用Vue SFC编译器和TypeScript类型检查
+   ```bash
+   npm run build
+   ```
+
+2. **简化构建**：跳过类型检查，使用Vite直接构建
+   ```bash
+   npm run build:simple
+   ```
+
+3. **ESBuild构建**：使用ESBuild进行快速构建，适合开发环境
+   ```bash
+   npm run build:esbuild
+   ```
+
+如果在构建过程中遇到类型检查错误，可以尝试使用简化构建或ESBuild构建。 
+
+## Three-Core 集成
+
+Three-Render 现在与 Three-Core 引擎深度集成，利用其强大的管理器系统来提供更好的性能和更丰富的功能：
+
+### 主要优势
+
+- **统一的资源管理**：通过 ResourceManager 自动管理纹理、几何体和材质的加载和释放
+- **优化的渲染循环**：使用 Engine 的渲染循环系统，支持自定义渲染钩子
+- **场景管理**：通过 SceneManager 更好地组织和管理场景对象
+- **相机控制**：使用 CameraManager 轻松切换和管理多个相机
+- **物理集成**：通过 PhysicsManager 提供与 cannon-es 的无缝集成
+- **后处理系统**：通过 ComposerManager 统一管理后处理效果
+- **性能监控**：使用 PerformanceManager 监控应用性能
+
+### 示例
+
+```vue
+<template>
+  <ThreeCanvas>
+    <ThreeScene :background="0x87CEEB">
+      <ThreeCamera :position="[0, 5, 10]" :lookAt="[0, 0, 0]" />
+      
+      <!-- 灯光 -->
+      <ThreeAmbientLight :intensity="0.5" />
+      <ThreeDirectionalLight :position="[5, 10, 5]" :intensity="1" :cast-shadow="true" />
+      
+      <!-- 3D内容 -->
+      <ThreeMesh :position="[0, 1, 0]" :cast-shadow="true" :receive-shadow="true">
+        <ThreeBoxGeometry :width="2" :height="2" :depth="2" />
+        <ThreeMeshStandardMaterial :color="0x3366cc" />
+      </ThreeMesh>
+      
+      <!-- 控制器 -->
+      <ThreeOrbitControls />
+    </ThreeScene>
+  </ThreeCanvas>
+</template>
+```
+
+查看 `examples/ThreeCoreExample.vue` 获取更多示例。 

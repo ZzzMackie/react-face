@@ -14,6 +14,10 @@ export { useThreeMaterial } from './useThreeMaterial';
 export { useObject } from './useObject';
 export { useTransform } from './useTransform';
 
+// 组件通信相关组合式API
+export { useParent } from './useParent';
+export { injectThreeParent } from './injectThreeParent';
+
 // 交互相关组合式API
 export { useThreeControls } from './useThreeControls';
 export { useThreeEvents } from './useThreeEvents';
