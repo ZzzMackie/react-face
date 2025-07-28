@@ -1,5 +1,6 @@
+"use client";
 import Header from "./components/toolbar/header";
-
+import KnifeMain from "./components/canvas2D/knifeMain";
 export default function Home() {
   return (
     <div className="editor_index__wrapper flex flex-col h-screen">
@@ -7,12 +8,12 @@ export default function Home() {
       <Header />
       </section>
       <section className="editor_index__container flex">
-        <div className="editor_index__container_left flex-2/12">
+        <div className="editor_index__container_left">
         </div>
-        <div className="editor_index__container_center flex-9/12">
-        sss
+        <div className="editor_index__container_center bg-stone-100 h-[calc(100vh-60px)] flex-1">
+          <KnifeMain />
         </div>
-        <div className="editor_index__container_right flex-1/12"></div>
+        <div className="editor_index__container_right"></div>
       </section>
     </div>
   );
