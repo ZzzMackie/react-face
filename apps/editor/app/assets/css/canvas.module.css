@@ -1,0 +1,6 @@
+.canvas_container {
+    @apply w-full h-full;
+}
+.canvas2d_min_height{
+    @apply h-[min(90%,calc(100vw*(1000/1920)))];
+}

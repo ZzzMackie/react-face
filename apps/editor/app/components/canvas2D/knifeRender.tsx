@@ -1,4 +1,5 @@
 "use client"; 
+import styles from '../../assets/css/canvas.module.css';
 import { Layer, Rect, Stage } from 'react-konva';
 import { useEffect, useRef, useState  } from 'react';
 export default function KnifeRender() {
@@ -14,9 +15,9 @@ export default function KnifeRender() {
         }
     }, []);
     return (
-        <div ref={renderRef} className="editor_canvas2D__knife_render min-h-[600px] bg-white aspect-square h-[min(90%,calc(100vw*(1000/1920)))]">
-            <Stage width={renderSize.width} height={renderSize.height}>
-                <Layer>
+        <div ref={renderRef} className={`aspect-square bg-white ${styles.canvas2d_min_height} min-h-[600px]`}>
+            <Stage className={styles.canvas_container} width={renderSize.width} height={renderSize.height}>
+                <Layer >
                     <Rect draggable x={0} y={0} width={100} height={100} fill="red" />
                 </Layer>
             </Stage>
