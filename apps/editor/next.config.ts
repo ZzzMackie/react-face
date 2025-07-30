@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
   experimental: {
     inlineCss: false,
   },
+  transpilePackages: ['three'],
 };
 
 export default nextConfig;

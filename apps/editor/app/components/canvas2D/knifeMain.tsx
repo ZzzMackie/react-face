@@ -8,7 +8,7 @@ const KnifeRender = dynamic(
 );
 export default function KnifeMain() {
     return (
-        <div className="editor_canvas2D__knife_main flex h-full items-center gap-5 justify-center py-[50px] px-[100px]">
+        <div className="editor_canvas2D__knife_main flex h-full items-center gap-5 justify-start py-[50px] px-[100px]">
             <RenderTool />
             <KnifeRender />
         </div>
