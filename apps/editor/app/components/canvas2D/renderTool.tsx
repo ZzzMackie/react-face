@@ -1,5 +1,4 @@
-
-import styles from '../../assets/css/canvas.module.css';
+import styles from '@/assets/moduleCss/canvas.module.css';
 export default function RenderTool() {
     return (
         <div className={`flex flex-col gap-5 justify-start ${styles.canvas2d_min_height} `}>
