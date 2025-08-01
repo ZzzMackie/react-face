@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import styles from '@/assets/moduleCss/panel.module.css';
 import RenderThree from "../canvas3D/renderThree";
 import { useUndoRedoState } from "@/hooks/useGlobalUndoRedo";
@@ -8,8 +8,24 @@ export default function ViewPanel() {
     const [isOpen, setIsOpen] = useState(false);
     const [shouldRenderCanvas, setShouldRenderCanvas] = useState(false);
     const hasInitialized = useRef(false);
-    const canvasRef = useRef<HTMLCanvasElement | null>(null)
-    const {state: currentCanvas} = useUndoRedoState('currentCanvas')
+    const canvasRef = useRef<HTMLCanvasElement | null>(null);
+    const { state: currentCanvas } = useUndoRedoState('currentCanvas', {
+        canvasId: '',
+        canvas: null
+    });
+
+    // 获取canvas元素的回调函数，避免重复执行
+    const updateCanvasRef = useCallback(() => {
+        if (currentCanvas?.canvasId) {
+            const container = document.getElementById(currentCanvas.canvasId);
+            const canvas = container?.querySelector('canvas') as HTMLCanvasElement;
+            if (canvas && canvas !== canvasRef.current) {
+                canvasRef.current = canvas;
+                console.log('Canvas引用已更新:', canvas);
+            }
+        }
+    }, [currentCanvas?.canvasId]);
+
     // 只在第一次展开时，初始化Canvas渲染
     useEffect(() => {
         if (isOpen && !hasInitialized.current) {
@@ -18,13 +34,15 @@ export default function ViewPanel() {
             const timer = setTimeout(() => {
                 setShouldRenderCanvas(true);
             }, 300);
-            
-            console.log(currentCanvas)
-            canvasRef.current = document.getElementById(currentCanvas?.canvasId as string)?.querySelector('canvas') as HTMLCanvasElement
-            console.log(canvasRef.current)
             return () => clearTimeout(timer);
         }
     }, [isOpen]);
+
+    // 更新canvas引用，但不触发重新渲染
+    useEffect(() => {
+        updateCanvasRef();
+    }, [updateCanvasRef]);
+
     return (
         <div 
             className={`${styles.panel_container} ${

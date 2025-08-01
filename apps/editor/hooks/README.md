@@ -1,269 +1,167 @@
-# Undo/Redo Hooks
+# 全局状态管理 Hooks
 
-这个项目提供了两个强大的undo/redo hooks，可以用于任何React状态管理。
+本项目提供了两套全局状态管理方案：
 
-## 1. useUndoRedo - 独立状态管理
+## 1. useGlobalState - 简单全局状态
 
-用于单个组件的状态撤销/重做功能。
+基于 `react-use` 的 `createGlobalState` 实现，提供简单的全局状态管理功能。
 
 ### 基本用法
 
 ```typescript
-import { useUndoRedo } from './hooks/useUndoRedo';
+import { useGlobalState } from '@/hooks/useGlobalState';
+
+// 在组件中使用
+const [value, setValue] = useGlobalState('key', defaultValue);
+```
+
+### 可用函数
+
+#### useGlobalState(key, defaultValue)
+- **功能**: 获取和设置全局状态
+- **参数**: 
+  - `key`: 状态键名
+  - `defaultValue`: 默认值
+- **返回**: `[value, setValue]` 元组
+
+#### useGlobalStateValue(key, defaultValue)
+- **功能**: 只读获取全局状态值
+- **参数**: 
+  - `key`: 状态键名
+  - `defaultValue`: 默认值
+- **返回**: 状态值
+
+#### useGlobalStateSetter(key)
+- **功能**: 只写设置全局状态
+- **参数**: 
+  - `key`: 状态键名
+- **返回**: 设置函数
+
+#### useGlobalStateExists(key)
+- **功能**: 检查状态是否存在
+- **参数**: 
+  - `key`: 状态键名
+- **返回**: 布尔值
+
+#### useGlobalStateRemove(key)
+- **功能**: 删除指定状态
+- **参数**: 
+  - `key`: 状态键名
+- **返回**: 删除函数
+
+#### useGlobalStateClear()
+- **功能**: 清空所有状态
+- **返回**: 清空函数
+
+#### useGlobalStateKeys()
+- **功能**: 获取所有状态键
+- **返回**: 字符串数组
+
+#### useGlobalStateAll()
+- **功能**: 获取所有状态
+- **返回**: 状态对象
+
+### 使用示例
+
+```typescript
+import { 
+  useGlobalState, 
+  useGlobalStateValue, 
+  useGlobalStateSetter 
+} from '@/hooks/useGlobalState';
 
 function MyComponent() {
-  const { state, updateState, updateStateDebounced, undo, redo, canUndo, canRedo } = useUndoRedo(
-    { x: 20, y: 20 }, // 初始状态
-    { maxHistory: 50, debounceMs: 100 } // 可选配置
-  );
+  // 基本使用
+  const [user, setUser] = useGlobalState('user', 'John Doe');
+  const [count, setCount] = useGlobalState('count', 0);
 
-  const handlePositionChange = (newPosition) => {
-    updateState(newPosition); // 立即更新
-  };
+  // 只读状态
+  const currentUser = useGlobalStateValue('user', 'Default User');
 
-  const handleDragEnd = (newPosition) => {
-    updateStateDebounced(newPosition); // 防抖更新
-  };
+  // 只写状态
+  const updateUser = useGlobalStateSetter('user');
 
   return (
     <div>
-      <button onClick={undo} disabled={!canUndo}>撤销</button>
-      <button onClick={redo} disabled={!canRedo}>重做</button>
-      <div>当前位置: ({state.x}, {state.y})</div>
+      <p>用户: {user}</p>
+      <p>计数: {count}</p>
+      <button onClick={() => setCount(count + 1)}>+1</button>
+      <button onClick={() => updateUser('New User')}>更新用户</button>
     </div>
   );
 }
 ```
 
-### 配置选项
+## 2. useGlobalUndoRedo - 带撤销重做功能的全局状态
 
-- `maxHistory`: 最大历史记录数量 (默认: 50)
-- `debounceMs`: 防抖延迟时间 (默认: 0)
-  - 当设置为 0 时，`updateStateDebounced` 会直接调用 `updateState`，不使用 `setTimeout`
-  - 当设置大于 0 时，会使用防抖机制延迟更新
-
-### 返回值
-
-```typescript
-{
-  state: T,                    // 当前状态
-  updateState: (newState: T) => void,           // 立即更新
-  updateStateDebounced: (newState: T) => void,  // 防抖更新（当debounceMs=0时等同于立即更新）
-  undo: () => void,           // 撤销
-  redo: () => void,           // 重做
-  reset: (newState?: T) => void, // 重置
-  canUndo: boolean,           // 是否可以撤销
-  canRedo: boolean,           // 是否可以重做
-  getHistoryInfo: () => HistoryInfo // 获取历史信息
-}
-```
-
-## 2. useGlobalUndoRedo - 全局状态管理
-
-基于react-use的`createGlobalState`的全局撤销/重做功能，支持跨组件共享。
+基于 `react-use` 的 `createGlobalState` 实现，提供带撤销重做功能的全局状态管理。
 
 ### 基本用法
 
 ```typescript
-import { useUndoRedoState, useGlobalUndoRedo } from './hooks/useGlobalUndoRedo';
+import { useUndoRedoState } from '@/hooks/useGlobalUndoRedo';
 
-// 单个状态管理
-function TextEditor() {
-  const { state, updateState, updateStateDebounced, undo, redo, canUndo, canRedo } = useUndoRedoState(
-    'text-editor',
-    'Hello World',
-    { debounceMs: 500 }
-  );
-
-  const handleTextChange = (e) => {
-    const newText = e.target.value;
-    updateState(newText, '编辑文本'); // 立即更新
-  };
-
-  const handleFastTyping = (e) => {
-    const newText = e.target.value;
-    updateStateDebounced(newText, '快速输入'); // 防抖更新
-  };
-
-  return (
-    <div>
-      <button onClick={undo} disabled={!canUndo}>撤销</button>
-      <button onClick={redo} disabled={!canRedo}>重做</button>
-      <textarea value={state} onChange={handleTextChange} />
-    </div>
-  );
-}
-
-// 全局控制面板
-function GlobalControlPanel() {
-  const { undo, redo, reset, canUndo, canRedo, history, currentStep } = useGlobalUndoRedo();
-
-  return (
-    <div>
-      <button onClick={undo} disabled={!canUndo}>全局撤销</button>
-      <button onClick={redo} disabled={!canRedo}>全局重做</button>
-      <button onClick={reset}>重置所有</button>
-      <div>历史记录: {history.length}</div>
-      <div>当前步骤: {currentStep + 1}</div>
-    </div>
-  );
-}
+// 在组件中使用
+const { 
+  state, 
+  updateState, 
+  updateStateDebounced,
+  undo, 
+  redo, 
+  canUndo, 
+  canRedo,
+  clearHistory 
+} = useUndoRedoState('key', defaultValue, { debounceMs: 200 });
 ```
 
-### 多状态管理
+### 主要功能
+
+- **状态管理**: 基本的全局状态存储和更新
+- **撤销重做**: 支持撤销和重做操作
+- **防抖更新**: 支持防抖更新，避免频繁操作
+- **历史记录**: 自动维护操作历史
+- **状态检查**: 检查是否可以撤销或重做
+
+### 使用示例
 
 ```typescript
-function MultiStateComponent() {
-  const colorUndoRedo = useUndoRedoState('color', '#ff0000');
-  const sizeUndoRedo = useUndoRedoState('size', 100);
+import { useUndoRedoState } from '@/hooks/useGlobalUndoRedo';
+
+function MyComponent() {
+  const { 
+    state, 
+    updateState, 
+    undo, 
+    redo, 
+    canUndo, 
+    canRedo 
+  } = useUndoRedoState('my-data', { value: 0 }, { debounceMs: 200 });
 
   return (
     <div>
-      {/* 颜色控制 */}
-      <input 
-        type="color" 
-        value={colorUndoRedo.state}
-        onChange={(e) => colorUndoRedo.updateState(e.target.value, '改变颜色')}
-      />
-      <button onClick={colorUndoRedo.undo}>撤销颜色</button>
-      
-      {/* 大小控制 */}
-      <input 
-        type="range"
-        value={sizeUndoRedo.state}
-        onChange={(e) => sizeUndoRedo.updateStateDebounced(parseInt(e.target.value), '调整大小')}
-      />
-      <button onClick={sizeUndoRedo.undo}>撤销大小</button>
+      <p>当前值: {state.value}</p>
+      <button onClick={() => updateState({ value: state.value + 1 })}>
+        增加
+      </button>
+      <button onClick={undo} disabled={!canUndo}>
+        撤销
+      </button>
+      <button onClick={redo} disabled={!canRedo}>
+        重做
+      </button>
     </div>
   );
 }
 ```
 
-### useUndoRedoState 返回值
+## 选择建议
 
-```typescript
-{
-  state: T,                    // 当前状态
-  updateState: (newState: T, description?: string) => void,           // 立即更新
-  updateStateDebounced: (newState: T, description?: string) => void,  // 防抖更新（当debounceMs=0时等同于立即更新）
-  undo: () => void,           // 撤销
-  redo: () => void,           // 重做
-  canUndo: boolean,           // 是否可以撤销
-  canRedo: boolean,           // 是否可以重做
-}
-```
+- **使用 useGlobalState**: 当只需要简单的全局状态管理，不需要撤销重做功能时
+- **使用 useGlobalUndoRedo**: 当需要撤销重做功能，或者需要防抖更新时
 
-### useGlobalUndoRedo 返回值
+## 注意事项
 
-```typescript
-{
-  undo: () => void,           // 全局撤销
-  redo: () => void,           // 全局重做
-  reset: () => void,          // 重置所有
-  canUndo: boolean,           // 是否可以撤销
-  canRedo: boolean,           // 是否可以重做
-  history: HistoryEntry[],    // 历史记录
-  currentStep: number,        // 当前步骤
-}
-```
-
-## 3. 与Konva集成示例
-
-```typescript
-import { useUndoRedo } from './hooks/useUndoRedo';
-
-function DraggableShape() {
-  const { state, updateState, undo, redo, canUndo, canRedo } = useUndoRedo(
-    { x: 20, y: 20 }
-  );
-
-  const handleDragEnd = (e) => {
-    const newPosition = {
-      x: e.target.x(),
-      y: e.target.y(),
-    };
-    updateState(newPosition);
-  };
-
-  return (
-    <div>
-      <button onClick={undo} disabled={!canUndo}>撤销</button>
-      <button onClick={redo} disabled={!canRedo}>重做</button>
-      
-      <Stage>
-        <Layer>
-          <Rect
-            x={state.x}
-            y={state.y}
-            width={100}
-            height={100}
-            fill="red"
-            draggable
-            onDragEnd={handleDragEnd}
-          />
-        </Layer>
-      </Stage>
-    </div>
-  );
-}
-```
-
-## 4. 键盘快捷键支持
-
-```typescript
-import { useEffect } from 'react';
-
-function useKeyboardShortcuts(undo, redo) {
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.ctrlKey || e.metaKey) {
-        if (e.key === 'z' && !e.shiftKey) {
-          e.preventDefault();
-          undo();
-        } else if (e.key === 'z' && e.shiftKey) {
-          e.preventDefault();
-          redo();
-        } else if (e.key === 'y') {
-          e.preventDefault();
-          redo();
-        }
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [undo, redo]);
-}
-```
-
-## 5. 特性对比
-
-| 特性 | useUndoRedo | useGlobalUndoRedo |
-|------|-------------|-------------------|
-| 作用域 | 组件级别 | 全局级别 |
-| 状态管理 | 本地状态 | React-Use全局状态 |
-| 多状态支持 | ❌ | ✅ |
-| 跨组件共享 | ❌ | ✅ |
-| 防抖更新 | ✅ | ✅ |
-| 性能 | 更好 | 好 |
-| 复杂度 | 简单 | 简单 |
-| 依赖 | 无 | React-Use |
-
-## 6. 最佳实践
-
-1. **选择合适的hooks**:
-   - 单个组件用`useUndoRedo`
-   - 跨组件用`useGlobalUndoRedo`
-2. **合理设置历史记录数量**: 避免内存泄漏
-3. **使用防抖**: 对于频繁更新的状态使用`updateStateDebounced`
-4. **添加描述**: 为重要的状态变更添加描述信息
-5. **键盘快捷键**: 提供更好的用户体验
-6. **性能优化**: 当不需要防抖时，设置`debounceMs: 0`可以避免不必要的`setTimeout`调用
-
-## 7. 注意事项
-
-- 状态必须是可序列化的
-- 避免在历史记录中存储过大的数据
-- 定期清理不需要的历史记录
-- 考虑添加状态变更的验证逻辑
-- 当`debounceMs`为0时，`updateStateDebounced`等同于`updateState`，性能更好 
+1. 全局状态会在整个应用生命周期内保持
+2. 状态键名应该是唯一的，避免冲突
+3. 建议在组件卸载时清理不需要的全局状态
+4. 对于大量数据或频繁更新的状态，考虑使用本地状态管理 

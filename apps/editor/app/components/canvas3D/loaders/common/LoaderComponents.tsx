@@ -64,7 +64,46 @@ export function useCanvasTexture(canvasTexture?: HTMLCanvasElement) {
       newTexture.needsUpdate = true;
       textureRef.current = newTexture;
 
+      // 监听刀版内容变化的函数
+      const updateTexture = () => {
+        if (textureRef.current) {
+          textureRef.current.needsUpdate = true;
+          console.log('刀版内容变化，更新纹理');
+        }
+      };
+
+      // 监听自定义事件 - 刀版内容变化时触发
+      const handleKnifeUpdate = (event: CustomEvent) => {
+        console.log('收到刀版更新事件:', event.detail);
+        updateTexture();
+      };
+
+      // 添加事件监听器
+      window.addEventListener('knife-content-updated', handleKnifeUpdate as EventListener);
+
+      // 设置定时器作为备用方案，检查canvas内容是否变化
+      let lastImageData: string | null = null;
+      const checkContentChange = () => {
+        try {
+          const context = canvasTexture.getContext('2d');
+          if (context) {
+            const imageData = context.getImageData(0, 0, canvasTexture.width, canvasTexture.height);
+            const currentData = JSON.stringify(imageData.data.slice(0, 100)); // 只比较前100个像素
+            if (lastImageData !== null && lastImageData !== currentData) {
+              updateTexture();
+            }
+            lastImageData = currentData;
+          }
+        } catch (error) {
+          // 忽略错误，继续检查
+        }
+      };
+
+      const updateInterval = setInterval(checkContentChange, 1000); // 每1秒检查一次
+
       return () => {
+        window.removeEventListener('knife-content-updated', handleKnifeUpdate as EventListener);
+        clearInterval(updateInterval);
         newTexture.dispose();
       };
     }

@@ -33,7 +33,7 @@ export default function GLTFModel({
   const { error, setError, isLoading, setIsLoading, modelRef } = useLoaderState()
   const textureRef = useCanvasTexture(canvasTexture)
   
-  console.log('GLTFModel 开始加载，路径:', modelPath, '加载状态:', isLoading);
+  console.log('GLTFModel 开始加载，路径:', modelPath, '加载状态:', isLoading, '纹理:', canvasTexture);
   
   const gltf = useLoader(
     GLTFLoader, 
@@ -60,6 +60,28 @@ export default function GLTFModel({
   // 处理动画信息
   useAnimationInfo(gltf?.animations, 'GLTF')
   
+  // 监听纹理变化，实时更新
+  useEffect(() => {
+    if (gltf?.scene && textureRef.current) {
+      console.log('纹理更新，重新应用纹理到场景');
+      gltf.scene.traverse((child: any) => {
+        if (child.isMesh && child.material) {
+          if (Array.isArray(child.material)) {
+            child.material.forEach((material: any) => {
+              if (material && typeof material.map !== 'undefined') {
+                material.map = textureRef.current;
+                material.needsUpdate = true;
+              }
+            });
+          } else if (child.material && typeof child.material.map !== 'undefined') {
+            child.material.map = textureRef.current;
+            child.material.needsUpdate = true;
+          }
+        }
+      });
+    }
+  }, [textureRef.current, gltf?.scene]);
+  
   useEffect(() => {
     console.log('GLTF useEffect 触发，gltf:', gltf, 'isLoading:', isLoading);
     if (gltf) {
@@ -79,7 +101,6 @@ export default function GLTFModel({
       setIsLoading(false);
     }
   }, [error, setIsLoading]);
-  
   
   return useSceneModelRender(
     gltf,

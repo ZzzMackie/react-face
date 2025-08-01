@@ -69,6 +69,11 @@ export default function RenderThree({
     
     // 使用useMemo缓存ModelLoader组件，避免重复创建
     const cachedModelLoader = useMemo(() => {
+        if (!modelData) {
+            console.log('modelData未定义，跳过ModelLoader创建');
+            return null;
+        }
+        
         console.log('创建ModelLoader组件，模型路径:', modelData.model.modelPath, '强制重载:', forceReload);
         return (
             <ModelLoader 
@@ -81,20 +86,20 @@ export default function RenderThree({
                 dracoPath={modelData.model.dracoPath}
                 autoPlay={modelData.model.autoPlay}
                 color={modelData.model.color}
-                canvasTexture={showTexture ? canvasTexture : undefined}
+                canvasTexture={showTexture && canvasTexture ? canvasTexture : undefined}
             />
         );
     }, [
-        modelData.model.modelPath,
-        modelData.model.scale,
-        modelData.model.position,
-        modelData.model.rotation,
-        modelData.model.enableDraco,
-        modelData.model.dracoPath,
-        modelData.model.autoPlay,
-        modelData.model.color,
+        modelData?.model.modelPath,
+        modelData?.model.scale,
+        modelData?.model.position,
+        modelData?.model.rotation,
+        modelData?.model.enableDraco,
+        modelData?.model.dracoPath,
+        modelData?.model.autoPlay,
+        modelData?.model.color,
         showTexture,
-        canvasTexture,
+        // 移除canvasTexture依赖，避免纹理变化时重新创建组件
         forceReload
     ]);
     
@@ -120,8 +125,9 @@ export default function RenderThree({
     useEffect(() => {
         console.log('RenderThree 组件挂载，全局状态:', globalModelState.hasLoaded);
         console.log('初始加载状态:', isLoading);
-        console.log('模型路径:', modelData.model.modelPath);
+        console.log('模型路径:', modelData?.model.modelPath);
     }, []);
+    
     return (
         <div 
             ref={containerRef}
@@ -130,7 +136,7 @@ export default function RenderThree({
             <div className="p-2 bg-gray-50 border-b border-gray-200">
                 <div className="flex items-center justify-between">
                     <h3 className="text-sm font-medium text-gray-700">
-                        {modelData.name} - 3D预览
+                        {modelData?.name || '3D模型'} - 3D预览
                     </h3>
                     <div className="flex items-center space-x-2">
                         <label className="flex items-center space-x-1">
@@ -187,20 +193,6 @@ export default function RenderThree({
                     </Suspense>
                 </Canvas>
             )}
-            
-            {/* 调试信息 */}
-            <div className="absolute bottom-2 left-2 bg-black/50 text-white p-2 rounded text-xs">
-                <div>状态: {error ? '错误' : isLoading ? '加载中' : '已加载'}</div>
-                <div>模型: {modelData.model.name}</div>
-                <div>路径: {modelData.model.modelPath}</div>
-                <div>纹理: {canvasTexture ? '已加载' : '未加载'}</div>
-                <div>选中Mesh: {selectedMeshId || '无'}</div>
-                <div>控制: OrbitControls已启用</div>
-                <div>加载器: 通用ModelLoader</div>
-                <div>全局状态: {globalModelState.hasLoaded ? '已加载' : '未加载'}</div>
-                <div>强制重载: {forceReload}</div>
-                <div>组件挂载: {Date.now()}</div>
-            </div>
         </div>
     )
 }
