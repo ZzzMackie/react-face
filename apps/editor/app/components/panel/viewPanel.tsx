@@ -3,9 +3,10 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import styles from '@/assets/moduleCss/panel.module.css';
 import RenderThree from "../canvas3D/renderThree";
 import { useUndoRedoState } from "@/hooks/useGlobalUndoRedo";
+import { tr } from "framer-motion/client";
 
 export default function ViewPanel() {
-    const [isOpen, setIsOpen] = useState(false);
+    const [isOpen, setIsOpen] = useState(true);
     const [shouldRenderCanvas, setShouldRenderCanvas] = useState(false);
     const hasInitialized = useRef(false);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);

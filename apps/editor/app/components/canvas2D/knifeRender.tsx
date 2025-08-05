@@ -329,38 +329,6 @@ export default function KnifeRender({
         }
     };
 
-    // 渲染网格线
-    const renderGrid = () => {
-        if (!knifeData) return [];
-        
-        const gridSize = 20;
-        const lines = [];
-        
-        for (let i = 0; i <= knifeData.canvasSize.width; i += gridSize) {
-            lines.push(
-                <Line
-                    key={`v-${i}`}
-                    points={[i, 0, i, knifeData.canvasSize.height]}
-                    stroke="#e0e0e0"
-                    strokeWidth={0.5}
-                />
-            );
-        }
-        
-        for (let i = 0; i <= knifeData.canvasSize.height; i += gridSize) {
-            lines.push(
-                <Line
-                    key={`h-${i}`}
-                    points={[0, i, knifeData.canvasSize.width, i]}
-                    stroke="#e0e0e0"
-                    strokeWidth={0.5}
-                />
-            );
-        }
-        
-        return lines;
-    };
-
     // 渲染标注信息
     const renderLabels = () => {
         if (!knifeData) return [];
@@ -410,9 +378,6 @@ export default function KnifeRender({
                             fill={knifeData.backgroundColor}
                         />
                     )}
-                    
-                    {/* 网格线 */}
-                    {renderGrid()}
                     
                     {/* 图层 - 按zIndex排序 */}
                     {knifeData?.layers

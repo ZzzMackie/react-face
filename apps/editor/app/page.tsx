@@ -2,16 +2,22 @@
 import Header from "./components/toolbar/header";
 import KnifeMain from "./components/canvas2D/knifeMain";
 import ViewPanel from "./components/panel/viewPanel";
-import { sampleMaterials } from "./components/canvas3D/constant/MaterialData";
+import { sampleMaterials, sampleModels } from "./components/canvas3D/constant/MaterialData";
 import { useUndoRedoState } from "@/hooks/useGlobalUndoRedo";
+import { useGlobalState } from "@/hooks/useGlobalState";
 const initData = () => {
   const materialData = sampleMaterials[0];
-  useUndoRedoState('material-list', sampleMaterials);
+  useGlobalState('model-list', sampleModels);
+  useGlobalState('material-list', sampleMaterials);
   useUndoRedoState('current-material', materialData.id);
   useUndoRedoState('current-material-data', materialData);
+  useUndoRedoState('current-model', materialData.modelId);
+  const modelData = sampleModels.find(model => model.id === materialData.modelId);
+  useUndoRedoState('current-model-data', modelData);
   return materialData;
 }
 export default function Home() {
+  initData()
   return (
     <div className="editor_index__wrapper flex flex-col h-screen">
       <section className="editor_index__header">
