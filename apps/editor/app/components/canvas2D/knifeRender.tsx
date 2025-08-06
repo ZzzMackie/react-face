@@ -329,23 +329,6 @@ export default function KnifeRender({
         }
     };
 
-    // 渲染标注信息
-    const renderLabels = () => {
-        if (!knifeData) return [];
-        
-        return knifeData.layers.map(layer => (
-            <Text
-                key={`label-${layer.id}`}
-                x={layer.position.x}
-                y={layer.position.y - 20}
-                text={layer.name}
-                fontSize={12}
-                fill="#333"
-                fontFamily="Arial"
-            />
-        ));
-    };
-
     const {state: currentCanvas, updateState: updateCurrentCanvas} = useUndoRedoState('currentCanvas', {
       id: 'currentCanvas',
       name: '当前Canvas',
@@ -384,8 +367,6 @@ export default function KnifeRender({
                         .sort((a, b) => a.zIndex - b.zIndex)
                         .map(renderLayer)}
                     
-                    {/* 标注信息 */}
-                    {renderLabels()}
                 </Layer>
             </Stage>
         </div>

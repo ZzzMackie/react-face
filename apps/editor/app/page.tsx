@@ -13,7 +13,9 @@ const initData = () => {
   useUndoRedoState('current-material-data', materialData);
   useUndoRedoState('current-model', materialData.modelId);
   const modelData = sampleModels.find(model => model.id === materialData.modelId);
-  useUndoRedoState('current-model-data', modelData);
+  
+  const {state} = useUndoRedoState('current-model-data', modelData);
+  console.log('state',state, useUndoRedoState('current-model-data'))
   return materialData;
 }
 export default function Home() {

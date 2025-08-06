@@ -12,7 +12,7 @@ interface GlobalUndoRedoState {
   history: HistoryEntry[];
   currentStep: number;
 }
-
+const globalStateInitializedMap = new Map<string, boolean>();
 // 创建全局状态
 const useGlobalUndoRedoState = createGlobalState<GlobalUndoRedoState>({
   history: [],
@@ -31,7 +31,7 @@ export function useUndoRedoState<T>(
   const { debounceMs = 0, maxHistory = 50 } = options;
   const [state, setState] = useGlobalUndoRedoState();
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
-  const isInitialized = useRef(false);
+  const isInitialized = globalStateInitializedMap.get(id) || false;
   
   // 获取当前状态
   const getCurrentState = useCallback((targetId: string) => {
@@ -44,10 +44,9 @@ export function useUndoRedoState<T>(
   }, [state]);
   
   const currentState = getCurrentState(id) as T || initialState;
-  
   // 初始化：如果当前状态不存在，将初始状态添加到历史记录
   useEffect(() => {
-    if (!isInitialized.current && getCurrentState(id) === null) {
+    if (!isInitialized && getCurrentState(id) === null) {
       const { history, currentStep } = state;
       
       // 添加初始状态到历史记录
@@ -65,7 +64,7 @@ export function useUndoRedoState<T>(
         currentStep: newHistory.length - 1
       });
       
-      isInitialized.current = true;
+      globalStateInitializedMap.set(id, true);
     }
   }, [id, initialState, state, setState, getCurrentState]);
   
