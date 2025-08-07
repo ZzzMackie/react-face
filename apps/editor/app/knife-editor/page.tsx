@@ -23,27 +23,33 @@ export default function KnifeEditor() {
 
   // 处理图层更新
   const handleLayerUpdate = (updatedLayer: MaterialLayer) => {
-    const newLayers = materialData.layers.map(layer => 
-      layer.id === updatedLayer.id ? updatedLayer : layer
-    );
-    updateState({ ...materialData, layers: newLayers }, `更新${updatedLayer.name}`);
+    if (materialData) {
+      const newLayers = materialData.layers.map(layer => 
+        layer.id === updatedLayer.id ? updatedLayer : layer
+      );
+      updateState({ ...materialData, layers: newLayers }, `更新${updatedLayer.name}`);
+    }
   };
 
   // 处理图层添加
   const handleLayerAdd = (newLayer: MaterialLayer) => {
-    const newLayers = [...materialData.layers, newLayer];
-    updateState({ ...materialData, layers: newLayers }, `添加${newLayer.name}`);
+    if (materialData) {
+      const newLayers = [...materialData.layers, newLayer];
+      updateState({ ...materialData, layers: newLayers }, `添加${newLayer.name}`);
+    }
   };
 
   // 处理图层删除
   const handleLayerDelete = (layerId: string) => {
-    const layer = materialData.layers.find(l => l.id === layerId);
-    const newLayers = materialData.layers.filter(l => l.id !== layerId);
-    updateState({ ...materialData, layers: newLayers }, `删除${layer?.name || '图层'}`);
-    
-    // 如果删除的是当前选中的图层，清除选择
-    if (selectedLayerId === layerId) {
-      setSelectedLayerId(undefined);
+    if (materialData) {
+      const layer = materialData.layers.find(l => l.id === layerId);
+      const newLayers = materialData.layers.filter(l => l.id !== layerId);
+      updateState({ ...materialData, layers: newLayers }, `删除${layer?.name || '图层'}`);
+      
+      // 如果删除的是当前选中的图层，清除选择
+      if (selectedLayerId === layerId) {
+        setSelectedLayerId(undefined);
+      }
     }
   };
 
@@ -63,7 +69,7 @@ export default function KnifeEditor() {
         
         <div className="flex-1 p-4">
           <KnifeRender
-            materialData={materialData}
+            materialData={materialData || undefined}
             onCanvasUpdate={handleCanvasUpdate}
             selectedLayerId={selectedLayerId}
             onLayerSelect={handleLayerSelect}
@@ -72,14 +78,16 @@ export default function KnifeEditor() {
       </div>
 
       {/* 右侧：图层编辑器 */}
-      <LayerEditor
-        materialData={materialData}
-        selectedLayerId={selectedLayerId}
-        onLayerSelect={handleLayerSelect}
-        onLayerUpdate={handleLayerUpdate}
-        onLayerAdd={handleLayerAdd}
-        onLayerDelete={handleLayerDelete}
-      />
+      {materialData && (
+        <LayerEditor
+          materialData={materialData}
+          selectedLayerId={selectedLayerId}
+          onLayerSelect={handleLayerSelect}
+          onLayerUpdate={handleLayerUpdate}
+          onLayerAdd={handleLayerAdd}
+          onLayerDelete={handleLayerDelete}
+        />
+      )}
     </div>
   );
 } 

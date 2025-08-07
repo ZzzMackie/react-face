@@ -2,7 +2,7 @@
 import styles from '@/assets/moduleCss/canvas.module.css';
 import { Layer, Rect, Circle, Line, Text, Stage, Image as KonvaImage } from 'react-konva';
 import Konva from 'konva';
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useUndoRedoState } from '@/hooks/useGlobalUndoRedo';
 import { useContainerResize } from '@/hooks/useContainerResize';
 import { MaterialData, MaterialLayer, MaterialMesh } from '../canvas3D/constant/MaterialData';
@@ -13,6 +13,58 @@ interface KnifeRenderProps {
   selectedLayerId?: string;
   onLayerSelect?: (layerId: string) => void;
 }
+
+// 默认数据 - 移到组件外部，避免每次渲染都重新创建
+const defaultMaterialData: MaterialData = {
+  id: 'default',
+  name: '默认刀版',
+  description: '默认刀版数据',
+  meshes: [
+    {
+      id: 'mesh-001',
+      name: '测试矩形',
+      type: 'rectangle' as const,
+      position: { x: 100, y: 100 },
+      size: { width: 100, height: 100 },
+      rotation: 0,
+      color: '#ff0000',
+      strokeColor: '#cc0000',
+      strokeWidth: 2
+    }
+  ],
+  layers: [
+    {
+      id: 'layer-001',
+      name: '测试矩形',
+      type: 'rectangle' as const,
+      position: { x: 100, y: 100 },
+      size: { width: 100, height: 100 },
+      rotation: 0,
+      opacity: 1,
+      visible: true,
+      zIndex: 1,
+      color: '#ff0000',
+      strokeColor: '#cc0000',
+      strokeWidth: 2
+    }
+  ],
+  model: {
+    id: 'model-001',
+    name: '默认模型',
+    modelPath: '/exampleModel/XEP2DZRCDIT6W-3dSources.glb',
+    uuid: 'uuid-001',
+    scale: 1,
+    position: [0, 0, 0],
+    rotation: [0, 0, 0],
+    enableDraco: true,
+    dracoPath: '/draco/gltf/',
+    autoPlay: true
+  },
+  canvasSize: { width: 800, height: 600 },
+  backgroundColor: '#ffffff',
+  createdAt: new Date(),
+  updatedAt: new Date()
+};
 
 export default function KnifeRender({ 
   materialData,
@@ -27,6 +79,19 @@ export default function KnifeRender({
     
     // 获取容器尺寸
     const { width, height } = useContainerResize(renderRef);
+    
+    // 使用useMemo优化默认数据的选择
+    const initialData = useMemo(() => {
+      return materialData || defaultMaterialData;
+    }, [materialData]);
+
+    // 使用useUndoRedoState管理刀版数据
+    const { state: knifeData, updateState } = useUndoRedoState(
+        'knife-material-data',
+        initialData,
+        { debounceMs: 200 }
+    );
+
     useEffect(() => {
         if (stageRef.current && width > 0 && height > 0) {
             stageRef.current.width(width);
@@ -35,66 +100,13 @@ export default function KnifeRender({
         }
     }, [width, height]);
 
-    // 使用useUndoRedoState管理刀版数据
-    const { state: knifeData, updateState } = useUndoRedoState(
-        'knife-material-data',
-        materialData || {
-            id: 'default',
-            name: '默认刀版',
-            description: '默认刀版数据',
-            meshes: [
-                {
-                    id: 'mesh-001',
-                    name: '测试矩形',
-                    type: 'rectangle' as const,
-                    position: { x: 100, y: 100 },
-                    size: { width: 100, height: 100 },
-                    rotation: 0,
-                    color: '#ff0000',
-                    strokeColor: '#cc0000',
-                    strokeWidth: 2
-                }
-            ],
-            layers: [
-                {
-                    id: 'layer-001',
-                    name: '测试矩形',
-                    type: 'rectangle' as const,
-                    position: { x: 100, y: 100 },
-                    size: { width: 100, height: 100 },
-                    rotation: 0,
-                    opacity: 1,
-                    visible: true,
-                    zIndex: 1,
-                    color: '#ff0000',
-                    strokeColor: '#cc0000',
-                    strokeWidth: 2
-                }
-            ],
-            model: {
-                id: 'model-001',
-                name: '默认模型',
-                modelPath: '/exampleModel/XEP2DZRCDIT6W-3dSources.glb',
-                uuid: 'uuid-001',
-                scale: 1,
-                position: [0, 0, 0],
-                rotation: [0, 0, 0],
-                enableDraco: true,
-                dracoPath: '/draco/gltf/',
-                autoPlay: true
-            },
-            canvasSize: { width: 800, height: 600 },
-            backgroundColor: '#ffffff',
-            createdAt: new Date(),
-            updatedAt: new Date()
-        } as MaterialData,
-        { debounceMs: 200 }
-    );
+    // 预加载图片 - 使用useMemo优化
+    const imageLayers = useMemo(() => {
+        return knifeData?.layers?.filter(layer => layer.type === 'image') || [];
+    }, [knifeData?.layers]);
 
-    // 预加载图片
     useEffect(() => {
-        if (knifeData?.layers) {
-            const imageLayers = knifeData.layers.filter(layer => layer.type === 'image');
+        if (imageLayers.length > 0) {
             const newLoadedImages = new Map(loadedImages);
             
             imageLayers.forEach(layer => {
@@ -112,7 +124,7 @@ export default function KnifeRender({
                 }
             });
         }
-    }, [knifeData?.layers]);
+    }, [imageLayers, loadedImages]);
 
     // 使用useCallback处理Canvas更新
     const handleCanvasUpdate = useCallback((canvas: HTMLCanvasElement) => {
@@ -121,15 +133,19 @@ export default function KnifeRender({
         }
     }, [onCanvasUpdate]);
 
-    // 当Canvas更新时，通知父组件
-    useEffect(() => {
+    // 当Canvas更新时，通知父组件和3D纹理更新
+    const notifyCanvasUpdate = useCallback(() => {
         if (stageRef.current && knifeData) {
             const canvas = stageRef.current.toCanvas();
             handleCanvasUpdate(canvas);
             
             // 触发自定义事件，通知3D纹理更新
             window.dispatchEvent(new CustomEvent('knife-content-updated', {
-                detail: { canvas, timestamp: Date.now() }
+                detail: { 
+                    canvas, 
+                    timestamp: Date.now(),
+                    reason: 'canvas-updated'
+                }
             }));
         }
     }, [knifeData, handleCanvasUpdate]);
@@ -140,19 +156,11 @@ export default function KnifeRender({
         
         // 延迟触发，确保Konva已经完成渲染
         const timer = setTimeout(() => {
-            if (stageRef.current) {
-                window.dispatchEvent(new CustomEvent('knife-content-updated', {
-                    detail: { 
-                        canvas: stageRef.current.toCanvas(), 
-                        timestamp: Date.now(),
-                        reason: 'knife-data-changed'
-                    }
-                }));
-            }
+            notifyCanvasUpdate();
         }, 100);
         
         return () => clearTimeout(timer);
-    }, [knifeData?.layers]); // 监听layers变化
+    }, [knifeData?.layers, notifyCanvasUpdate]); // 监听layers变化和notifyCanvasUpdate
 
     // 渲染不同类型的图层
     const renderLayer = (layer: MaterialLayer) => {
@@ -187,6 +195,11 @@ export default function KnifeRender({
                                     : l
                             );
                             updateState({ ...knifeData, layers: newLayers } as MaterialData, `移动${layer.name}`);
+                            
+                            // 拖拽结束后立即触发canvas更新通知
+                            setTimeout(() => {
+                                notifyCanvasUpdate();
+                            }, 50);
                         }}
                     />
                 );
@@ -213,6 +226,11 @@ export default function KnifeRender({
                                     : l
                             );
                             updateState({ ...knifeData, layers: newLayers } as MaterialData, `移动${layer.name}`);
+                            
+                            // 拖拽结束后立即触发canvas更新通知
+                            setTimeout(() => {
+                                notifyCanvasUpdate();
+                            }, 50);
                         }}
                     />
                 );
@@ -240,6 +258,11 @@ export default function KnifeRender({
                                         : l
                                 );
                                 updateState({ ...knifeData, layers: newLayers } as MaterialData, `移动${layer.name}`);
+                                
+                                // 拖拽结束后立即触发canvas更新通知
+                                setTimeout(() => {
+                                    notifyCanvasUpdate();
+                                }, 50);
                             }}
                         />
                     );
@@ -284,6 +307,11 @@ export default function KnifeRender({
                                     : l
                             );
                             updateState({ ...knifeData, layers: newLayers } as MaterialData, `移动${layer.name}`);
+                            
+                            // 拖拽结束后立即触发canvas更新通知
+                            setTimeout(() => {
+                                notifyCanvasUpdate();
+                            }, 50);
                         }}
                     />
                 );

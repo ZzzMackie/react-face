@@ -1,4 +1,4 @@
-import { Canvas } from '@react-three/fiber'
+import { Canvas, useThree } from '@react-three/fiber'
 import { Suspense, useState, useEffect, useRef, useMemo } from 'react'
 import ModelLoader from './ModelLoader'
 import Controls from './Controls'
@@ -39,7 +39,6 @@ export default function RenderThree({
     const [showTexture, setShowTexture] = useState(true)
     const [forceReload, setForceReload] = useState(0) // 强制重新加载的计数器
     const containerRef = useRef<HTMLDivElement>(null)
-    
     // 使用useUndoRedoState管理3D模型数据
     const { state: modelData, updateState } = useUndoRedoState(
         'render-three-model-data',
@@ -48,6 +47,7 @@ export default function RenderThree({
             name: '默认3D模型',
             description: '默认3D模型数据',
             meshes: [],
+            layers: [], // 添加缺失的layers属性
             model: {
                 id: 'model-001',
                 name: '默认模型',
@@ -74,7 +74,6 @@ export default function RenderThree({
             return null;
         }
         
-        console.log('创建ModelLoader组件，模型路径:', modelData.model.modelPath, '强制重载:', forceReload);
         return (
             <ModelLoader 
                 key={`${modelData.model.modelPath}-${forceReload}`} // 添加key强制重新创建
@@ -103,8 +102,10 @@ export default function RenderThree({
         forceReload
     ]);
     
+    const threeRef = useRef(null)
     // 处理Canvas创建事件
-    const handleCanvasCreated = () => {
+    const handleCanvasCreated = (three: any) => {
+        threeRef.current = three
         console.log('Canvas created, 全局状态:', globalModelState.hasLoaded);
         if (!globalModelState.hasLoaded) {
             globalModelState.hasLoaded = true;
@@ -112,7 +113,6 @@ export default function RenderThree({
         }
         setIsLoading(false);
     }
-    
     // 强制重新加载模型
     const handleForceReload = () => {
         console.log('强制重新加载模型');
@@ -120,7 +120,7 @@ export default function RenderThree({
         globalModelState.hasLoaded = false;
         setIsLoading(true);
     }
-    
+    console.log(threeRef)
     // 组件挂载时的调试信息
     useEffect(() => {
         console.log('RenderThree 组件挂载，全局状态:', globalModelState.hasLoaded);
