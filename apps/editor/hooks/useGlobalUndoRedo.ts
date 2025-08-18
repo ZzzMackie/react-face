@@ -24,7 +24,6 @@ const useGlobalUndoRedoState = createGlobalState<GlobalUndoRedoState>({
   redoStack: [],
   currentStates: {}
 });
-
 // 便捷的hooks
 export function useUndoRedoState<T>(
   id: string,
@@ -59,7 +58,7 @@ export function useUndoRedoState<T>(
   }, [id, initialState, state.currentStates, setState]);
   
   // 更新状态 - 数据进入undo栈
-  const updateState = useCallback((newState: T, description?: string) => {
+  const updateState = useCallback((newState: T, description?: string, needUndo: boolean = true) => {
     const currentState = state.currentStates[id];
     
     // 创建新的状态条目
@@ -69,6 +68,17 @@ export function useUndoRedoState<T>(
       state: currentState, // 保存当前状态到undo栈
       description
     };
+    if (!needUndo) {
+
+      // 更新当前状态
+      const newCurrentStates = { ...state.currentStates, [id]: newState };
+      setState({
+        undoStack: [...state.undoStack],
+        redoStack: [...state.redoStack],
+        currentStates: newCurrentStates
+      });
+      return;
+    }
     
     // 将当前状态推入undo栈
     const newUndoStack = [...state.undoStack, newEntry];

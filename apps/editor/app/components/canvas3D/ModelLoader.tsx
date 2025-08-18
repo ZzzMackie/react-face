@@ -21,6 +21,7 @@ interface ModelLoaderProps {
   color?: string; // 用于STL/PLY格式的颜色
   canvasTexture?: HTMLCanvasElement; // 新增：CanvasTexture支持
   materialType?: 'standard' | 'basic' | 'phong' | 'lambert'; // 新增：材质类型选择
+  onModelLoaded?: (root: any) => void; // 新增：模型加载完成回调
 }
 
 // 加载中的占位几何体

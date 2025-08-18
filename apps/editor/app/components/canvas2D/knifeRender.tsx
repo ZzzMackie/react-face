@@ -5,7 +5,7 @@ import Konva from 'konva';
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useUndoRedoState } from '@/hooks/useGlobalUndoRedo';
 import { useContainerResize } from '@/hooks/useContainerResize';
-import { MaterialData, MaterialLayer, MaterialMesh } from '../canvas3D/constant/MaterialData';
+import { MaterialData, MaterialLayer, MaterialMesh, Knife } from '../canvas3D/constant/MaterialData';
 
 interface KnifeRenderProps {
   materialData?: MaterialData;
@@ -79,18 +79,19 @@ export default function KnifeRender({
     
     // 获取容器尺寸
     const { width, height } = useContainerResize(renderRef);
-    
+
+    const { state: knifeData, updateState } = useUndoRedoState<Knife | undefined>('current-knife-data');
     // 使用useMemo优化默认数据的选择
     const initialData = useMemo(() => {
       return materialData || defaultMaterialData;
     }, [materialData]);
 
     // 使用useUndoRedoState管理刀版数据
-    const { state: knifeData, updateState } = useUndoRedoState(
-        'knife-material-data',
-        initialData,
-        { debounceMs: 200 }
-    );
+    // const { state: knifeData, updateState } = useUndoRedoState(
+    //     'knife-material-data',
+    //     initialData,
+    //     { debounceMs: 200 }
+    // );
 
     useEffect(() => {
         if (stageRef.current && width > 0 && height > 0) {
@@ -152,6 +153,7 @@ export default function KnifeRender({
 
     // 监听刀版数据变化，触发纹理更新事件
     useEffect(() => {
+        console.log(knifeData)
         if (!knifeData) return;
         
         // 延迟触发，确保Konva已经完成渲染
@@ -160,7 +162,7 @@ export default function KnifeRender({
         }, 100);
         
         return () => clearTimeout(timer);
-    }, [knifeData?.layers, notifyCanvasUpdate]); // 监听layers变化和notifyCanvasUpdate
+    }, [knifeData, notifyCanvasUpdate]); // 监听layers变化和notifyCanvasUpdate
 
     // 渲染不同类型的图层
     const renderLayer = (layer: MaterialLayer) => {

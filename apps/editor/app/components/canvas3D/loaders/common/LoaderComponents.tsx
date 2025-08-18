@@ -285,9 +285,9 @@ export function useGeometryModelRender(
       const materialProps = {
         color,
         map: texture as any,
-        ...(materialType === 'basic' && { transparent: true, opacity: 0.9 }),
-        ...(materialType === 'phong' && { shininess: 30 }),
-        ...(materialType === 'lambert' && { emissive: '#222222' })
+        ...(materialType === 'basic' ? { transparent: true, opacity: 0.9 } : {}),
+        ...(materialType === 'phong' ? { shininess: 30 } : {}),
+        ...(materialType === 'lambert' ? { emissive: '#222222' } : {})
       };
 
       return (

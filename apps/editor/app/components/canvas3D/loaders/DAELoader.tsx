@@ -17,6 +17,7 @@ interface DAEModelProps {
   rotation?: [number, number, number];
   autoPlay?: boolean;
   canvasTexture?: HTMLCanvasElement;
+  onModelLoaded?: (root: any) => void;
 }
 
 export default function DAEModel({ 
@@ -25,7 +26,8 @@ export default function DAEModel({
   position = [0, 0, 0],
   rotation = [0, 0, 0],
   autoPlay = false,
-  canvasTexture
+  canvasTexture,
+  onModelLoaded
 }: DAEModelProps) {
   const { error, setError, isLoading, setIsLoading, modelRef } = useLoaderState()
   const textureRef = useCanvasTexture(canvasTexture)
@@ -42,6 +44,7 @@ export default function DAEModel({
     if (collada) {
       console.log('DAE加载成功:', collada)
       setIsLoading(false)
+      if (onModelLoaded) onModelLoaded(collada.scene)
     }
   }, [collada, setIsLoading])
   

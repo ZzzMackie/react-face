@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { resolve } from "path";
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -17,6 +18,11 @@ const nextConfig: NextConfig = {
   devIndicators: {
     buildActivity: true,
     buildActivityPosition: 'bottom-right',
+  },
+  resolve: {
+    alias: {
+      '@appUtils': resolve(__dirname, 'app/utils'),
+    },
   },
   // 代理配置
   async rewrites() {

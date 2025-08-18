@@ -16,6 +16,7 @@ interface STLModelProps {
   color?: string;
   canvasTexture?: HTMLCanvasElement;
   materialType?: 'standard' | 'basic' | 'phong' | 'lambert';
+  onModelLoaded?: (root: any) => void;
 }
 
 export default function STLModel({ 
@@ -25,7 +26,8 @@ export default function STLModel({
   rotation = [0, 0, 0],
   color = '#cccccc',
   canvasTexture,
-  materialType = 'standard'
+  materialType = 'standard',
+  onModelLoaded
 }: STLModelProps) {
   const { error, setError, isLoading, setIsLoading, modelRef } = useLoaderState()
   const textureRef = useCanvasTexture(canvasTexture)
@@ -36,6 +38,14 @@ export default function STLModel({
     if (geometry) {
       console.log('STL加载成功:', geometry)
       setIsLoading(false)
+      // 以一个临时Group作为root，包含单个Mesh（几何体）
+      if (onModelLoaded) {
+        const root = {
+          children: [],
+          traverse: (fn: any) => fn({ isMesh: true, geometry })
+        } as any
+        onModelLoaded(root)
+      }
     }
   }, [geometry, setIsLoading])
   

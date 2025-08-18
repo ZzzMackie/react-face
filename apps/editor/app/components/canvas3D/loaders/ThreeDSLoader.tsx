@@ -17,6 +17,7 @@ interface ThreeDSModelProps {
   rotation?: [number, number, number];
   autoPlay?: boolean;
   canvasTexture?: HTMLCanvasElement;
+  onModelLoaded?: (root: any) => void;
 }
 
 export default function ThreeDSModel({ 
@@ -25,7 +26,8 @@ export default function ThreeDSModel({
   position = [0, 0, 0],
   rotation = [0, 0, 0],
   autoPlay = false,
-  canvasTexture
+  canvasTexture,
+  onModelLoaded
 }: ThreeDSModelProps) {
   const { error, setError, isLoading, setIsLoading, modelRef } = useLoaderState()
   const textureRef = useCanvasTexture(canvasTexture)
@@ -42,6 +44,7 @@ export default function ThreeDSModel({
     if (tds) {
       console.log('3DS加载成功:', tds)
       setIsLoading(false)
+      if (onModelLoaded) onModelLoaded(tds)
     }
   }, [tds, setIsLoading])
   

@@ -6,6 +6,7 @@ import { LoadingPlaceholder } from './loaders/common/LoaderComponents'
 import { useUndoRedoState } from '@/hooks/useGlobalUndoRedo'
 import { MaterialData } from './constant/MaterialData'
 
+import { generateKnivesForModel } from '@/app/utils/meshUtils'
 interface RenderThreeProps {
   materialData?: MaterialData;
   canvasTexture?: HTMLCanvasElement | null;
@@ -66,6 +67,8 @@ export default function RenderThree({
         } as MaterialData,
         { debounceMs: 200 }
     );
+
+    const {state: materialDataState, updateState: updateCurrentMaterialData} = useUndoRedoState('current-material-data')
     
     // 使用useMemo缓存ModelLoader组件，避免重复创建
     const cachedModelLoader = useMemo(() => {
@@ -86,6 +89,17 @@ export default function RenderThree({
                 autoPlay={modelData.model.autoPlay}
                 color={modelData.model.color}
                 canvasTexture={showTexture && canvasTexture ? canvasTexture : undefined}
+                onModelLoaded={(root) => {
+                    // 模型真正加载完成后再生成刀版
+                    try {
+                        const knives = generateKnivesForModel(modelData!.model as any, root);
+                        const baseData = (materialDataState && typeof materialDataState === 'object') ? materialDataState : {};
+                        const newData = { ...(baseData as any), knives };
+                        updateCurrentMaterialData(newData, '生成刀版', false);
+                    } catch (e) {
+                        console.warn('生成刀版失败:', e)
+                    }
+                }}
             />
         );
     }, [
@@ -120,7 +134,6 @@ export default function RenderThree({
         globalModelState.hasLoaded = false;
         setIsLoading(true);
     }
-    console.log(threeRef)
     // 组件挂载时的调试信息
     useEffect(() => {
         console.log('RenderThree 组件挂载，全局状态:', globalModelState.hasLoaded);
