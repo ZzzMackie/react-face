@@ -120,7 +120,6 @@ export default function RenderThree({
     // 处理Canvas创建事件
     const handleCanvasCreated = (three: any) => {
         threeRef.current = three
-        console.log('Canvas created, 全局状态:', globalModelState.hasLoaded);
         if (!globalModelState.hasLoaded) {
             globalModelState.hasLoaded = true;
             console.log('设置全局状态为已加载');
@@ -189,7 +188,7 @@ export default function RenderThree({
                 </div>
             ) : (
                 <Canvas
-                    camera={{ position: [5, 5, 5], fov: 75 }}
+                    camera={{ position: [0.5, 1, -4], fov: 75 }}
                     gl={{ antialias: true }}
                     onCreated={handleCanvasCreated}
                     onError={(event) => {

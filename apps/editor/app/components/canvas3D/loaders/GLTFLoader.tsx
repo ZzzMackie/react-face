@@ -10,6 +10,7 @@ import {
   useApplyTextureToScene, 
   useAnimationInfo 
 } from './common/LoaderComponents'
+import { useUndoRedoState } from '@/hooks/useGlobalUndoRedo';
 
 interface GLTFModelProps {
   modelPath: string;
@@ -34,7 +35,7 @@ export default function GLTFModel({
 }: GLTFModelProps) {
   const { error, setError, isLoading, setIsLoading, modelRef } = useLoaderState()
   const textureRef = useCanvasTexture(canvasTexture)
-  
+  // const { state: currentKnife, updateState: updateCurrentKnife } = useUndoRedoState<string | undefined | null>('current-knife', null);
   console.log('GLTFModel 开始加载，路径:', modelPath, '加载状态:', isLoading, '纹理:', canvasTexture);
   
   const gltf = useLoader(
@@ -82,7 +83,7 @@ export default function GLTFModel({
         }
       });
     }
-  }, [textureRef.current, gltf?.scene]);
+  }, [textureRef.current, gltf?.scene, canvasTexture]);
   
   useEffect(() => {
     console.log('GLTF useEffect 触发，gltf:', gltf, 'isLoading:', isLoading);

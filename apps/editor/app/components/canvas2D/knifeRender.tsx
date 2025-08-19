@@ -153,7 +153,6 @@ export default function KnifeRender({
 
     // 监听刀版数据变化，触发纹理更新事件
     useEffect(() => {
-        console.log(knifeData)
         if (!knifeData) return;
         
         // 延迟触发，确保Konva已经完成渲染
@@ -182,7 +181,7 @@ export default function KnifeRender({
                         width={layer.size.width}
                         height={layer.size.height}
                         rotation={layer.rotation}
-                        fill={layer.color}
+                        // fill={layer.color}
                         stroke={strokeColor}
                         strokeWidth={strokeWidth}
                         opacity={layer.opacity}
@@ -389,6 +388,20 @@ export default function KnifeRender({
                             width={knifeData.canvasSize.width}
                             height={knifeData.canvasSize.height}
                             fill={knifeData.backgroundColor}
+                        />
+                    )}
+                    
+                    {/* 刀版轮廓线 */}
+                    {knifeData?.outline && knifeData.outline.visible && (
+                        <Line
+                            key={knifeData.id}
+                            draggable
+                            points={knifeData.outline.points.flatMap(p => [p.x, p.y])}
+                            stroke={knifeData.outline.strokeColor || '#000000'}
+                            strokeWidth={knifeData.outline.strokeWidth || 2}
+                            closed={true}
+                            fill="transparent"
+                            dash={[10, 5]}
                         />
                     )}
                     
