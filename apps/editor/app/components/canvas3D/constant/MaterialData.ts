@@ -320,7 +320,103 @@ export const sampleMaterials: Material[] = [
     name: '包装盒A',
     description: '标准包装盒设计',
     modelId: 'model-001', // 关联模型ID
-    knives: [], // 初始为空，加载模型后生成
+    knives: [
+      {
+        id: 'knife-001',
+        name: '正面刀版',
+        description: '包装盒正面刀版',
+        meshId: 'mesh-front',
+        meshName: '正面',
+        layers: [
+          {
+            id: 'layer-001',
+            name: '正面背景',
+            type: 'rectangle',
+            position: { x: 0, y: 0 },
+            size: { width: 200, height: 300 },
+            rotation: 0,
+            opacity: 1,
+            visible: true,
+            zIndex: 1,
+            color: '#ffffff',
+            strokeColor: '#cccccc',
+            strokeWidth: 1
+          },
+          {
+            id: 'layer-002',
+            name: '正面文字',
+            type: 'text',
+            text: '包装盒正面',
+            fontSize: 24,
+            fontFamily: 'Arial',
+            fontWeight: 'bold',
+            fontStyle: 'normal',
+            color: '#333333',
+            textAlign: 'center',
+            verticalAlign: 'middle',
+            position: { x: 100, y: 150 },
+            size: { width: 200, height: 50 },
+            rotation: 0,
+            opacity: 1,
+            visible: true,
+            zIndex: 2
+          }
+        ],
+        canvasSize: { width: 200, height: 300 },
+        backgroundColor: '#ffffff',
+        outline: {
+          points: [
+            { x: 0, y: 0 },
+            { x: 200, y: 0 },
+            { x: 200, y: 300 },
+            { x: 0, y: 300 }
+          ],
+          strokeColor: '#000000',
+          strokeWidth: 2,
+          visible: true
+        },
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        id: 'knife-002',
+        name: '背面刀版',
+        description: '包装盒背面刀版',
+        meshId: 'mesh-back',
+        meshName: '背面',
+        layers: [
+          {
+            id: 'layer-003',
+            name: '背面背景',
+            type: 'rectangle',
+            position: { x: 0, y: 0 },
+            size: { width: 200, height: 300 },
+            rotation: 0,
+            opacity: 1,
+            visible: true,
+            zIndex: 1,
+            color: '#f8f9fa',
+            strokeColor: '#cccccc',
+            strokeWidth: 1
+          }
+        ],
+        canvasSize: { width: 200, height: 300 },
+        backgroundColor: '#f8f9fa',
+        outline: {
+          points: [
+            { x: 0, y: 0 },
+            { x: 200, y: 0 },
+            { x: 200, y: 300 },
+            { x: 0, y: 300 }
+          ],
+          strokeColor: '#000000',
+          strokeWidth: 2,
+          visible: true
+        },
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    ],
     tags: ['包装盒', '标准'],
     category: '包装',
     createdAt: new Date(),

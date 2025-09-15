@@ -40,40 +40,36 @@ export default function RenderThree({
     const [showTexture, setShowTexture] = useState(true)
     const [forceReload, setForceReload] = useState(0) // 强制重新加载的计数器
     const containerRef = useRef<HTMLDivElement>(null)
-    // 使用useUndoRedoState管理3D模型数据
-    const { state: modelData, updateState } = useUndoRedoState(
-        'render-three-model-data',
-        materialData || {
-            id: 'default',
-            name: '默认3D模型',
-            description: '默认3D模型数据',
-            meshes: [],
-            layers: [], // 添加缺失的layers属性
-            model: {
-                id: 'model-001',
-                name: '默认模型',
-                modelPath: '/exampleModel/XEP2DZRCDIT6W-3dSources.glb',
-                uuid: 'uuid-001',
-                scale: 1,
-                position: [0, 0, 0],
-                rotation: [0, 0, 0],
-                enableDraco: true,
-                dracoPath: '/draco/gltf/',
-                autoPlay: true
-            },
-            canvasSize: { width: 800, height: 600 },
-            createdAt: new Date(),
-            updatedAt: new Date()
-        } as MaterialData,
-        { debounceMs: 200 }
-    );
+    
+    // 使用传入的materialData，如果没有则使用默认值
+    const modelData = materialData || {
+        id: 'default',
+        name: '默认3D模型',
+        description: '默认3D模型数据',
+        meshes: [],
+        layers: [],
+        model: {
+            id: 'model-001',
+            name: '默认模型',
+            modelPath: '/exampleModel/XEP2DZRCDIT6W-3dSources.glb',
+            uuid: 'uuid-001',
+            scale: 1,
+            position: [0, 0, 0],
+            rotation: [0, 0, 0],
+            enableDraco: true,
+            dracoPath: '/draco/gltf/',
+            autoPlay: true
+        },
+        canvasSize: { width: 800, height: 600 },
+        createdAt: new Date(),
+        updatedAt: new Date()
+    } as MaterialData;
 
     const {state: materialDataState, updateState: updateCurrentMaterialData} = useUndoRedoState('current-material-data')
     
     // 使用useMemo缓存ModelLoader组件，避免重复创建
     const cachedModelLoader = useMemo(() => {
         if (!modelData) {
-            console.log('modelData未定义，跳过ModelLoader创建');
             return null;
         }
         
@@ -122,23 +118,15 @@ export default function RenderThree({
         threeRef.current = three
         if (!globalModelState.hasLoaded) {
             globalModelState.hasLoaded = true;
-            console.log('设置全局状态为已加载');
         }
         setIsLoading(false);
     }
     // 强制重新加载模型
     const handleForceReload = () => {
-        console.log('强制重新加载模型');
         setForceReload(prev => prev + 1);
         globalModelState.hasLoaded = false;
         setIsLoading(true);
     }
-    // 组件挂载时的调试信息
-    useEffect(() => {
-        console.log('RenderThree 组件挂载，全局状态:', globalModelState.hasLoaded);
-        console.log('初始加载状态:', isLoading);
-        console.log('模型路径:', modelData?.model.modelPath);
-    }, []);
     
     return (
         <div 
