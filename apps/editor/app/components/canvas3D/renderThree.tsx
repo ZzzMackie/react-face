@@ -85,17 +85,6 @@ export default function RenderThree({
                 autoPlay={modelData.model.autoPlay}
                 color={modelData.model.color}
                 canvasTexture={showTexture && canvasTexture ? canvasTexture : undefined}
-                onModelLoaded={(root) => {
-                    // 模型真正加载完成后再生成刀版
-                    try {
-                        const knives = generateKnivesForModel(modelData!.model as any, root);
-                        const baseData = (materialDataState && typeof materialDataState === 'object') ? materialDataState : {};
-                        const newData = { ...(baseData as any), knives };
-                        updateCurrentMaterialData(newData, '生成刀版', false);
-                    } catch (e) {
-                        console.warn('生成刀版失败:', e)
-                    }
-                }}
             />
         );
     }, [
