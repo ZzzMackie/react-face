@@ -1,6 +1,15 @@
 {
-  "buildCommand": "cd apps/editor && pnpm build",
-  "outputDirectory": "apps/editor/.next",
-  "installCommand": "pnpm install",
-  "framework": "nextjs"
+  "version": 2,
+  "builds": [
+    {
+      "src": "apps/editor/package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "apps/editor/$1"
+    }
+  ]
 }
