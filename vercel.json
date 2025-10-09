@@ -1,9 +1,5 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "apps/editor/package.json",
-      "use": "@vercel/next"
-    }
-  ]
+  "outputDirectory": "apps/editor/.next",
+  "installCommand": "pnpm install",
+  "framework": "nextjs"
 }
