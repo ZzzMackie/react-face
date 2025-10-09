@@ -21,6 +21,7 @@
     "@react-three/fiber": "^9.3.0",
     "@reduxjs/toolkit": "^2.8.2",
     "@types/three": "^0.178.1",
+    "@vercel/analytics": "^1.5.0",
     "@vercel/speed-insights": "^1.2.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
