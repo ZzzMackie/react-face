@@ -5,11 +5,5 @@
       "src": "apps/editor/package.json",
       "use": "@vercel/next"
     }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "apps/editor/$1"
-    }
   ]
 }
