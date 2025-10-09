@@ -1,13 +1,13 @@
 "use client"; 
 import styles from '@/assets/moduleCss/canvas.module.css';
-import { Layer, Stage, Transformer, Rect, Line } from 'react-konva';
-import Konva from 'konva';
 import { useEffect, useRef, useState, useCallback, useMemo, forwardRef, useImperativeHandle } from 'react';
 import { useUndoRedoState } from '@/hooks/useGlobalUndoRedo';
 import { useContainerResize } from '@/hooks/useContainerResize';
 import { MaterialData, MaterialLayer, MaterialMesh, Knife } from '../canvas3D/constant/MaterialData';
-import { RectangleLayer, CircleLayer, PolygonLayer, ImageLayer, TextLayer } from './layers';
 import { LayerEditPanel } from './panels';
+import Konva from 'konva';
+import { Layer, Stage, Transformer, Rect, Line } from 'react-konva';
+import { RectangleLayer, CircleLayer, PolygonLayer, ImageLayer, TextLayer } from './layers';
 
 // 常量配置
 const TRANSFORMABLE_TYPES = ['rectangle', 'circle', 'polygon', 'image', 'text'] as const;
@@ -100,11 +100,16 @@ const KnifeRender = forwardRef<KnifeRenderRef, KnifeRenderProps>(({
   selectedLayerId,
   onLayerSelect 
 }, ref) => {
+    const [isClient, setIsClient] = useState(false);
     const renderRef = useRef<HTMLDivElement>(null);
     const [renderSize, setRenderSize] = useState({width: 0, height: 0});
     const stageRef = useRef<Konva.Stage>(null);
     const transformerRef = useRef<Konva.Transformer>(null);
     const [loadedImages, setLoadedImages] = useState<Map<string, HTMLImageElement>>(new Map());
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
     
     // 内部管理选中状态
     const [internalSelectedLayerId, setInternalSelectedLayerId] = useState<string | undefined>(selectedLayerId);
@@ -583,53 +588,55 @@ const KnifeRender = forwardRef<KnifeRenderRef, KnifeRenderProps>(({
                 </div>
             </div>
             
-            <Stage 
-                id="knife-render-canvas" 
-                ref={stageRef} 
-                className={styles.canvas_container} 
-                width={renderSize.width} 
-                height={renderSize.height}
-                onClick={handleStageClick}
-            >
-                <Layer>
-                    {/* 背景 */}
-                    {knifeData?.backgroundColor && (
-                        <Rect
-                            x={0}
-                            y={0}
-                            width={knifeData.canvasSize.width}
-                            height={knifeData.canvasSize.height}
-                            fill={knifeData.backgroundColor}
+            {(
+                <Stage 
+                    id="knife-render-canvas" 
+                    ref={stageRef} 
+                    className={styles.canvas_container} 
+                    width={renderSize.width} 
+                    height={renderSize.height}
+                    onClick={handleStageClick}
+                >
+                    <Layer>
+                        {/* 背景 */}
+                        {knifeData?.backgroundColor && (
+                            <Rect
+                                x={0}
+                                y={0}
+                                width={knifeData.canvasSize.width}
+                                height={knifeData.canvasSize.height}
+                                fill={knifeData.backgroundColor}
+                            />
+                        )}
+                        
+                        {/* 刀版轮廓线 */}
+                        {knifeData?.outline && knifeData.outline.visible && (
+                            <Line
+                                key={knifeData.id}
+                                draggable
+                                points={knifeData.outline.points.flatMap(p => [p.x, p.y])}
+                                stroke={knifeData.outline.strokeColor || '#000000'}
+                                strokeWidth={knifeData.outline.strokeWidth || 2}
+                                closed={true}
+                                fill="transparent"
+                                dash={[10, 5]}
+                            />
+                        )}
+                        
+                        {/* 图层 - 按zIndex排序 */}
+                        {knifeData?.layers
+                            .sort((a, b) => a.zIndex - b.zIndex)
+                            .map(renderLayer)}
+                        
+                        {/* Transformer */}
+                        <Transformer
+                            ref={transformerRef}
+                            {...TRANSFORMER_CONFIG}
+                            visible={true}
                         />
-                    )}
-                    
-                    {/* 刀版轮廓线 */}
-                    {knifeData?.outline && knifeData.outline.visible && (
-                        <Line
-                            key={knifeData.id}
-                            draggable
-                            points={knifeData.outline.points.flatMap(p => [p.x, p.y])}
-                            stroke={knifeData.outline.strokeColor || '#000000'}
-                            strokeWidth={knifeData.outline.strokeWidth || 2}
-                            closed={true}
-                            fill="transparent"
-                            dash={[10, 5]}
-                        />
-                    )}
-                    
-                    {/* 图层 - 按zIndex排序 */}
-                    {knifeData?.layers
-                        .sort((a, b) => a.zIndex - b.zIndex)
-                        .map(renderLayer)}
-                    
-                    {/* Transformer */}
-                    <Transformer
-                        ref={transformerRef}
-                        {...TRANSFORMER_CONFIG}
-                        visible={true}
-                    />
-                </Layer>
-            </Stage>
+                    </Layer>
+                </Stage>
+            )}
             
             {/* 图层编辑面板 */}
             <LayerEditPanel

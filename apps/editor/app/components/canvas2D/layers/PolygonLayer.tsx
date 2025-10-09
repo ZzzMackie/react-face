@@ -21,11 +21,11 @@ export default function PolygonLayer({
     onDragEnd,
     onTransformEnd,
 }: PolygonLayerProps) {
-    if (!layer.points) {
+    if (!(layer as any).points) {
         return null;
     }
 
-    const flatPoints = layer.points.flatMap(p => [p.x, p.y]);
+    const flatPoints = (layer as any).points.flatMap((p: any) => [p.x, p.y]);
 
     return (
         <Line
@@ -34,7 +34,7 @@ export default function PolygonLayer({
             name="layer-node"
             points={flatPoints}
             rotation={layer.rotation}
-            fill={layer.color}
+            fill={(layer as any).color}
             stroke={strokeColor}
             strokeWidth={strokeWidth}
             opacity={layer.opacity}

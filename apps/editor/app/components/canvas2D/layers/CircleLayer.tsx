@@ -28,9 +28,9 @@ export default function CircleLayer({
             name="layer-node"
             x={layer.position.x}
             y={layer.position.y}
-            radius={layer.radius || layer.size.width / 2}
+            radius={(layer as any).radius || layer.size.width / 2}
             rotation={layer.rotation}
-            fill={layer.color}
+            fill={(layer as any).color}
             stroke={strokeColor}
             strokeWidth={strokeWidth}
             opacity={layer.opacity}

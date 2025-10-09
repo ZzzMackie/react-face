@@ -214,7 +214,7 @@ function extractOutlineFromGeometry(mesh: ModelMesh): Array<{ x: number; y: numb
       attributeKeys: geometry.attributes ? Object.keys(geometry.attributes) : [],
       hasPosition: geometry.attributes && !!geometry.attributes.position,
       positionType: geometry.attributes && geometry.attributes.position ? typeof geometry.attributes.position : 'undefined',
-      hasIndex: !!geometry.index
+      hasIndex: !!(geometry as any).index
     });
     
     // 安全检查
@@ -228,25 +228,29 @@ function extractOutlineFromGeometry(mesh: ModelMesh): Array<{ x: number; y: numb
     // 检查positions对象结构
     console.log('positions结构:', {
       type: typeof positions,
-      hasArray: !!positions.array,
-      arrayType: positions.array ? typeof positions.array : 'undefined',
-      arrayLength: positions.array ? positions.array.length : 0,
+      hasArray: !!(positions as any).array,
+      arrayType: (positions as any).array ? typeof (positions as any).array : 'undefined',
+      arrayLength: (positions as any).array ? (positions as any).array.length : 0,
       hasCount: 'count' in positions,
       count: 'count' in positions ? positions.count : 'unknown',
-      hasGetX: typeof positions.getX === 'function'
+      hasGetX: typeof (positions as any).getX === 'function'
     });
     
     // 如果没有必要的属性，返回null
-    if (!positions.array && typeof positions.getX !== 'function') {
+    if (!(positions as any).array && typeof (positions as any).getX !== 'function') {
       console.warn('positions对象缺少必要的属性');
       return null;
     }
     
-    const indices = geometry.index ? Array.from(geometry.index.array) : null;
+    const indices = (geometry as any).index ? Array.from((geometry as any).index.array) : null;
     
     // 选择最佳投影平面
     // 计算模型的主要方向
     const boundingBox = mesh.geometry.boundingBox;
+    if (!boundingBox) {
+      console.warn('几何体缺少边界框');
+      return null;
+    }
     const sizeX = boundingBox.max[0] - boundingBox.min[0];
     const sizeY = boundingBox.max[1] - boundingBox.min[1];
     const sizeZ = boundingBox.max[2] - boundingBox.min[2];
@@ -267,17 +271,17 @@ function extractOutlineFromGeometry(mesh: ModelMesh): Array<{ x: number; y: numb
       // 获取顶点坐标 - 处理不同的数据结构
       let x, y, z;
       
-      if (typeof positions.getX === 'function') {
+      if (typeof (positions as any).getX === 'function') {
         // 如果有getX, getY, getZ方法
-        x = positions.getX(i);
-        y = positions.getY(i);
-        z = positions.getZ(i);
-      } else if (positions.array) {
+        x = (positions as any).getX(i);
+        y = (positions as any).getY(i);
+        z = (positions as any).getZ(i);
+      } else if ((positions as any).array) {
         // 如果是BufferAttribute格式
         const stride = 3; // 假设是xyz格式
-        x = positions.array[i * stride];
-        y = positions.array[i * stride + 1];
-        z = positions.array[i * stride + 2];
+        x = (positions as any).array[i * stride];
+        y = (positions as any).array[i * stride + 1];
+        z = (positions as any).array[i * stride + 2];
       } else {
         console.warn('无法识别的position数据格式');
         continue;
@@ -317,9 +321,9 @@ function extractOutlineFromGeometry(mesh: ModelMesh): Array<{ x: number; y: numb
       const idx3 = indices ? indices[i * 3 + 2] : i * 3 + 2;
       
       // 记录三条边
-      addEdge(edges, idx1, idx2);
-      addEdge(edges, idx2, idx3);
-      addEdge(edges, idx3, idx1);
+      addEdge(edges, idx1 as number, idx2 as number);
+      addEdge(edges, idx2 as number, idx3 as number);
+      addEdge(edges, idx3 as number, idx1 as number);
     }
     
     // 找出只出现一次的边（即边界边）
@@ -418,17 +422,17 @@ function extractOutlineFromGeometry(mesh: ModelMesh): Array<{ x: number; y: numb
       // 获取顶点坐标 - 处理不同的数据结构
       let x, y, z;
       
-      if (typeof positions.getX === 'function') {
+      if (typeof (positions as any).getX === 'function') {
         // 如果有getX, getY, getZ方法
-        x = positions.getX(vertexIndex);
-        y = positions.getY(vertexIndex);
-        z = positions.getZ(vertexIndex);
-      } else if (positions.array) {
+        x = (positions as any).getX(vertexIndex);
+        y = (positions as any).getY(vertexIndex);
+        z = (positions as any).getZ(vertexIndex);
+      } else if ((positions as any).array) {
         // 如果是BufferAttribute格式
         const stride = 3; // 假设是xyz格式
-        x = positions.array[vertexIndex * stride];
-        y = positions.array[vertexIndex * stride + 1];
-        z = positions.array[vertexIndex * stride + 2];
+        x = (positions as any).array[vertexIndex * stride];
+        y = (positions as any).array[vertexIndex * stride + 1];
+        z = (positions as any).array[vertexIndex * stride + 2];
       } else {
         console.warn('无法识别的position数据格式');
         continue;
@@ -473,17 +477,17 @@ function extractOutlineFromGeometry(mesh: ModelMesh): Array<{ x: number; y: numb
       // 获取顶点坐标 - 处理不同的数据结构
       let x, y, z;
       
-      if (typeof positions.getX === 'function') {
+      if (typeof (positions as any).getX === 'function') {
         // 如果有getX, getY, getZ方法
-        x = positions.getX(vertexIndex);
-        y = positions.getY(vertexIndex);
-        z = positions.getZ(vertexIndex);
-      } else if (positions.array) {
+        x = (positions as any).getX(vertexIndex);
+        y = (positions as any).getY(vertexIndex);
+        z = (positions as any).getZ(vertexIndex);
+      } else if ((positions as any).array) {
         // 如果是BufferAttribute格式
         const stride = 3; // 假设是xyz格式
-        x = positions.array[vertexIndex * stride];
-        y = positions.array[vertexIndex * stride + 1];
-        z = positions.array[vertexIndex * stride + 2];
+        x = (positions as any).array[vertexIndex * stride];
+        y = (positions as any).array[vertexIndex * stride + 1];
+        z = (positions as any).array[vertexIndex * stride + 2];
       } else {
         console.warn('无法识别的position数据格式');
         continue;
@@ -523,7 +527,7 @@ function extractOutlineFromGeometry(mesh: ModelMesh): Array<{ x: number; y: numb
     return simplifyOutline(outline2D, 1.0); // 1.0是容差值，可以调整
   } catch (error) {
     console.error('提取轮廓时出错:', error);
-    return null;
+    return [];
   }
 }
 
@@ -535,7 +539,7 @@ function computeConvexHull(
 ): Array<{ x: number; y: number }> {
   // 如果点太少，无法形成凸包
   if (vertices.length < 3) {
-    return null;
+    return [];
   }
   
   // 找到具有最低y坐标的点（如果有多个，选择最左边的）

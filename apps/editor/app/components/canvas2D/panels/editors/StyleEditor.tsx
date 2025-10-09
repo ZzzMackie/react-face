@@ -60,13 +60,13 @@ export function StyleEditor({ layer, onUpdate }: StyleEditorProps) {
           <Input
             id="fill-color"
             type="color"
-            value={layer.color}
+            value={(layer as any).color}
             onChange={(e) => handleColorChange(e.target.value)}
             className="h-10 w-16 cursor-pointer border-gray-300 rounded-lg"
           />
           <Input
             type="text"
-            value={layer.color}
+            value={(layer as any).color}
             onChange={(e) => handleColorChange(e.target.value)}
             className="h-8 bg-white border-gray-300 focus:border-pink-500 focus:ring-pink-500/20 transition-colors"
             placeholder="#000000"
@@ -84,13 +84,13 @@ export function StyleEditor({ layer, onUpdate }: StyleEditorProps) {
           <Input
             id="stroke-color"
             type="color"
-            value={layer.strokeColor}
+            value={(layer as any).strokeColor}
             onChange={(e) => handleStrokeColorChange(e.target.value)}
             className="h-10 w-16 cursor-pointer border-gray-300 rounded-lg"
           />
           <Input
             type="text"
-            value={layer.strokeColor}
+            value={(layer as any).strokeColor}
             onChange={(e) => handleStrokeColorChange(e.target.value)}
             className="h-8 bg-white border-gray-300 focus:border-indigo-500 focus:ring-indigo-500/20 transition-colors"
             placeholder="#000000"
@@ -107,7 +107,7 @@ export function StyleEditor({ layer, onUpdate }: StyleEditorProps) {
         <Input
           id="stroke-width"
           type="number"
-          value={layer.strokeWidth}
+            value={(layer as any).strokeWidth}
           onChange={(e) => handleStrokeWidthChange(Number(e.target.value))}
           className="h-8 bg-white border-gray-300 focus:border-teal-500 focus:ring-teal-500/20 transition-colors"
           min="0"
