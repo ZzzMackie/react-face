@@ -3,7 +3,6 @@ import { resolve } from "path";
 
 const nextConfig: NextConfig = {
   /* config options here */
-  trailingSlash: true,
   experimental: {
     inlineCss: false,
   },
