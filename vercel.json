@@ -1,5 +1,5 @@
 {
-  "outputDirectory": "apps/editor/.next",
+  "outputDirectory": ".next",
   "installCommand": "pnpm install",
   "framework": "nextjs"
 }
