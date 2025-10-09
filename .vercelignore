@@ -13,27 +13,16 @@ dist
 .env.test.local
 .env.production.local
 
-# 忽略其他应用
+# 忽略其他应用，只保留 editor
 apps/*/node_modules
 packages/*/node_modules
 apps/*/.next
 packages/*/dist
+apps/admin
+apps/admin-quotationManage
+apps/admin-res
+packages/*
 
-# 保留 editor 应用
+# 保留 editor 应用的所有文件
 !apps/editor
-!apps/editor/package.json
-!apps/editor/next.config.ts
-!apps/editor/tsconfig.json
-!apps/editor/postcss.config.mjs
-!apps/editor/tailwind.config.ts
-!apps/editor/components.json
-!apps/editor/eslint.config.mjs
-!apps/editor/app
-!apps/editor/public
-!apps/editor/lib
-!apps/editor/hooks
-!apps/editor/utils
-!apps/editor/components
-!apps/editor/store
-!apps/editor/assets
-!apps/editor/scripts
+!apps/editor/**

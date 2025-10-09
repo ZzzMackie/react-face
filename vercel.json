@@ -1,26 +1,6 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "apps/editor/package.json",
-      "use": "@vercel/next",
-      "config": {
-        "rootDirectory": "apps/editor"
-      }
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "apps/editor/$1"
-    }
-  ],
-  "functions": {
-    "apps/editor/app/api/**/*.ts": {
-      "runtime": "nodejs18.x"
-    }
-  },
-  "installCommand": "pnpm install",
   "buildCommand": "cd apps/editor && pnpm build",
-  "outputDirectory": "apps/editor/.next"
+  "outputDirectory": "apps/editor/.next",
+  "installCommand": "pnpm install",
+  "framework": "nextjs"
 }
