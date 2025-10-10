@@ -17,6 +17,7 @@ interface OBJModelProps {
   position?: [number, number, number];
   rotation?: [number, number, number];
   canvasTexture?: HTMLCanvasElement;
+  onModelLoaded?: (root: any) => void;
 }
 
 export default function OBJModel({ 
@@ -25,7 +26,8 @@ export default function OBJModel({
   scale = 1, 
   position = [0, 0, 0],
   rotation = [0, 0, 0],
-  canvasTexture
+  canvasTexture,
+  onModelLoaded
 }: OBJModelProps) {
   const { error, setError, isLoading, setIsLoading, modelRef } = useLoaderState()
   const textureRef = useCanvasTexture(canvasTexture)
@@ -53,6 +55,7 @@ export default function OBJModel({
       
       console.log('OBJ加载成功:', obj)
       setIsLoading(false)
+      if (onModelLoaded) onModelLoaded(obj)
     }
   }, [obj, materials, setIsLoading])
   

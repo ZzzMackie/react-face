@@ -1,13 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from 'react'
 import { Group } from 'three'
-import GLTFModel from './loaders/GLTFLoader'
-import OBJModel from './loaders/OBJLoader'
-import FBXModel from './loaders/FBXLoader'
-import STLModel from './loaders/STLLoader'
-import PLYModel from './loaders/PLYLoader'
-import DAEModel from './loaders/DAELoader'
-import ThreeDSModel from './loaders/ThreeDSLoader'
+import { ModelLoaderFactory } from '@/lib/strategies/ModelLoaderFactory'
+import { LoadOptions, ModelLoadError } from '@/lib/strategies/ModelLoaderStrategy'
 
 interface ModelLoaderProps {
   modelPath: string;
@@ -21,6 +16,7 @@ interface ModelLoaderProps {
   color?: string; // 用于STL/PLY格式的颜色
   canvasTexture?: HTMLCanvasElement; // 新增：CanvasTexture支持
   materialType?: 'standard' | 'basic' | 'phong' | 'lambert'; // 新增：材质类型选择
+  onModelLoaded?: (root: any) => void; // 新增：模型加载完成回调
 }
 
 // 加载中的占位几何体
@@ -34,7 +30,7 @@ function LoadingPlaceholder() {
 }
 
 // 错误状态的占位几何体
-function ErrorPlaceholder() {
+function ErrorPlaceholder({ error }: { error: string }) {
   return (
     <mesh position={[0, 0, 0]}>
       <sphereGeometry args={[0.5, 16, 16]} />
@@ -43,9 +39,13 @@ function ErrorPlaceholder() {
   )
 }
 
-// 通用模型加载器
+// 重构后的通用模型加载器
 export default function ModelLoader(props: ModelLoaderProps) {
-  const { modelPath } = props
+  const { modelPath, onModelLoaded, ...options } = props
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [loadedGroup, setLoadedGroup] = useState<Group | null>(null)
+  const loadingRef = useRef(false)
   
   // 根据文件扩展名决定使用哪个加载器
   const getFileExtension = (path: string) => {
@@ -54,39 +54,75 @@ export default function ModelLoader(props: ModelLoaderProps) {
   
   const fileExtension = getFileExtension(modelPath)
   
-  switch (fileExtension) {
-    case 'glb':
-    case 'gltf':
-      return <GLTFModel {...props} />
+  useEffect(() => {
+    if (!fileExtension || loadingRef.current) return
     
-    case 'obj':
-      return <OBJModel {...props} />
+    loadingRef.current = true
+    setLoading(true)
+    setError(null)
     
-    case 'fbx':
-      return <FBXModel {...props} />
+    // 检查是否支持该格式
+    if (!ModelLoaderFactory.isSupported(fileExtension)) {
+      const errorMsg = `不支持的文件格式: ${fileExtension}`
+      setError(errorMsg)
+      setLoading(false)
+      loadingRef.current = false
+      return
+    }
     
-    case 'stl':
-      return <STLModel {...props} />
+    // 使用工厂模式获取加载策略
+    const loader = ModelLoaderFactory.getLoader(fileExtension)
     
-    case 'ply':
-      return <PLYModel {...props} />
+    // 构建加载选项
+    const loadOptions: LoadOptions = {
+      scale: options.scale,
+      position: options.position,
+      rotation: options.rotation,
+      enableDraco: options.enableDraco,
+      dracoPath: options.dracoPath,
+      autoPlay: options.autoPlay,
+      color: options.color,
+      canvasTexture: options.canvasTexture,
+      materialType: options.materialType
+    }
     
-    case 'dae':
-      return <DAEModel {...props} />
-    
-    case '3ds':
-      return <ThreeDSModel {...props} />
-    
-    // 可以在这里添加其他格式的支持
-    // case 'max':
-    //   return <MaxModel {...props} />
-    // case 'blend':
-    //   return <BlendModel {...props} />
-    // case 'c4d':
-    //   return <C4DModel {...props} />
-    
-    default:
-      console.error('不支持的文件格式:', fileExtension)
-      return <ErrorPlaceholder />
+    // 异步加载模型
+    loader.load(modelPath, loadOptions)
+      .then((result) => {
+        setLoadedGroup(result.group)
+        setLoading(false)
+        
+        // 调用回调函数
+        if (onModelLoaded) {
+          onModelLoaded(result.group)
+        }
+      })
+      .catch((err) => {
+        setError(err instanceof ModelLoadError ? err.message : '模型加载失败')
+        setLoading(false)
+      })
+      .finally(() => {
+        loadingRef.current = false
+      })
+  }, [modelPath, fileExtension, onModelLoaded])
+  
+  // 如果正在加载，显示加载占位符
+  if (loading) {
+    return <LoadingPlaceholder />
   }
+  
+  // 如果加载失败，显示错误占位符
+  if (error) {
+    return <ErrorPlaceholder error={error} />
+  }
+  
+  // 如果成功加载，渲染模型
+  if (loadedGroup) {
+    return (
+      <primitive object={loadedGroup} />
+    )
+  }
+  
+  // 默认情况
+  return <LoadingPlaceholder />
 } 

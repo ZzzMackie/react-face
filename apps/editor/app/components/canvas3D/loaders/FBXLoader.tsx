@@ -17,6 +17,7 @@ interface FBXModelProps {
   rotation?: [number, number, number];
   autoPlay?: boolean;
   canvasTexture?: HTMLCanvasElement;
+  onModelLoaded?: (root: any) => void;
 }
 
 export default function FBXModel({ 
@@ -25,7 +26,8 @@ export default function FBXModel({
   position = [0, 0, 0],
   rotation = [0, 0, 0],
   autoPlay = false,
-  canvasTexture
+  canvasTexture,
+  onModelLoaded
 }: FBXModelProps) {
   const { error, setError, isLoading, setIsLoading, modelRef } = useLoaderState()
   const textureRef = useCanvasTexture(canvasTexture)
@@ -42,6 +44,7 @@ export default function FBXModel({
     if (fbx) {
       console.log('FBX加载成功:', fbx)
       setIsLoading(false)
+      if (onModelLoaded) onModelLoaded(fbx)
     }
   }, [fbx, setIsLoading])
   

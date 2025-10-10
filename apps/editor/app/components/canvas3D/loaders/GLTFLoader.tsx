@@ -10,6 +10,7 @@ import {
   useApplyTextureToScene, 
   useAnimationInfo 
 } from './common/LoaderComponents'
+import { useUndoRedoState } from '@/hooks/useGlobalUndoRedo';
 
 interface GLTFModelProps {
   modelPath: string;
@@ -19,6 +20,7 @@ interface GLTFModelProps {
   enableDraco?: boolean;
   dracoPath?: string;
   canvasTexture?: HTMLCanvasElement;
+  onModelLoaded?: (root: any) => void;
 }
 
 export default function GLTFModel({ 
@@ -28,11 +30,12 @@ export default function GLTFModel({
   rotation = [0, 0, 0],
   enableDraco = true,
   dracoPath = '/draco/gltf/',
-  canvasTexture
+  canvasTexture,
+  onModelLoaded
 }: GLTFModelProps) {
   const { error, setError, isLoading, setIsLoading, modelRef } = useLoaderState()
   const textureRef = useCanvasTexture(canvasTexture)
-  
+  // const { state: currentKnife, updateState: updateCurrentKnife } = useUndoRedoState<string | undefined | null>('current-knife', null);
   console.log('GLTFModel 开始加载，路径:', modelPath, '加载状态:', isLoading, '纹理:', canvasTexture);
   
   const gltf = useLoader(
@@ -80,7 +83,7 @@ export default function GLTFModel({
         }
       });
     }
-  }, [textureRef.current, gltf?.scene]);
+  }, [textureRef.current, gltf?.scene, canvasTexture]);
   
   useEffect(() => {
     console.log('GLTF useEffect 触发，gltf:', gltf, 'isLoading:', isLoading);
@@ -88,6 +91,10 @@ export default function GLTFModel({
       console.log('GLTF加载成功:', gltf)
       console.log('场景对象:', gltf.scene)
       setIsLoading(false)
+      // 模型加载完成时触发回调，传递真实场景对象
+      if (onModelLoaded) {
+        onModelLoaded(gltf.scene)
+      }
     } else if (!isLoading) {
       console.log('GLTF数据为空，但加载状态为false，重置为true');
       setIsLoading(true);

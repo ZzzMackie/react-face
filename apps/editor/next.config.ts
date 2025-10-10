@@ -1,22 +1,37 @@
 import type { NextConfig } from "next";
+import { resolve } from "path";
 
 const nextConfig: NextConfig = {
   /* config options here */
-  trailingSlash: true,
   experimental: {
     inlineCss: false,
   },
   transpilePackages: ['three'],
-  // HTTPS配置
-  server: {
-    https: true,
-    allowHTTP1: true,
-    accessOrigin: '*',
-  },
+  // HTTPS配置 (仅在开发环境启用)
+  ...(process.env.NODE_ENV === 'development' && {
+    server: {
+      https: true,
+      allowHTTP1: true,
+      accessOrigin: '*',
+    },
+  }),
   // 开发服务器配置
   devIndicators: {
-    buildActivity: true,
-    buildActivityPosition: 'bottom-right',
+    position: 'bottom-right',
+  },
+  webpack: (config, { isServer }) => {
+    // 解决 Konva 在服务端渲染的问题
+    if (isServer) {
+      config.externals = [...(config.externals || []), 'canvas'];
+    }
+    
+    // 添加别名
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@appUtils': resolve(__dirname, 'app/utils'),
+    };
+    
+    return config;
   },
   // 代理配置
   async rewrites() {

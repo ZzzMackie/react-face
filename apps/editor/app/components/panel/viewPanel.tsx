@@ -3,13 +3,18 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import styles from '@/assets/moduleCss/panel.module.css';
 import RenderThree from "../canvas3D/renderThree";
 import { useUndoRedoState } from "@/hooks/useGlobalUndoRedo";
-import { tr } from "framer-motion/client";
+import { useEditorDataContext } from "../providers/EditorDataProvider";
 
 export default function ViewPanel() {
     const [isOpen, setIsOpen] = useState(true);
     const [shouldRenderCanvas, setShouldRenderCanvas] = useState(false);
     const hasInitialized = useRef(false);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
+    const initExecuted = useRef(false);
+    
+    // 获取编辑器数据
+    const editorData = useEditorDataContext();
+    
     const { state: currentCanvas } = useUndoRedoState('currentCanvas', {
         canvasId: '',
         canvas: null
@@ -27,22 +32,49 @@ export default function ViewPanel() {
         }
     }, [currentCanvas?.canvasId]);
 
-    // 只在第一次展开时，初始化Canvas渲染
+    // 只在组件挂载时，初始化Canvas渲染
     useEffect(() => {
-        if (isOpen && !hasInitialized.current) {
+        if (!initExecuted.current) {
+            initExecuted.current = true;
             hasInitialized.current = true;
             // 延迟一点时间确保DOM已经更新
-            const timer = setTimeout(() => {
+            setTimeout(() => {
                 setShouldRenderCanvas(true);
             }, 300);
-            return () => clearTimeout(timer);
         }
-    }, [isOpen]);
+    }, []); // 空依赖数组，只在组件挂载时执行一次
 
     // 更新canvas引用，但不触发重新渲染
     useEffect(() => {
         updateCanvasRef();
     }, [updateCanvasRef]);
+
+    // 准备传递给RenderThree的数据
+    const materialData = editorData.currentMaterial && editorData.currentModel ? {
+        id: editorData.currentMaterial.id,
+        name: editorData.currentMaterial.name,
+        description: editorData.currentMaterial.description,
+        meshes: [],
+        layers: [],
+        model: {
+            id: editorData.currentModel.id,
+            name: editorData.currentModel.name,
+            modelPath: editorData.currentModel.modelPath,
+            uuid: editorData.currentModel.uuid,
+            scale: editorData.currentModel.scale,
+            position: editorData.currentModel.position,
+            rotation: editorData.currentModel.rotation,
+            enableDraco: editorData.currentModel.enableDraco,
+            dracoPath: editorData.currentModel.dracoPath,
+            autoPlay: editorData.currentModel.autoPlay,
+            color: editorData.currentModel.color,
+            structure: editorData.currentModel.structure
+        },
+        canvasSize: { width: 800, height: 600 },
+        backgroundColor: '#ffffff',
+        createdAt: new Date(),
+        updatedAt: new Date()
+    } : undefined;
 
     return (
         <div 
@@ -85,7 +117,10 @@ export default function ViewPanel() {
                     <div className="space-y-4">
                         {shouldRenderCanvas && (
                             <div className={`transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
-                                <RenderThree canvasTexture={canvasRef.current} />
+                                <RenderThree 
+                                    materialData={materialData}
+                                    canvasTexture={canvasRef.current} 
+                                />
                             </div>
                         )}
                     </div>

@@ -24,7 +24,6 @@ const useGlobalUndoRedoState = createGlobalState<GlobalUndoRedoState>({
   redoStack: [],
   currentStates: {}
 });
-
 // 便捷的hooks
 export function useUndoRedoState<T>(
   id: string,
@@ -59,37 +58,50 @@ export function useUndoRedoState<T>(
   }, [id, initialState, state.currentStates, setState]);
   
   // 更新状态 - 数据进入undo栈
-  const updateState = useCallback((newState: T, description?: string) => {
-    const currentState = state.currentStates[id];
-    
-    // 创建新的状态条目
-    const newEntry: StateEntry = {
-      id,
-      timestamp: Date.now(),
-      state: currentState, // 保存当前状态到undo栈
-      description
-    };
-    
-    // 将当前状态推入undo栈
-    const newUndoStack = [...state.undoStack, newEntry];
-    
-    // 限制undo栈大小
-    if (newUndoStack.length > maxHistory) {
-      newUndoStack.splice(0, newUndoStack.length - maxHistory);
-    }
-    
-    // 清空redo栈（因为有了新的操作）
-    const newRedoStack: StateEntry[] = [];
-    
-    // 更新当前状态
-    const newCurrentStates = { ...state.currentStates, [id]: newState };
-    
-    setState({
-      undoStack: newUndoStack,
-      redoStack: newRedoStack,
-      currentStates: newCurrentStates
+  const updateState = useCallback((newState: T, description?: string, needUndo: boolean = true) => {
+    // 获取最新的状态，而不是使用闭包中的state
+    setState((prevState) => {
+      const currentState = prevState.currentStates[id];
+      
+      // 如果不需要撤销功能，只更新当前状态
+      if (!needUndo) {
+        return {
+          ...prevState,
+          currentStates: { ...prevState.currentStates, [id]: newState }
+        };
+      }
+      
+      // 创建新的状态条目
+      const newEntry: StateEntry = {
+        id,
+        timestamp: Date.now(),
+        state: currentState, // 保存当前状态到undo栈
+        description
+      };
+      
+      // 将当前状态推入undo栈
+      const newUndoStack = [...prevState.undoStack, newEntry];
+      
+      // 限制undo栈大小
+      const limitedUndoStack = newUndoStack.length > maxHistory 
+        ? newUndoStack.slice(newUndoStack.length - maxHistory) 
+        : newUndoStack;
+      
+      // 清空redo栈（因为有了新的操作）
+      const newRedoStack: StateEntry[] = [];
+      
+      // 更新当前状态
+      const newCurrentStates = { ...prevState.currentStates, [id]: newState };
+      
+      return {
+        undoStack: limitedUndoStack,
+        redoStack: newRedoStack,
+        currentStates: newCurrentStates
+      };
     });
-  }, [state, id, maxHistory, setState]);
+    
+    return;
+  }, [id, maxHistory, setState]);
   
   // 防抖更新
   const updateStateDebounced = useCallback((newState: T, description?: string) => {

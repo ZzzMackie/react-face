@@ -10,6 +10,7 @@ export interface BaseLayer {
   rotation: number;
   opacity: number;
   visible: boolean;
+  locked: boolean; // 图层锁定状态
   zIndex: number; // 图层层级
 }
 
@@ -32,6 +33,31 @@ export interface ImageLayer extends BaseLayer {
   borderColor?: string;
   borderWidth?: number;
   borderRadius?: number;
+  // 图片样式属性
+  brightness?: number; // 亮度 0-200 (100为默认)
+  contrast?: number; // 对比度 0-200 (100为默认)
+  saturation?: number; // 饱和度 0-200 (100为默认)
+  hue?: number; // 色相 -180到180 (0为默认)
+  blur?: number; // 模糊 0-20 (0为默认)
+  flipHorizontal?: boolean; // 水平翻转
+  flipVertical?: boolean; // 垂直翻转
+  // 更多滤镜效果
+  sharpen?: number; // 锐化 0-100 (0为默认)
+  shadowBlur?: number; // 阴影模糊 0-50 (0为默认)
+  shadowOffsetX?: number; // 阴影X偏移 -50到50 (0为默认)
+  shadowOffsetY?: number; // 阴影Y偏移 -50到50 (0为默认)
+  shadowColor?: string; // 阴影颜色 #000000 (默认)
+  emboss?: number; // 浮雕效果 0-100 (0为默认)
+  sepia?: number; // 棕褐色 0-100 (0为默认)
+  invert?: boolean; // 反色效果
+  grayscale?: boolean; // 灰度效果
+  // 裁切区域
+  crop?: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
 }
 
 // 文字图层
@@ -320,7 +346,103 @@ export const sampleMaterials: Material[] = [
     name: '包装盒A',
     description: '标准包装盒设计',
     modelId: 'model-001', // 关联模型ID
-    knives: [], // 初始为空，加载模型后生成
+    knives: [
+      {
+        id: 'knife-001',
+        name: '正面刀版',
+        description: '包装盒正面刀版',
+        meshId: 'mesh-front',
+        meshName: '正面',
+        layers: [
+          {
+            id: 'layer-001',
+            name: '正面背景',
+            type: 'rectangle',
+            position: { x: 0, y: 0 },
+            size: { width: 200, height: 300 },
+            rotation: 0,
+            opacity: 1,
+            visible: true,
+            zIndex: 1,
+            color: '#ffffff',
+            strokeColor: '#cccccc',
+            strokeWidth: 1
+          },
+          {
+            id: 'layer-002',
+            name: '正面文字',
+            type: 'text',
+            text: '包装盒正面',
+            fontSize: 24,
+            fontFamily: 'Arial',
+            fontWeight: 'bold',
+            fontStyle: 'normal',
+            color: '#333333',
+            textAlign: 'center',
+            verticalAlign: 'middle',
+            position: { x: 100, y: 150 },
+            size: { width: 200, height: 50 },
+            rotation: 0,
+            opacity: 1,
+            visible: true,
+            zIndex: 2
+          }
+        ],
+        canvasSize: { width: 200, height: 300 },
+        backgroundColor: '#ffffff',
+        outline: {
+          points: [
+            { x: 0, y: 0 },
+            { x: 200, y: 0 },
+            { x: 200, y: 300 },
+            { x: 0, y: 300 }
+          ],
+          strokeColor: '#000000',
+          strokeWidth: 2,
+          visible: true
+        },
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        id: 'knife-002',
+        name: '背面刀版',
+        description: '包装盒背面刀版',
+        meshId: 'mesh-back',
+        meshName: '背面',
+        layers: [
+          {
+            id: 'layer-003',
+            name: '背面背景',
+            type: 'rectangle',
+            position: { x: 0, y: 0 },
+            size: { width: 200, height: 300 },
+            rotation: 0,
+            opacity: 1,
+            visible: true,
+            zIndex: 1,
+            color: '#f8f9fa',
+            strokeColor: '#cccccc',
+            strokeWidth: 1
+          }
+        ],
+        canvasSize: { width: 200, height: 300 },
+        backgroundColor: '#f8f9fa',
+        outline: {
+          points: [
+            { x: 0, y: 0 },
+            { x: 200, y: 0 },
+            { x: 200, y: 300 },
+            { x: 0, y: 300 }
+          ],
+          strokeColor: '#000000',
+          strokeWidth: 2,
+          visible: true
+        },
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    ],
     tags: ['包装盒', '标准'],
     category: '包装',
     createdAt: new Date(),
