@@ -1,11 +1,11 @@
 <template>
   <div class="lighting-demo">
-    <ThreeRenderer
+    <ThreeCanvas
       :width="width"
       :height="height"
       :background="background"
     >
-      <PerspectiveCamera
+      <ThreeCamera
         :position="[0, 10, 20]"
         :fov="60"
         :aspect="width / height"
@@ -14,17 +14,17 @@
       />
 
       <!-- 环境光 -->
-      <AmbientLight :intensity="0.2" />
+      <ThreeAmbientLight :intensity="0.2" />
 
       <!-- 方向光 -->
-      <DirectionalLight
+      <ThreeDirectionalLight
         :position="[10, 10, 5]"
         :intensity="0.8"
         :cast-shadow="true"
       />
 
       <!-- 点光源 -->
-      <PointLight
+      <ThreePointLight
         :position="[0, 10, 0]"
         :intensity="0.5"
         :distance="20"
@@ -32,7 +32,7 @@
       />
 
       <!-- 聚光灯 -->
-      <SpotLight
+      <ThreeSpotLight
         :position="[0, 15, 0]"
         :target="spotLightTarget"
         :intensity="0.8"
@@ -42,70 +42,46 @@
         :cast-shadow="true"
       />
 
-      <!-- 半球光 -->
-      <HemisphereLight
-        :sky-color="0x87ceeb"
-        :ground-color="0x8b4513"
-        :intensity="0.3"
-      />
-
-      <GridHelper :size="30" :divisions="30" />
+      <ThreeGridHelper :size="30" :divisions="30" />
 
       <!-- 地面 -->
-      <Mesh :position="[0, -2, 0]" :receive-shadow="true">
-        <PlaneGeometry :width="30" :height="30" />
-        <MeshStandardMaterial :color="0x808080" />
-      </Mesh>
+      <ThreeMesh :position="[0, -2, 0]" :receive-shadow="true">
+        <ThreePlaneGeometry :width="30" :height="30" />
+        <ThreeMeshStandardMaterial :color="0x808080" />
+      </ThreeMesh>
 
       <!-- 立方体组 -->
-      <Group v-for="(cube, index) in cubes" :key="index">
-        <Mesh
-          :position="cube.position"
-          :rotation="[rotation, rotation, 0]"
-          :cast-shadow="true"
-          :receive-shadow="true"
-        >
-          <BoxGeometry :width="2" :height="2" :depth="2" />
-          <MeshStandardMaterial :color="cube.color" />
-        </Mesh>
-      </Group>
+      <ThreeMesh
+        v-for="(cube, index) in cubes"
+        :key="index"
+        :position="cube.position"
+        :rotation="[rotation, rotation, 0]"
+        :cast-shadow="true"
+        :receive-shadow="true"
+      >
+        <ThreeBoxGeometry :width="2" :height="2" :depth="2" />
+        <ThreeMeshStandardMaterial :color="cube.color" />
+      </ThreeMesh>
 
       <!-- 球体组 -->
-      <Group v-for="(sphere, index) in spheres" :key="index">
-        <Mesh
-          :position="sphere.position"
-          :cast-shadow="true"
-          :receive-shadow="true"
-        >
-          <SphereGeometry :radius="1" />
-          <MeshStandardMaterial :color="sphere.color" />
-        </Mesh>
-      </Group>
+      <ThreeMesh
+        v-for="(sphere, index) in spheres"
+        :key="`sphere-${index}`"
+        :position="sphere.position"
+        :cast-shadow="true"
+        :receive-shadow="true"
+      >
+        <ThreeSphereGeometry :radius="1" />
+        <ThreeMeshStandardMaterial :color="sphere.color" />
+      </ThreeMesh>
 
-      <OrbitControls />
-    </ThreeRenderer>
+      <ThreeOrbitControls />
+    </ThreeCanvas>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import {
-  ThreeRenderer,
-  PerspectiveCamera,
-  AmbientLight,
-  DirectionalLight,
-  PointLight,
-  SpotLight,
-  HemisphereLight,
-  GridHelper,
-  Mesh,
-  BoxGeometry,
-  SphereGeometry,
-  PlaneGeometry,
-  MeshStandardMaterial,
-  Group,
-  OrbitControls
-} from 'three-render'
 
 const width = ref(window.innerWidth)
 const height = ref(window.innerHeight)

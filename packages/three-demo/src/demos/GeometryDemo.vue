@@ -1,11 +1,11 @@
 <template>
   <div class="geometry-demo">
-    <ThreeRenderer
+    <ThreeCanvas
       :width="width"
       :height="height"
       :background="background"
     >
-      <PerspectiveCamera
+      <ThreeCamera
         :position="[0, 10, 20]"
         :fov="60"
         :aspect="width / height"
@@ -13,100 +13,79 @@
         :far="1000"
       />
 
-      <AmbientLight :intensity="0.3" />
-      <DirectionalLight :position="[10, 10, 5]" :intensity="0.8" />
+      <ThreeAmbientLight :intensity="0.3" />
+      <ThreeDirectionalLight :position="[10, 10, 5]" :intensity="0.8" />
 
-      <GridHelper :size="30" :divisions="30" />
-      <AxesHelper :size="10" />
+      <ThreeGridHelper :size="30" :divisions="30" />
+      <ThreeAxesHelper :size="10" />
 
       <!-- 立方体 -->
-      <Mesh :position="[-8, 2, 0]" :rotation="[rotation, rotation, 0]">
-        <BoxGeometry :width="3" :height="3" :depth="3" />
-        <MeshStandardMaterial :color="0x00ff00" :wireframe="false" />
-      </Mesh>
+      <ThreeMesh :position="[-8, 2, 0]" :rotation="[rotation, rotation, 0]">
+        <ThreeBoxGeometry :width="3" :height="3" :depth="3" />
+        <ThreeMeshStandardMaterial :color="0x00ff00" :wireframe="false" />
+      </ThreeMesh>
 
       <!-- 球体 -->
-      <Mesh :position="[-4, 2, 0]">
-        <SphereGeometry :radius="1.5" :width-segments="32" :height-segments="16" />
-        <MeshStandardMaterial :color="0xff0000" :wireframe="false" />
-      </Mesh>
-
-      <!-- 圆柱体 -->
-      <Mesh :position="[0, 2, 0]">
-        <CylinderGeometry :radius-top="1.5" :radius-bottom="1.5" :height="3" />
-        <MeshStandardMaterial :color="0x0000ff" :wireframe="false" />
-      </Mesh>
-
-      <!-- 圆锥体 -->
-      <Mesh :position="[4, 2, 0]">
-        <ConeGeometry :radius="1.5" :height="3" />
-        <MeshStandardMaterial :color="0xffff00" :wireframe="false" />
-      </Mesh>
+      <ThreeMesh :position="[-4, 2, 0]">
+        <ThreeSphereGeometry :radius="1.5" :width-segments="32" :height-segments="16" />
+        <ThreeMeshStandardMaterial :color="0xff0000" :wireframe="false" />
+      </ThreeMesh>
 
       <!-- 圆环 -->
-      <Mesh :position="[8, 2, 0]">
-        <TorusGeometry :radius="2" :tube="0.5" />
-        <MeshStandardMaterial :color="0xff00ff" :wireframe="false" />
-      </Mesh>
+      <ThreeMesh :position="[0, 2, 0]">
+        <ThreeTorusGeometry :radius="2" :tube="0.5" />
+        <ThreeMeshStandardMaterial :color="0x0000ff" :wireframe="false" />
+      </ThreeMesh>
 
-      <!-- 八面体 -->
-      <Mesh :position="[-8, 6, 0]">
-        <OctahedronGeometry :radius="1.5" />
-        <MeshStandardMaterial :color="0x00ffff" :wireframe="false" />
-      </Mesh>
+      <!-- 平面 -->
+      <ThreeMesh :position="[4, 2, 0]">
+        <ThreePlaneGeometry :width="3" :height="3" />
+        <ThreeMeshStandardMaterial :color="0xffff00" :wireframe="false" />
+      </ThreeMesh>
 
-      <!-- 四面体 -->
-      <Mesh :position="[-4, 6, 0]">
-        <TetrahedronGeometry :radius="1.5" />
-        <MeshStandardMaterial :color="0xff8800" :wireframe="false" />
-      </Mesh>
+      <!-- 线框立方体 -->
+      <ThreeMesh :position="[8, 2, 0]">
+        <ThreeBoxGeometry :width="2" :height="2" :depth="2" />
+        <ThreeMeshStandardMaterial :color="0xff00ff" :wireframe="true" />
+      </ThreeMesh>
 
-      <!-- 二十面体 -->
-      <Mesh :position="[0, 6, 0]">
-        <IcosahedronGeometry :radius="1.5" />
-        <MeshStandardMaterial :color="0x8800ff" :wireframe="false" />
-      </Mesh>
+      <!-- 线框球体 -->
+      <ThreeMesh :position="[-8, 6, 0]">
+        <ThreeSphereGeometry :radius="1.5" />
+        <ThreeMeshStandardMaterial :color="0x00ffff" :wireframe="true" />
+      </ThreeMesh>
 
-      <!-- 十二面体 -->
-      <Mesh :position="[4, 6, 0]">
-        <DodecahedronGeometry :radius="1.5" />
-        <MeshStandardMaterial :color="0x0088ff" :wireframe="false" />
-      </Mesh>
+      <!-- 线框圆环 -->
+      <ThreeMesh :position="[-4, 6, 0]">
+        <ThreeTorusGeometry :radius="1.5" :tube="0.4" />
+        <ThreeMeshStandardMaterial :color="0xff8800" :wireframe="true" />
+      </ThreeMesh>
 
-      <!-- 圆环结 -->
-      <Mesh :position="[8, 6, 0]">
-        <TorusKnotGeometry :radius="1.5" :tube="0.4" />
-        <MeshStandardMaterial :color="0xff0088" :wireframe="false" />
-      </Mesh>
+      <!-- 线框平面 -->
+      <ThreeMesh :position="[0, 6, 0]">
+        <ThreePlaneGeometry :width="3" :height="3" />
+        <ThreeMeshStandardMaterial :color="0x8800ff" :wireframe="true" />
+      </ThreeMesh>
 
-      <OrbitControls />
-    </ThreeRenderer>
+      <!-- 基础材质球体 -->
+      <ThreeMesh :position="[4, 6, 0]">
+        <ThreeSphereGeometry :radius="1.5" />
+        <ThreeMeshBasicMaterial :color="0x0088ff" />
+      </ThreeMesh>
+
+      <!-- 基础材质立方体 -->
+      <ThreeMesh :position="[8, 6, 0]">
+        <ThreeBoxGeometry :width="2" :height="2" :depth="2" />
+        <ThreeMeshBasicMaterial :color="0xff0088" />
+      </ThreeMesh>
+
+      <ThreeOrbitControls />
+    </ThreeCanvas>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import {
-  ThreeRenderer,
-  PerspectiveCamera,
-  AmbientLight,
-  DirectionalLight,
-  GridHelper,
-  AxesHelper,
-  Mesh,
-  BoxGeometry,
-  SphereGeometry,
-  CylinderGeometry,
-  ConeGeometry,
-  TorusGeometry,
-  OctahedronGeometry,
-  TetrahedronGeometry,
-  IcosahedronGeometry,
-  DodecahedronGeometry,
-  TorusKnotGeometry,
-  MeshStandardMaterial,
-  OrbitControls
-} from 'three-render'
 
 const width = ref(window.innerWidth)
 const height = ref(window.innerHeight)

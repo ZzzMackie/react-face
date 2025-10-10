@@ -1,11 +1,11 @@
 <template>
   <div class="animation-demo">
-    <ThreeRenderer
+    <ThreeCanvas
       :width="width"
       :height="height"
       :background="background"
     >
-      <PerspectiveCamera
+      <ThreeCamera
         :position="[0, 10, 20]"
         :fov="60"
         :aspect="width / height"
@@ -13,65 +13,65 @@
         :far="1000"
       />
 
-      <AmbientLight :intensity="0.4" />
-      <DirectionalLight :position="[10, 10, 5]" :intensity="0.8" />
+      <ThreeAmbientLight :intensity="0.4" />
+      <ThreeDirectionalLight :position="[10, 10, 5]" :intensity="0.8" />
 
-      <GridHelper :size="30" :divisions="30" />
+      <ThreeGridHelper :size="30" :divisions="30" />
 
       <!-- 旋转的立方体 -->
-      <Mesh
+      <ThreeMesh
         :position="[-8, 2, 0]"
         :rotation="[rotation, rotation * 2, rotation * 0.5]"
       >
-        <BoxGeometry :width="2" :height="2" :depth="2" />
-        <MeshStandardMaterial :color="0x00ff00" />
-      </Mesh>
+        <ThreeBoxGeometry :width="2" :height="2" :depth="2" />
+        <ThreeMeshStandardMaterial :color="0x00ff00" />
+      </ThreeMesh>
 
       <!-- 弹跳的球体 -->
-      <Mesh :position="[-4, bounceHeight, 0]">
-        <SphereGeometry :radius="1" />
-        <MeshStandardMaterial :color="0xff0000" />
-      </Mesh>
+      <ThreeMesh :position="[-4, bounceHeight, 0]">
+        <ThreeSphereGeometry :radius="1" />
+        <ThreeMeshStandardMaterial :color="0xff0000" />
+      </ThreeMesh>
 
       <!-- 波浪运动的立方体 -->
-      <Mesh
+      <ThreeMesh
         :position="[0, 2 + Math.sin(waveTime) * 2, 0]"
         :rotation="[0, waveTime, 0]"
       >
-        <BoxGeometry :width="2" :height="2" :depth="2" />
-        <MeshStandardMaterial :color="0x0000ff" />
-      </Mesh>
+        <ThreeBoxGeometry :width="2" :height="2" :depth="2" />
+        <ThreeMeshStandardMaterial :color="0x0000ff" />
+      </ThreeMesh>
 
       <!-- 螺旋运动的球体 -->
-      <Mesh
+      <ThreeMesh
         :position="[
           4 + Math.cos(spiralTime) * 3,
           2 + Math.sin(spiralTime) * 2,
           Math.sin(spiralTime) * 2
         ]"
       >
-        <SphereGeometry :radius="0.8" />
-        <MeshStandardMaterial :color="0xffff00" />
-      </Mesh>
+        <ThreeSphereGeometry :radius="0.8" />
+        <ThreeMeshStandardMaterial :color="0xffff00" />
+      </ThreeMesh>
 
       <!-- 缩放动画的立方体 -->
-      <Mesh
+      <ThreeMesh
         :position="[8, 2, 0]"
         :scale="[scale, scale, scale]"
         :rotation="[0, rotation, 0]"
       >
-        <BoxGeometry :width="2" :height="2" :depth="2" />
-        <MeshStandardMaterial :color="0xff00ff" />
-      </Mesh>
+        <ThreeBoxGeometry :width="2" :height="2" :depth="2" />
+        <ThreeMeshStandardMaterial :color="0xff00ff" />
+      </ThreeMesh>
 
       <!-- 颜色变化的球体 -->
-      <Mesh :position="[-8, 6, 0]">
-        <SphereGeometry :radius="1" />
-        <MeshStandardMaterial :color="colorChange" />
-      </Mesh>
+      <ThreeMesh :position="[-8, 6, 0]">
+        <ThreeSphereGeometry :radius="1" />
+        <ThreeMeshStandardMaterial :color="colorChange" />
+      </ThreeMesh>
 
       <!-- 轨道运动的立方体 -->
-      <Mesh
+      <ThreeMesh
         :position="[
           Math.cos(orbitTime) * 4,
           6,
@@ -79,47 +79,35 @@
         ]"
         :rotation="[0, orbitTime, 0]"
       >
-        <BoxGeometry :width="1.5" :height="1.5" :depth="1.5" />
-        <MeshStandardMaterial :color="0x00ffff" />
-      </Mesh>
+        <ThreeBoxGeometry :width="1.5" :height="1.5" :depth="1.5" />
+        <ThreeMeshStandardMaterial :color="0x00ffff" />
+      </ThreeMesh>
 
       <!-- 脉冲动画的球体 -->
-      <Mesh
+      <ThreeMesh
         :position="[0, 6, 0]"
         :scale="[pulse, pulse, pulse]"
       >
-        <SphereGeometry :radius="1" />
-        <MeshStandardMaterial :color="0xff8800" />
-      </Mesh>
+        <ThreeSphereGeometry :radius="1" />
+        <ThreeMeshStandardMaterial :color="0xff8800" />
+      </ThreeMesh>
 
       <!-- 摇摆的立方体 -->
-      <Mesh
+      <ThreeMesh
         :position="[8, 6, 0]"
         :rotation="[0, 0, Math.sin(swingTime) * 0.5]"
       >
-        <BoxGeometry :width="2" :height="2" :depth="2" />
-        <MeshStandardMaterial :color="0x8800ff" />
-      </Mesh>
+        <ThreeBoxGeometry :width="2" :height="2" :depth="2" />
+        <ThreeMeshStandardMaterial :color="0x8800ff" />
+      </ThreeMesh>
 
-      <OrbitControls />
-    </ThreeRenderer>
+      <ThreeOrbitControls />
+    </ThreeCanvas>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import {
-  ThreeRenderer,
-  PerspectiveCamera,
-  AmbientLight,
-  DirectionalLight,
-  GridHelper,
-  Mesh,
-  BoxGeometry,
-  SphereGeometry,
-  MeshStandardMaterial,
-  OrbitControls
-} from 'three-render'
 
 const width = ref(window.innerWidth)
 const height = ref(window.innerHeight)

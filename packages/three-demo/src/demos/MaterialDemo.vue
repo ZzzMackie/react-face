@@ -1,11 +1,11 @@
 <template>
   <div class="material-demo">
-    <ThreeRenderer
+    <ThreeCanvas
       :width="width"
       :height="height"
       :background="background"
     >
-      <PerspectiveCamera
+      <ThreeCamera
         :position="[0, 5, 15]"
         :fov="60"
         :aspect="width / height"
@@ -13,102 +13,81 @@
         :far="1000"
       />
 
-      <AmbientLight :intensity="0.4" />
-      <DirectionalLight :position="[10, 10, 5]" :intensity="0.8" />
-      <PointLight :position="[0, 10, 0]" :intensity="0.5" />
+      <ThreeAmbientLight :intensity="0.4" />
+      <ThreeDirectionalLight :position="[10, 10, 5]" :intensity="0.8" />
+      <ThreePointLight :position="[0, 10, 0]" :intensity="0.5" />
 
-      <GridHelper :size="20" :divisions="20" />
+      <ThreeGridHelper :size="20" :divisions="20" />
 
       <!-- 标准材质 -->
-      <Mesh :position="[-6, 2, 0]" :rotation="[rotation, rotation, 0]">
-        <BoxGeometry :width="2" :height="2" :depth="2" />
-        <MeshStandardMaterial 
+      <ThreeMesh :position="[-6, 2, 0]" :rotation="[rotation, rotation, 0]">
+        <ThreeBoxGeometry :width="2" :height="2" :depth="2" />
+        <ThreeMeshStandardMaterial 
           :color="0x00ff00" 
           :metalness="0.1" 
           :roughness="0.8" 
         />
-      </Mesh>
+      </ThreeMesh>
 
       <!-- 金属材质 -->
-      <Mesh :position="[-2, 2, 0]" :rotation="[rotation, rotation, 0]">
-        <BoxGeometry :width="2" :height="2" :depth="2" />
-        <MeshStandardMaterial 
+      <ThreeMesh :position="[-2, 2, 0]" :rotation="[rotation, rotation, 0]">
+        <ThreeBoxGeometry :width="2" :height="2" :depth="2" />
+        <ThreeMeshStandardMaterial 
           :color="0x888888" 
           :metalness="1.0" 
           :roughness="0.1" 
         />
-      </Mesh>
+      </ThreeMesh>
 
       <!-- 塑料材质 -->
-      <Mesh :position="[2, 2, 0]" :rotation="[rotation, rotation, 0]">
-        <BoxGeometry :width="2" :height="2" :depth="2" />
-        <MeshStandardMaterial 
+      <ThreeMesh :position="[2, 2, 0]" :rotation="[rotation, rotation, 0]">
+        <ThreeBoxGeometry :width="2" :height="2" :depth="2" />
+        <ThreeMeshStandardMaterial 
           :color="0xff0000" 
           :metalness="0.0" 
           :roughness="0.3" 
         />
-      </Mesh>
+      </ThreeMesh>
 
-      <!-- 玻璃材质 -->
-      <Mesh :position="[6, 2, 0]" :rotation="[rotation, rotation, 0]">
-        <BoxGeometry :width="2" :height="2" :depth="2" />
-        <MeshPhysicalMaterial 
+      <!-- 基础材质 -->
+      <ThreeMesh :position="[6, 2, 0]" :rotation="[rotation, rotation, 0]">
+        <ThreeBoxGeometry :width="2" :height="2" :depth="2" />
+        <ThreeMeshBasicMaterial 
           :color="0xffffff" 
-          :metalness="0.0" 
-          :roughness="0.0"
-          :transmission="0.9"
-          :thickness="0.5"
         />
-      </Mesh>
+      </ThreeMesh>
 
       <!-- 线框材质 -->
-      <Mesh :position="[-6, 6, 0]">
-        <SphereGeometry :radius="1" />
-        <MeshBasicMaterial :color="0x00ffff" :wireframe="true" />
-      </Mesh>
+      <ThreeMesh :position="[-6, 6, 0]">
+        <ThreeSphereGeometry :radius="1" />
+        <ThreeMeshBasicMaterial :color="0x00ffff" :wireframe="true" />
+      </ThreeMesh>
 
       <!-- 发光材质 -->
-      <Mesh :position="[-2, 6, 0]">
-        <SphereGeometry :radius="1" />
-        <MeshBasicMaterial :color="0xffff00" />
-      </Mesh>
+      <ThreeMesh :position="[-2, 6, 0]">
+        <ThreeSphereGeometry :radius="1" />
+        <ThreeMeshBasicMaterial :color="0xffff00" />
+      </ThreeMesh>
 
-      <!-- 法线材质 -->
-      <Mesh :position="[2, 6, 0]">
-        <SphereGeometry :radius="1" />
-        <MeshNormalMaterial />
-      </Mesh>
+      <!-- 标准材质球体 -->
+      <ThreeMesh :position="[2, 6, 0]">
+        <ThreeSphereGeometry :radius="1" />
+        <ThreeMeshStandardMaterial :color="0x8800ff" />
+      </ThreeMesh>
 
-      <!-- 深度材质 -->
-      <Mesh :position="[6, 6, 0]">
-        <SphereGeometry :radius="1" />
-        <MeshDepthMaterial />
-      </Mesh>
+      <!-- 基础材质立方体 -->
+      <ThreeMesh :position="[6, 6, 0]">
+        <ThreeBoxGeometry :width="2" :height="2" :depth="2" />
+        <ThreeMeshBasicMaterial :color="0xff0088" />
+      </ThreeMesh>
 
-      <OrbitControls />
-    </ThreeRenderer>
+      <ThreeOrbitControls />
+    </ThreeCanvas>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import {
-  ThreeRenderer,
-  PerspectiveCamera,
-  AmbientLight,
-  DirectionalLight,
-  PointLight,
-  GridHelper,
-  Mesh,
-  BoxGeometry,
-  SphereGeometry,
-  MeshStandardMaterial,
-  MeshPhysicalMaterial,
-  MeshBasicMaterial,
-  MeshNormalMaterial,
-  MeshDepthMaterial,
-  OrbitControls
-} from 'three-render'
 
 const width = ref(window.innerWidth)
 const height = ref(window.innerHeight)

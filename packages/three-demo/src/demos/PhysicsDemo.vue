@@ -1,11 +1,11 @@
 <template>
   <div class="physics-demo">
-    <ThreeRenderer
+    <ThreeCanvas
       :width="width"
       :height="height"
       :background="background"
     >
-      <PerspectiveCamera
+      <ThreeCamera
         :position="[0, 15, 25]"
         :fov="60"
         :aspect="width / height"
@@ -13,110 +13,68 @@
         :far="1000"
       />
 
-      <AmbientLight :intensity="0.4" />
-      <DirectionalLight :position="[10, 10, 5]" :intensity="0.8" />
+      <ThreeAmbientLight :intensity="0.4" />
+      <ThreeDirectionalLight :position="[10, 10, 5]" :intensity="0.8" />
 
-      <!-- 物理世界 -->
-      <PhysicsWorld :gravity="[0, -9.81, 0]">
-        <!-- 地面 -->
-        <PhysicsBody :type="'static'" :position="[0, -5, 0]">
-          <Mesh :receive-shadow="true">
-            <PlaneGeometry :width="20" :height="20" />
-            <MeshStandardMaterial :color="0x808080" />
-          </Mesh>
-          <PlaneCollider :width="20" :height="20" />
-        </PhysicsBody>
+      <!-- 地面 -->
+      <ThreeMesh :position="[0, -5, 0]" :receive-shadow="true">
+        <ThreePlaneGeometry :width="20" :height="20" />
+        <ThreeMeshStandardMaterial :color="0x808080" />
+      </ThreeMesh>
 
-        <!-- 左墙 -->
-        <PhysicsBody :type="'static'" :position="[-10, 0, 0]">
-          <Mesh>
-            <BoxGeometry :width="1" :height="10" :depth="20" />
-            <MeshStandardMaterial :color="0x444444" />
-          </Mesh>
-          <BoxCollider :width="1" :height="10" :depth="20" />
-        </PhysicsBody>
+      <!-- 左墙 -->
+      <ThreeMesh :position="[-10, 0, 0]">
+        <ThreeBoxGeometry :width="1" :height="10" :depth="20" />
+        <ThreeMeshStandardMaterial :color="0x444444" />
+      </ThreeMesh>
 
-        <!-- 右墙 -->
-        <PhysicsBody :type="'static'" :position="[10, 0, 0]">
-          <Mesh>
-            <BoxGeometry :width="1" :height="10" :depth="20" />
-            <MeshStandardMaterial :color="0x444444" />
-          </Mesh>
-          <BoxCollider :width="1" :height="10" :depth="20" />
-        </PhysicsBody>
+      <!-- 右墙 -->
+      <ThreeMesh :position="[10, 0, 0]">
+        <ThreeBoxGeometry :width="1" :height="10" :depth="20" />
+        <ThreeMeshStandardMaterial :color="0x444444" />
+      </ThreeMesh>
 
-        <!-- 后墙 -->
-        <PhysicsBody :type="'static'" :position="[0, 0, -10]">
-          <Mesh>
-            <BoxGeometry :width="20" :height="10" :depth="1" />
-            <MeshStandardMaterial :color="0x444444" />
-          </Mesh>
-          <BoxCollider :width="20" :height="10" :depth="1" />
-        </PhysicsBody>
+      <!-- 后墙 -->
+      <ThreeMesh :position="[0, 0, -10]">
+        <ThreeBoxGeometry :width="20" :height="10" :depth="1" />
+        <ThreeMeshStandardMaterial :color="0x444444" />
+      </ThreeMesh>
 
-        <!-- 前墙 -->
-        <PhysicsBody :type="'static'" :position="[0, 0, 10]">
-          <Mesh>
-            <BoxGeometry :width="20" :height="10" :depth="1" />
-            <MeshStandardMaterial :color="0x444444" />
-          </Mesh>
-          <BoxCollider :width="20" :height="10" :depth="1" />
-        </PhysicsBody>
+      <!-- 前墙 -->
+      <ThreeMesh :position="[0, 0, 10]">
+        <ThreeBoxGeometry :width="20" :height="10" :depth="1" />
+        <ThreeMeshStandardMaterial :color="0x444444" />
+      </ThreeMesh>
 
-        <!-- 动态球体 -->
-        <PhysicsBody
-          v-for="(ball, index) in balls"
-          :key="index"
-          :type="'dynamic'"
-          :position="ball.position"
-          :mass="1"
-        >
-          <Mesh :cast-shadow="true">
-            <SphereGeometry :radius="0.5" />
-            <MeshStandardMaterial :color="ball.color" />
-          </Mesh>
-          <SphereCollider :radius="0.5" />
-        </PhysicsBody>
+      <!-- 动态球体 -->
+      <ThreeMesh
+        v-for="(ball, index) in balls"
+        :key="index"
+        :position="ball.position"
+        :cast-shadow="true"
+      >
+        <ThreeSphereGeometry :radius="0.5" />
+        <ThreeMeshStandardMaterial :color="ball.color" />
+      </ThreeMesh>
 
-        <!-- 动态立方体 -->
-        <PhysicsBody
-          v-for="(cube, index) in cubes"
-          :key="`cube-${index}`"
-          :type="'dynamic'"
-          :position="cube.position"
-          :mass="2"
-        >
-          <Mesh :cast-shadow="true">
-            <BoxGeometry :width="1" :height="1" :depth="1" />
-            <MeshStandardMaterial :color="cube.color" />
-          </Mesh>
-          <BoxCollider :width="1" :height="1" :depth="1" />
-        </PhysicsBody>
+      <!-- 动态立方体 -->
+      <ThreeMesh
+        v-for="(cube, index) in cubes"
+        :key="`cube-${index}`"
+        :position="cube.position"
+        :cast-shadow="true"
+      >
+        <ThreeBoxGeometry :width="1" :height="1" :depth="1" />
+        <ThreeMeshStandardMaterial :color="cube.color" />
+      </ThreeMesh>
 
-        <!-- 圆柱体 -->
-        <PhysicsBody
-          v-for="(cylinder, index) in cylinders"
-          :key="`cylinder-${index}`"
-          :type="'dynamic'"
-          :position="cylinder.position"
-          :mass="1.5"
-        >
-          <Mesh :cast-shadow="true">
-            <CylinderGeometry :radius-top="0.5" :radius-bottom="0.5" :height="1" />
-            <MeshStandardMaterial :color="cylinder.color" />
-          </Mesh>
-          <CylinderCollider :radius-top="0.5" :radius-bottom="0.5" :height="1" />
-        </PhysicsBody>
-      </PhysicsWorld>
-
-      <OrbitControls />
-    </ThreeRenderer>
+      <ThreeOrbitControls />
+    </ThreeCanvas>
 
     <!-- 控制面板 -->
     <div class="physics-controls">
       <button @click="addBall">添加球体</button>
       <button @click="addCube">添加立方体</button>
-      <button @click="addCylinder">添加圆柱体</button>
       <button @click="clearObjects">清空对象</button>
     </div>
   </div>
@@ -124,25 +82,6 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import {
-  ThreeRenderer,
-  PerspectiveCamera,
-  AmbientLight,
-  DirectionalLight,
-  Mesh,
-  BoxGeometry,
-  SphereGeometry,
-  CylinderGeometry,
-  PlaneGeometry,
-  MeshStandardMaterial,
-  OrbitControls,
-  PhysicsWorld,
-  PhysicsBody,
-  BoxCollider,
-  SphereCollider,
-  CylinderCollider,
-  PlaneCollider
-} from 'three-render'
 
 const width = ref(window.innerWidth)
 const height = ref(window.innerHeight)
@@ -150,7 +89,6 @@ const background = ref(0x000000)
 
 const balls = ref<any[]>([])
 const cubes = ref<any[]>([])
-const cylinders = ref<any[]>([])
 
 const colors = [
   0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0xff00ff, 0x00ffff,
@@ -173,18 +111,9 @@ const addCube = () => {
   })
 }
 
-const addCylinder = () => {
-  const color = colors[Math.floor(Math.random() * colors.length)]
-  cylinders.value.push({
-    position: [Math.random() * 10 - 5, 10, Math.random() * 10 - 5],
-    color
-  })
-}
-
 const clearObjects = () => {
   balls.value = []
   cubes.value = []
-  cylinders.value = []
 }
 
 const handleResize = () => {
@@ -196,7 +125,6 @@ onMounted(() => {
   // 初始化一些对象
   addBall()
   addCube()
-  addCylinder()
   
   window.addEventListener('resize', handleResize)
 })
