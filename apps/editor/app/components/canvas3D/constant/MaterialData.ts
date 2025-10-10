@@ -366,7 +366,8 @@ export const sampleMaterials: Material[] = [
             zIndex: 1,
             color: '#ffffff',
             strokeColor: '#cccccc',
-            strokeWidth: 1
+            strokeWidth: 1,
+            locked: false
           },
           {
             id: 'layer-002',
@@ -385,7 +386,8 @@ export const sampleMaterials: Material[] = [
             rotation: 0,
             opacity: 1,
             visible: true,
-            zIndex: 2
+            zIndex: 2,
+            locked: false
           }
         ],
         canvasSize: { width: 200, height: 300 },
@@ -423,7 +425,8 @@ export const sampleMaterials: Material[] = [
             zIndex: 1,
             color: '#f8f9fa',
             strokeColor: '#cccccc',
-            strokeWidth: 1
+            strokeWidth: 1,
+            locked: false
           }
         ],
         canvasSize: { width: 200, height: 300 },
@@ -482,7 +485,8 @@ export const sampleMaterialData: MaterialData[] = [
         zIndex: 1,
         color: '#ff0000',
         strokeColor: '#cc0000',
-        strokeWidth: 2
+        strokeWidth: 2,
+        locked: false
       }
     ],
     model: {
