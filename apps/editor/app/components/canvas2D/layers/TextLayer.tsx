@@ -40,7 +40,7 @@ export default function TextLayer({
             lineHeight={(layer as any).lineHeight}
             letterSpacing={(layer as any).letterSpacing}
             opacity={layer.opacity}
-            draggable
+            draggable={!layer.locked}
             onClick={onClick}
             onTap={onTap}
             onDragEnd={onDragEnd}

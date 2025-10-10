@@ -6,14 +6,29 @@ import { BaseEditor, EDITOR_CONFIGS } from './BaseEditor';
 interface RectangleEditorProps {
   layer: MaterialLayer;
   onUpdate: (updates: Partial<MaterialLayer>) => void;
+  onDelete?: (layerId: string) => void;
+  onCopy?: (layer: MaterialLayer) => void;
+  onMoveUp?: (layerId: string) => void;
+  onMoveDown?: (layerId: string) => void;
 }
 
-export function RectangleEditor({ layer, onUpdate }: RectangleEditorProps) {
+export function RectangleEditor({ 
+  layer, 
+  onUpdate, 
+  onDelete, 
+  onCopy, 
+  onMoveUp, 
+  onMoveDown 
+}: RectangleEditorProps) {
   return (
     <BaseEditor 
       layer={layer} 
       onUpdate={onUpdate} 
-      config={EDITOR_CONFIGS.rectangle} 
+      config={EDITOR_CONFIGS.rectangle}
+      onDelete={onDelete}
+      onCopy={onCopy}
+      onMoveUp={onMoveUp}
+      onMoveDown={onMoveDown}
     />
   );
 }

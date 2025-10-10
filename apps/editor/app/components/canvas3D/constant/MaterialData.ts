@@ -10,6 +10,7 @@ export interface BaseLayer {
   rotation: number;
   opacity: number;
   visible: boolean;
+  locked: boolean; // 图层锁定状态
   zIndex: number; // 图层层级
 }
 
@@ -32,6 +33,31 @@ export interface ImageLayer extends BaseLayer {
   borderColor?: string;
   borderWidth?: number;
   borderRadius?: number;
+  // 图片样式属性
+  brightness?: number; // 亮度 0-200 (100为默认)
+  contrast?: number; // 对比度 0-200 (100为默认)
+  saturation?: number; // 饱和度 0-200 (100为默认)
+  hue?: number; // 色相 -180到180 (0为默认)
+  blur?: number; // 模糊 0-20 (0为默认)
+  flipHorizontal?: boolean; // 水平翻转
+  flipVertical?: boolean; // 垂直翻转
+  // 更多滤镜效果
+  sharpen?: number; // 锐化 0-100 (0为默认)
+  shadowBlur?: number; // 阴影模糊 0-50 (0为默认)
+  shadowOffsetX?: number; // 阴影X偏移 -50到50 (0为默认)
+  shadowOffsetY?: number; // 阴影Y偏移 -50到50 (0为默认)
+  shadowColor?: string; // 阴影颜色 #000000 (默认)
+  emboss?: number; // 浮雕效果 0-100 (0为默认)
+  sepia?: number; // 棕褐色 0-100 (0为默认)
+  invert?: boolean; // 反色效果
+  grayscale?: boolean; // 灰度效果
+  // 裁切区域
+  crop?: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
 }
 
 // 文字图层

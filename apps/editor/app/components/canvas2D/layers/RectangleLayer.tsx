@@ -35,7 +35,7 @@ export default function RectangleLayer({
             stroke={strokeColor}
             strokeWidth={strokeWidth}
             opacity={layer.opacity}
-            draggable
+            draggable={!layer.locked}
             onClick={onClick}
             onTap={onTap}
             onDragEnd={onDragEnd}

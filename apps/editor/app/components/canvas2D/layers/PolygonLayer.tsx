@@ -39,7 +39,7 @@ export default function PolygonLayer({
             strokeWidth={strokeWidth}
             opacity={layer.opacity}
             closed
-            draggable
+            draggable={!layer.locked}
             onClick={onClick}
             onTap={onTap}
             onDragEnd={onDragEnd}

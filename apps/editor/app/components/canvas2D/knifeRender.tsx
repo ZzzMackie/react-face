@@ -5,6 +5,8 @@ import { useUndoRedoState } from '@/hooks/useGlobalUndoRedo';
 import { useContainerResize } from '@/hooks/useContainerResize';
 import { MaterialData, MaterialLayer, MaterialMesh, Knife } from '../canvas3D/constant/MaterialData';
 import { LayerEditPanel } from './panels';
+import LayerContextMenu from './panels/LayerContextMenu';
+import { ContextMenu, ContextMenuTrigger } from '@/components/ui/context-menu';
 import Konva from 'konva';
 import { Layer, Stage, Transformer, Rect, Line } from 'react-konva';
 import { RectangleLayer, CircleLayer, PolygonLayer, ImageLayer, TextLayer } from './layers';
@@ -70,6 +72,7 @@ const defaultMaterialData: MaterialData = {
       rotation: 0,
       opacity: 1,
       visible: true,
+      locked: false,
       zIndex: 1,
       color: '#ff0000',
       strokeColor: '#cc0000',
@@ -106,6 +109,9 @@ const KnifeRender = forwardRef<KnifeRenderRef, KnifeRenderProps>(({
     const stageRef = useRef<Konva.Stage>(null);
     const transformerRef = useRef<Konva.Transformer>(null);
     const [loadedImages, setLoadedImages] = useState<Map<string, HTMLImageElement>>(new Map());
+    const [contextMenuLayer, setContextMenuLayer] = useState<MaterialLayer | null>(null);
+    const [contextMenuPosition, setContextMenuPosition] = useState<{ x: number; y: number } | null>(null);
+    const [isContextMenuActive, setIsContextMenuActive] = useState(false);
 
     useEffect(() => {
         setIsClient(true);
@@ -166,22 +172,34 @@ const KnifeRender = forwardRef<KnifeRenderRef, KnifeRenderProps>(({
         if (!knifeData?.layers) return;
         
         const newLayers = knifeData.layers.filter(layer => layer.id !== layerId);
+        
+        // 如果删除的是当前选中的图层，清除选择
+        if (currentSelectedLayerId === layerId) {
+            if (onLayerSelect) {
+                onLayerSelect('');
+            } else {
+                setInternalSelectedLayerId(undefined);
+            }
+        }
+        
         updateState({ ...knifeData, layers: newLayers } as Knife, 'delete-layer');
-    }, [knifeData, updateState]);
+    }, [knifeData, updateState, currentSelectedLayerId, onLayerSelect]);
 
     // 处理图层复制
     const handleLayerCopy = useCallback((layer: MaterialLayer) => {
         if (!knifeData?.layers) return;
         
+        const timestamp = Date.now();
         const newLayer = {
             ...layer,
-            id: `layer-${Date.now()}`,
+            id: `${layer.id}-clone-${timestamp}`,
             name: `${layer.name} 副本`,
             position: { 
                 x: (layer.position?.x || 0) + 20, 
                 y: (layer.position?.y || 0) + 20 
             },
-            zIndex: knifeData.layers.length
+            zIndex: knifeData.layers.length,
+            locked: false // 复制的图层默认不锁定
         };
         
         const newLayers = [...knifeData.layers, newLayer];
@@ -243,6 +261,7 @@ const KnifeRender = forwardRef<KnifeRenderRef, KnifeRenderProps>(({
             rotation: 0,
             opacity: 1,
             visible: true,
+            locked: false,
             zIndex: knifeData.layers.length,
             color: '#3b82f6',
             strokeColor: '#1e40af',
@@ -259,7 +278,10 @@ const KnifeRender = forwardRef<KnifeRenderRef, KnifeRenderProps>(({
                 lineHeight: 1.2,
                 letterSpacing: 0
             }),
-            ...(layerType === 'image' && { imageUrl: '' }),
+            ...(layerType === 'image' && { 
+                imageUrl: '',
+                fit: 'cover'
+            }),
             ...(layerType === 'polygon' && { 
                 points: [
                     { x: 0, y: 0 },
@@ -288,6 +310,7 @@ const KnifeRender = forwardRef<KnifeRenderRef, KnifeRenderProps>(({
             setInternalSelectedLayerId(undefined);
         }
     }, [onLayerSelect]);
+
     // 使用useMemo优化默认数据的选择
     const initialData = useMemo(() => {
       return materialData || defaultMaterialData;
@@ -467,6 +490,10 @@ const KnifeRender = forwardRef<KnifeRenderRef, KnifeRenderProps>(({
     // 通用事件处理器
     const createLayerEventHandlers = useCallback((layer: MaterialLayer) => {
         const handleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+            // 如果右键菜单激活，不触发图层选择
+            if (isContextMenuActive) {
+                return;
+            }
             handleLayerSelect(layer.id);
             e.cancelBubble = true;
         };
@@ -487,7 +514,7 @@ const KnifeRender = forwardRef<KnifeRenderRef, KnifeRenderProps>(({
         };
 
         return { handleClick, handleDragEnd };
-    }, [knifeData, updateState, notifyCanvasUpdate, handleLayerSelect]);
+    }, [knifeData, updateState, notifyCanvasUpdate, handleLayerSelect, isContextMenuActive]);
 
 
     // 通用样式计算
@@ -588,15 +615,62 @@ const KnifeRender = forwardRef<KnifeRenderRef, KnifeRenderProps>(({
                 </div>
             </div>
             
-            {(
-                <Stage 
-                    id="knife-render-canvas" 
-                    ref={stageRef} 
-                    className={styles.canvas_container} 
-                    width={renderSize.width} 
-                    height={renderSize.height}
-                    onClick={handleStageClick}
-                >
+            <ContextMenu>
+                <ContextMenuTrigger asChild>
+                    <Stage 
+                        id="knife-render-canvas" 
+                        ref={stageRef} 
+                        className={styles.canvas_container} 
+                        width={renderSize.width} 
+                        height={renderSize.height}
+                        onClick={(e) => {
+                            // 如果点击的是Stage本身，清除菜单
+                            if (e.target === e.target.getStage()) {
+                                setContextMenuLayer(null);
+                                setContextMenuPosition(null);
+                                setIsContextMenuActive(false);
+                            }
+                            handleStageClick(e);
+                        }}
+                        onContextMenu={(e) => {
+                            e.evt.preventDefault();
+                            e.evt.stopPropagation();
+                            
+                            // 标记右键菜单激活
+                            setIsContextMenuActive(true);
+                            
+                            // 延迟重置状态，确保右键菜单完全处理
+                            setTimeout(() => {
+                                setIsContextMenuActive(false);
+                            }, 100);
+                            
+                            // 获取鼠标位置
+                            const container = stageRef.current?.container();
+                            if (!container) return;
+                            
+                            const rect = container.getBoundingClientRect();
+                            const x = e.evt.clientX - rect.left;
+                            const y = e.evt.clientY - rect.top;
+                            
+                            // 如果点击的是Stage本身，清除菜单
+                            if (e.target === e.target.getStage()) {
+                                setContextMenuLayer(null);
+                                setContextMenuPosition(null);
+                                setIsContextMenuActive(false);
+                                return;
+                            }
+                            
+                            // 查找点击的图层
+                            const layerId = e.target.id();
+                            if (layerId && knifeData?.layers) {
+                                const layer = knifeData.layers.find(l => l.id === layerId);
+                                if (layer) {
+                                    setContextMenuLayer(layer);
+                                    setContextMenuPosition({ x, y });
+                                }
+                            }
+                        }}
+                    >
                     <Layer>
                         {/* 背景 */}
                         {knifeData?.backgroundColor && (
@@ -635,8 +709,20 @@ const KnifeRender = forwardRef<KnifeRenderRef, KnifeRenderProps>(({
                             visible={true}
                         />
                     </Layer>
-                </Stage>
-            )}
+                    </Stage>
+                </ContextMenuTrigger>
+                {contextMenuLayer && contextMenuPosition && (
+                    <LayerContextMenu
+                        layer={contextMenuLayer}
+                        position={contextMenuPosition}
+                        onUpdate={(updates) => handleLayerUpdate(contextMenuLayer.id, updates)}
+                        onDelete={handleLayerDelete}
+                        onCopy={handleLayerCopy}
+                        onMoveUp={handleLayerMoveUp}
+                        onMoveDown={handleLayerMoveDown}
+                    />
+                )}
+            </ContextMenu>
             
             {/* 图层编辑面板 */}
             <LayerEditPanel
@@ -648,6 +734,7 @@ const KnifeRender = forwardRef<KnifeRenderRef, KnifeRenderProps>(({
                 onMoveUp={handleLayerMoveUp}
                 onMoveDown={handleLayerMoveDown}
             />
+
         </div>
     );
 });

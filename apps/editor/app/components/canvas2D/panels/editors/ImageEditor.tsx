@@ -6,14 +6,29 @@ import { BaseEditor, EDITOR_CONFIGS } from './BaseEditor';
 interface ImageEditorProps {
   layer: MaterialLayer;
   onUpdate: (updates: Partial<MaterialLayer>) => void;
+  onDelete?: (layerId: string) => void;
+  onCopy?: (layer: MaterialLayer) => void;
+  onMoveUp?: (layerId: string) => void;
+  onMoveDown?: (layerId: string) => void;
 }
 
-export function ImageEditor({ layer, onUpdate }: ImageEditorProps) {
+export function ImageEditor({ 
+  layer, 
+  onUpdate, 
+  onDelete, 
+  onCopy, 
+  onMoveUp, 
+  onMoveDown 
+}: ImageEditorProps) {
   return (
     <BaseEditor 
       layer={layer} 
       onUpdate={onUpdate} 
-      config={EDITOR_CONFIGS.image} 
+      config={EDITOR_CONFIGS.image}
+      onDelete={onDelete}
+      onCopy={onCopy}
+      onMoveUp={onMoveUp}
+      onMoveDown={onMoveDown}
     />
   );
 }

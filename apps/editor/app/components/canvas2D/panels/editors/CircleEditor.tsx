@@ -6,14 +6,29 @@ import { BaseEditor, EDITOR_CONFIGS } from './BaseEditor';
 interface CircleEditorProps {
   layer: MaterialLayer;
   onUpdate: (updates: Partial<MaterialLayer>) => void;
+  onDelete?: (layerId: string) => void;
+  onCopy?: (layer: MaterialLayer) => void;
+  onMoveUp?: (layerId: string) => void;
+  onMoveDown?: (layerId: string) => void;
 }
 
-export function CircleEditor({ layer, onUpdate }: CircleEditorProps) {
+export function CircleEditor({ 
+  layer, 
+  onUpdate, 
+  onDelete, 
+  onCopy, 
+  onMoveUp, 
+  onMoveDown 
+}: CircleEditorProps) {
   return (
     <BaseEditor 
       layer={layer} 
       onUpdate={onUpdate} 
-      config={EDITOR_CONFIGS.circle} 
+      config={EDITOR_CONFIGS.circle}
+      onDelete={onDelete}
+      onCopy={onCopy}
+      onMoveUp={onMoveUp}
+      onMoveDown={onMoveDown}
     />
   );
 }
